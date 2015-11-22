@@ -5,7 +5,6 @@ import com.badlogic.gdx.utils.Pool;
 import java.util.Arrays;
 import java.util.PriorityQueue;
 
-// Todo: optimize (pool)
 /**
  * @author simengangstad
  * @since 09/11/15
@@ -113,8 +112,6 @@ public class PathfindingGrid {
                     }
                 }
             }
-
-            // TODO: Pooling here
 
             //System.out.println("freeing");
 

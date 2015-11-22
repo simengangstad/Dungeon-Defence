@@ -3,68 +3,121 @@ package io.github.simengangstad.defendthecaves;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.Camera;
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Vector2;
+import io.github.simengangstad.defendthecaves.components.Drawable;
+import io.github.simengangstad.defendthecaves.components.GameObject;
 
 /**
  * @author simengangstad
  * @since 10/11/15
  */
-public class Player {
+public class Player extends GameObject implements Drawable {
 
-    public Camera camera;
+    /**
+     * The camera of the player.
+     */
+    public final Camera camera;
 
-    public int speed = 100;
+    /**
+     * The speed of the player in pixels per second.
+     */
+    public int speed = 200;
 
+    /**
+     * Reference to the drawable texture region of the player.
+     */
+    private final TextureRegion textureRegion;
+
+    /**
+     * The map the player is located in.
+     */
+    private Map map;
+
+    /**
+     * Vector used for calculating direction.
+     */
     private Vector2 tmpDirection = new Vector2();
 
+    /**
+     * Initializes the player with a camera.
+     */
     public Player(Camera camera) {
 
+        super(new Vector2(), new Vector2(25.0f, 25.0f));
+
         this.camera = camera;
+
+        textureRegion = new TextureRegion(Game.spriteSheet, 8, 16, 2, 2);
     }
 
-    public void tick(int[][] collidables, int tileSize, int playerSize) {
+    /**
+     * Sets the map the player resolves its collision against.
+     */
+    public void setMap(Map map) {
 
-        float x = camera.position.x + playerSize / 2.0f;
-        float y = camera.position.y + playerSize / 2.0f;
+        this.map = map;
+    }
 
-        float movement = speed * Gdx.graphics.getDeltaTime();
+    @Override
+    public void tick() {
 
-        tmpDirection.setZero();
+        if (map == null) {
+
+            throw new RuntimeException("Need an assigned map in order to resolve collisions.");
+        }
+
+        tmpDirection.set(0.0f, 0.0f);
 
         if (Gdx.input.isKeyPressed(Input.Keys.W)) {
 
-            tmpDirection.add(0.0f, movement);
+            tmpDirection.add(0.0f, 1.0f);
         }
 
         if (Gdx.input.isKeyPressed(Input.Keys.S)) {
 
-            tmpDirection.add(0.0f, -movement);
+            tmpDirection.add(0.0f, -1.0f);
         }
 
         if (Gdx.input.isKeyPressed(Input.Keys.A)) {
 
-            tmpDirection.add(-movement, 0.0f);
+            tmpDirection.add(-1.0f, 0.0f);
         }
 
         if (Gdx.input.isKeyPressed(Input.Keys.D)) {
 
-            tmpDirection.add(movement, 0.0f);
+            tmpDirection.add(1.0f, 0.0f);
         }
 
-        if (collidables[(int) (x + tmpDirection.x + playerSize / 2.0f) / tileSize][(int) (y + tmpDirection.y) / tileSize] >= 10 ||
-                collidables[(int) (x + tmpDirection.x - playerSize / 2.0f) / tileSize][(int) (y + tmpDirection.y) / tileSize] >= 10) {
+        if (tmpDirection.x != 0.0f || tmpDirection.y != 0.0f) {
 
-            tmpDirection.x = 0;
+            tmpDirection.nor();
 
+            map.resolveCollision(getPosition(), tmpDirection, speed);
+
+            updateCameraPosition();
         }
+    }
 
-        if (collidables[(int) (x + tmpDirection.x) / tileSize][(int) (y + tmpDirection.y + playerSize / 2.0f) / tileSize] >= 10 ||
-                collidables[(int) (x + tmpDirection.x) / tileSize][(int) (y + tmpDirection.y - playerSize / 2.0f) / tileSize] >= 10) {
+    @Override
+    public void draw(SpriteBatch batch, Vector2 position, Vector2 size) {
 
-            tmpDirection.y = 0;
-        }
+        batch.draw(textureRegion, camera.position.x, camera.position.y, size.x, size.y);
+    }
 
-        camera.translate(tmpDirection.x, tmpDirection.y, 0.0f);
+    public void updateCameraPosition() {
+
+        camera.position.set(getPosition().x, getPosition().y, 0.0f);
         camera.update();
     }
+
+    @Override
+    public TextureRegion getTextureRegion() {
+
+        return textureRegion;
+    }
+
+    @Override
+    public void dispose() {}
 }

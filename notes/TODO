@@ -1,0 +1,2 @@
+- [ ] Clean up and reduce memory footprint of MapGenerator.java by pooling.
+- [ ] Optimising PathfindingGrid.java by pooling.

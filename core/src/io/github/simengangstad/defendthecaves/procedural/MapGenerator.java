@@ -1,4 +1,4 @@
-package io.github.simengangstad.defendthecaves;
+package io.github.simengangstad.defendthecaves.procedural;
 
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
@@ -7,8 +7,6 @@ import io.github.simengangstad.defendthecaves.pathfinding.PathfindingCoordinate;
 import io.github.simengangstad.defendthecaves.pathfinding.PathfindingGrid;
 
 import java.util.*;
-
-// Todo: clean up, optimise and reduce memory footprint.
 
 /**
  * A tool for procedurally generating maps.
@@ -23,6 +21,7 @@ public class MapGenerator {
                              CircularRoom = 2;
 
     public static final int Floor = 0,
+                            Solid = 10,
                             CorridorWall = 10,
                             Wall = 11,
                             Stone = 12;
@@ -32,9 +31,6 @@ public class MapGenerator {
     private final ArrayList<Rectangle> rooms = new ArrayList<>();
 
     private static final Random random = new Random();
-
-
-   // private final PriorityQueue<PathfindingCoordinate> frontier = new PriorityQueue<>();
 
     /**
      * The array used for determining where an arbitrary point is in relative to an
@@ -78,8 +74,6 @@ public class MapGenerator {
      */
     private int tries = 0;
 
-    public ArrayList<Vector2> spawnPoints = new ArrayList<>();
-
     public MapGenerator(int width, int height, int seed) {
 
         map = new int[width][height];
@@ -95,8 +89,6 @@ public class MapGenerator {
     }
 
     public int[][] generate() {
-
-        spawnPoints.clear();
 
         placeRooms();
         constructCorridors();
@@ -229,8 +221,6 @@ public class MapGenerator {
             }
         }
 
-        spawnPoints.add(new Vector2((x - (width - 1) / 2) + random.nextInt(width - 2), (y - (height - 1) / 2) + random.nextInt(height - 2)));
-
         {
             PathfindingCoordinate coordinate = new PathfindingCoordinate((x - (width - 1) / 2) + random.nextInt(width - 2) + 1, random.nextBoolean() == true ? y + (height - 1) / 2 : y - (height - 1) / 2);
 
@@ -265,17 +255,9 @@ public class MapGenerator {
 
         constructRectangularRoom(x, y, width, height);
 
-        Vector2 spawnPoint = spawnPoints.get(spawnPoints.size() - 1);
-
         if (centreWidth == 1 && centreHeight == 1) {
 
             map[x][y] = Wall;
-
-            if (spawnPoint.x == x && spawnPoint.y == y) {
-
-                spawnPoint.x += random.nextBoolean() ? -1 : 1;
-                spawnPoint.y += random.nextBoolean() ? -1 : 1;
-            }
         }
         else {
 
@@ -285,13 +267,6 @@ public class MapGenerator {
 
                     map[xs][ys] = Wall;
                 }
-            }
-
-            if (spawnPoint.x >= x - (centreWidth - 1) / 2 && spawnPoint.y <= x + (centreWidth - 1) / 2 &&
-                    spawnPoint.y >= y - (centreHeight - 1) / 2 && spawnPoint.y <= y + (centreHeight - 1) / 2) {
-
-                spawnPoint.x = random.nextBoolean() ? x - (centreWidth - 1) / 2 - 1 :  x + (centreWidth - 1) / 2 + 1;
-                spawnPoint.y = random.nextBoolean() ? y - (centreHeight - 1) / 2 - 1 : y + (centreHeight - 1) / 2 + 1;
             }
         }
     }
@@ -418,48 +393,6 @@ public class MapGenerator {
 
                     map[current.x - 1][current.y] = CorridorWall;
                 }
-                /*
-
-                if (map[current.x][current.y + 1] != Wall) {
-
-                    map[current.x][current.y + 1] = Floor;
-
-                    if (map[current.x][current.y + 2] != Floor) {
-
-                        map[current.x][current.y + 2] = CorridorWall;
-                    }
-                }
-
-                if (map[current.x][current.y - 1] != Wall) {
-
-                    map[current.x][current.y - 1] = Floor;
-
-                    if (map[current.x][current.y - 2] != Floor) {
-
-                        map[current.x][current.y - 2] = CorridorWall;
-                    }
-                }
-
-                if (map[current.x + 1][current.y] != Wall) {
-
-                    map[current.x + 1][current.y] = Floor;
-
-                    if (map[current.x + 2][current.y] != Floor) {
-
-                        map[current.x + 2][current.y] = CorridorWall;
-                    }
-                }
-
-                if (map[current.x - 1][current.y] != Wall) {
-
-                    map[current.x - 1][current.y] = Floor;
-
-                    if (map[current.x - 2][current.y] != Floor) {
-
-                        map[current.x - 2][current.y] = CorridorWall;
-                    }
-                }
-                */
             }
         }
     }
@@ -535,7 +468,7 @@ public class MapGenerator {
         }
 
         /**
-         * @return If the given coordinate and size intersects with this rectangle.
+         * @return If the given coordinate and size isSolid with this rectangle.
          */
         public boolean intersect(int x, int y, int width, int height) {
 
@@ -547,7 +480,7 @@ public class MapGenerator {
         }
 
         /**
-         * @return If the given rectangle intersects with this rectangle.
+         * @return If the given rectangle isSolid with this rectangle.
          */
         public boolean intersect(Rectangle rectangle) {
 
