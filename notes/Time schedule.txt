@@ -1,0 +1,5 @@
+# By the 31st of December
+
+* Implement combat system
+* Implement basic AI
+* Make map editable during runtime

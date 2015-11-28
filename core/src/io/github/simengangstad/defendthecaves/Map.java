@@ -3,8 +3,8 @@ package io.github.simengangstad.defendthecaves;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.maps.tiled.TiledMapTileLayer;
 import com.badlogic.gdx.math.Vector2;
 import io.github.simengangstad.defendthecaves.procedural.MapGenerator;
 
@@ -14,6 +14,14 @@ import io.github.simengangstad.defendthecaves.procedural.MapGenerator;
  */
 public class Map {
 
+    /**
+     * The size of the sprites from the sprite sheet in pixels.
+     */
+    private final int SpriteSheetTileSize = 16;
+
+    /**
+     * Locations for the different types of walls within the sprite sheet.
+     */
     private static final Vector2[] Walls = new Vector2[] {
 
             new Vector2(-4, 2),
@@ -33,13 +41,14 @@ public class Map {
 
             new Vector2(6, 0),
             new Vector2(7, 0),
-            new Vector2(8, 0),
 
             new Vector2(9, 0),
-            new Vector2(9, 1),
-            new Vector2(9, 2)
+            new Vector2(9, 1)
     };
 
+    /**
+     *  Identifiers for the different walls.
+     */
     private static final int
 
             Fill            = 0,
@@ -58,52 +67,91 @@ public class Map {
             LeftDownCorner  = 12,
 
             LeftUpDown      = 13,
-            MidUpDown       = 14,
-            RightUpDown     = 15,
+            RightUpDown     = 14,
 
-            UpLeftRight     = 16,
-            MidLeftRight    = 17,
-            DownLeftRight   = 18;
+            UpLeftRight     = 15,
+            DownLeftRight   = 16;
 
     private final Vector2 tmpWall = new Vector2();
 
-    private final int SpriteSheetTileSize = 16;
-
+    /**
+     * The location where the walls are.
+     */
     private final Vector2 SpriteSheetWallPosition = new Vector2(80, 16);
 
+    /**
+     * Reference to the sprite sheet.
+     */
     private final Texture spriteSheet;
 
-    private final MapGenerator generator;
+    /**
+     * The states of the map.
+     */
+    private static final int Floor = 0,
+                             Solid = 1;
 
+    /**
+     * The renderable tile map.
+     */
     private final int[][] tileMap;
+
+    /**
+     * The collidable tile map.
+     */
     private final int[][] collidableMap;
 
-    public final int TileSize = 150;
-    public final float CellSize;
-    public final int GridSize;
+    /**
+     * The size of each tile in pixels.
+     */
+    public final int TileSize = 160;
+
+    /**
+     * The ratio between the (tile size and the cell size) * 2.
+     */
     public final int Subdivision;
 
+    /**
+     * The tile size divided by the subdivision..
+     */
+    public final float CellSize;
+
+    /**
+     * The amount of cells there are in the map.
+     */
+    public final int GridSize;
+
+    /**
+     * The amount of steps we do per collions check.
+     */
     public final float StepSize;
 
+    /**
+     * The collidable tile identifier.
+     */
+    private final int ExpandedObstacle = 99;
+
+    /**
+     * The current player
+     */
+    public Vector2 playerPosition;
+
+    /**
+     * Tmp values.
+     */
     private final Vector2 tmpClosestPointInCell = new Vector2(),
                           tmpTargetPosition = new Vector2(),
                           tmpDelta = new Vector2(),
                           tmpDiff = new Vector2(),
                           tmpResult = new Vector2();
 
-    private final int ExpandedObstacle = 99;
-
-    public Vector2 playerPosition;
 
     public Map(Vector2 playerSize) {
 
-        generator = new MapGenerator(50, 50, 234);
+        MapGenerator.requestedAmountOfRooms = 25;
+        MapGenerator.lowerBoundry = 5;
+        MapGenerator.upperBoundry = 11;
 
-        generator.requestedAmountOfRooms = 15;
-        generator.lowerBoundry = 7;
-        generator.upperBoundry = 13;
-
-        tileMap = generator.generate();
+        tileMap = MapGenerator.generate(50, 50);
 
         if (TileSize % playerSize.x != 0) {
 
@@ -130,7 +178,7 @@ public class Map {
 
                         for (int y2 = y1 - 2; y2 <= y1; y2++) {
 
-                            if (cellIsValid(x2, y2) && !isSolid(x2, y2) && collidableMap[x2][y2] == MapGenerator.Floor) {
+                            if (cellIsValid(x2, y2) && !isSolid(x2, y2) && collidableMap[x2][y2] == Floor) {
 
                                 collidableMap[x2][y2] = ExpandedObstacle;
                             }
@@ -143,16 +191,25 @@ public class Map {
         this.spriteSheet = Game.spriteSheet;
     }
 
+    /**
+     * @return If a tile is solid.
+     */
     public boolean isSolid(int x, int y) {
 
-        return collidableMap[x][y] >= MapGenerator.Solid;
+        return collidableMap[x][y] >= Solid;
     }
 
+    /**
+     * @return The width of the tile map.
+     */
     public int getWidth() {
 
         return tileMap.length;
     }
 
+    /**
+     * @return The height of the tile map.
+     */
     public int getHeight() {
 
         return tileMap[0].length;
@@ -234,8 +291,8 @@ public class Map {
         return position;
     }
 
-    private Vector2 closestPointInCell(final Vector2 p, final int x, final int y)
-    {
+    private Vector2 closestPointInCell(final Vector2 p, final int x, final int y) {
+
         final float minX = x * CellSize;
         final float minY = y * CellSize;
         final float maxX = minX + CellSize;
@@ -250,43 +307,64 @@ public class Map {
         return tmpClosestPointInCell;
     }
 
+    /**
+     * @return If the specified cell is valid.
+     */
     private boolean cellIsValid(final int x, final int y) {
 
         return x >= 0 && x < GridSize && y >= 0 && y < GridSize;
     }
 
+    /**
+     * Draws the map with the given batch. It will only draw the visible tiles.
+     */
     public void draw(SpriteBatch batch) {
 
         for (int y = (int) (playerPosition.y + Gdx.graphics.getHeight() / 2.0f) / TileSize; y >= (playerPosition.y - Gdx.graphics.getHeight() / 2.0f - TileSize) / TileSize; y--) {
 
             for (int x = (int) (playerPosition.x - Gdx.graphics.getWidth() / 2.0f) / TileSize; x < (playerPosition.x + Gdx.graphics.getWidth() / 2.0f) / TileSize; x++) {
 
+                // Outside bounds
+                if (x < 0 || tileMap.length <= x || y < 0 || tileMap[0].length <= y) {
+
+                    continue;
+                }
+
                 switch (tileMap[x][y]) {
 
-                    case MapGenerator.Floor:
+                    case Floor:
 
                         batch.draw(spriteSheet, x * TileSize, y * TileSize, TileSize, TileSize, 16, 32, 16, 16, false, false);
 
+                        if (tileMap[x][y + 1] != Floor) {
+
+                            batch.draw(spriteSheet, x * TileSize, y * TileSize, TileSize, TileSize, 16, 0, 16, 16, false, false);
+                        }
+
                         break;
 
-                    case MapGenerator.Wall:
-                    case MapGenerator.CorridorWall:
+                    case Solid:
 
                         tmpWall.set(Walls[Fill]);
 
                         drawWall(batch, x, y);
 
-                        // Up and down
-                        if (tileMap[x - 1][y] != MapGenerator.Floor && tileMap[x + 1][y] != MapGenerator.Floor) {
+                        boolean outsideBoundsHorisontallyUpper = tileMap.length <= (x + 1);
+                        boolean outsideBoundsHorisontallyLower = (x - 1) < 0;
+                        boolean outsideBoundsVerticallyUpper = tileMap[0].length <= (y + 1);
+                        boolean outsideBoundsVerticallyLower = (y - 1) < 0;
 
-                            if (tileMap[x][y - 1] == MapGenerator.Floor) {
+                        // Up and down
+                        if ((!outsideBoundsHorisontallyLower && tileMap[x - 1][y] != Floor) || (!outsideBoundsHorisontallyUpper && tileMap[x + 1][y] != Floor)) {
+
+                            if (!outsideBoundsVerticallyLower && tileMap[x][y - 1] == Floor) {
 
                                 tmpWall.set(Walls[MidDown]);
 
                                 drawWall(batch, x, y);
                             }
 
-                            if (tileMap[x][y + 1] == MapGenerator.Floor) {
+                            if (!outsideBoundsVerticallyUpper && tileMap[x][y + 1] == Floor) {
 
                                 tmpWall.set(Walls[MidUp]);
 
@@ -295,16 +373,16 @@ public class Map {
                         }
 
                         // Left and right
-                        if (tileMap[x][y - 1] != MapGenerator.Floor && tileMap[x][y + 1] != MapGenerator.Floor) {
+                        if ((!outsideBoundsVerticallyLower && tileMap[x][y - 1] != Floor) || (!outsideBoundsVerticallyUpper && tileMap[x][y + 1] != Floor)) {
 
-                            if (tileMap[x + 1][y] == MapGenerator.Floor) {
+                            if (!outsideBoundsHorisontallyUpper && tileMap[x + 1][y] == Floor) {
 
                                 tmpWall.set(Walls[RightMid]);
 
                                 drawWall(batch, x, y);
                             }
 
-                            if (tileMap[x - 1][y] == MapGenerator.Floor) {
+                            if (!outsideBoundsHorisontallyLower && tileMap[x - 1][y] == Floor) {
 
                                 tmpWall.set(Walls[LeftMid]);
 
@@ -313,28 +391,28 @@ public class Map {
                         }
 
                         // Corners
-                        if (tileMap[x][y + 1] != MapGenerator.Floor && tileMap[x + 1][y] != MapGenerator.Floor && tileMap[x + 1][y + 1] == MapGenerator.Floor) {
+                        if (!outsideBoundsHorisontallyUpper && !outsideBoundsVerticallyUpper && tileMap[x][y + 1] != Floor && tileMap[x + 1][y] != Floor && tileMap[x + 1][y + 1] == Floor) {
 
                             tmpWall.set(Walls[LeftDownCorner]);
 
                             drawWall(batch, x, y);
                         }
 
-                        if (tileMap[x][y + 1] != MapGenerator.Floor && tileMap[x - 1][y] != MapGenerator.Floor && tileMap[x - 1][y + 1] == MapGenerator.Floor) {
+                        if (!outsideBoundsHorisontallyLower && !outsideBoundsVerticallyUpper && tileMap[x][y + 1] != Floor && tileMap[x - 1][y] != Floor && tileMap[x - 1][y + 1] == Floor) {
 
                             tmpWall.set(Walls[RightDownCorner]);
 
                             drawWall(batch, x, y);
                         }
 
-                        if (tileMap[x][y - 1] != MapGenerator.Floor && tileMap[x + 1][y] != MapGenerator.Floor && tileMap[x + 1][y - 1] == MapGenerator.Floor) {
+                        if (!outsideBoundsHorisontallyUpper && !outsideBoundsVerticallyLower && tileMap[x][y - 1] != Floor && tileMap[x + 1][y] != Floor && tileMap[x + 1][y - 1] == Floor) {
 
                             tmpWall.set(Walls[LeftUpCorner]);
 
                             drawWall(batch, x, y);
                         }
 
-                        if (tileMap[x][y - 1] != MapGenerator.Floor && tileMap[x - 1][y] != MapGenerator.Floor && tileMap[x - 1][y - 1] == MapGenerator.Floor) {
+                        if (!outsideBoundsHorisontallyLower && !outsideBoundsVerticallyLower && tileMap[x][y - 1] != Floor && tileMap[x - 1][y] != Floor && tileMap[x - 1][y - 1] == Floor) {
 
                             tmpWall.set(Walls[RightUpCorner]);
 
@@ -342,107 +420,137 @@ public class Map {
                         }
 
 
+                        if (!outsideBoundsHorisontallyLower && !outsideBoundsHorisontallyUpper) {
 
-                        if (    tileMap[x    ][y + 1] == MapGenerator.Floor &&
-                                tileMap[x + 1][y    ] == MapGenerator.Floor &&
-                                tileMap[x + 1][y + 1] == MapGenerator.Floor &&
-                                tileMap[x - 1][y    ] != MapGenerator.Floor &&
-                                tileMap[x    ][y - 1] != MapGenerator.Floor) {
+                            if (!outsideBoundsVerticallyLower) {
 
-                            tmpWall.set(Walls[RightUp]);
+                                if (!outsideBoundsVerticallyUpper) {
 
-                            drawWall(batch, x, y);
+                                    if (    tileMap[x][y + 1] == Floor &&
+                                            tileMap[x + 1][y] == Floor &&
+                                            tileMap[x + 1][y + 1] == Floor &&
+                                            tileMap[x - 1][y] != Floor &&
+                                            tileMap[x][y - 1] != Floor) {
+
+                                        tmpWall.set(Walls[RightUp]);
+
+                                        drawWall(batch, x, y);
+                                    }
+
+                                    if (    tileMap[x][y + 1] == Floor &&
+                                            tileMap[x - 1][y] == Floor &&
+                                            tileMap[x - 1][y + 1] == Floor &&
+                                            tileMap[x + 1][y] != Floor &&
+                                            tileMap[x][y - 1] != Floor) {
+
+                                        tmpWall.set(Walls[LeftUp]);
+
+                                        drawWall(batch, x, y);
+                                    }
+
+                                    if (    tileMap[x][y - 1] == Floor &&
+                                            tileMap[x + 1][y] == Floor &&
+                                            tileMap[x + 1][y - 1] == Floor &&
+                                            tileMap[x][y + 1] != Floor &&
+                                            tileMap[x - 1][y] != Floor) {
+
+                                        tmpWall.set(Walls[RightDown]);
+
+                                        drawWall(batch, x, y);
+                                    }
+
+                                    if (    tileMap[x][y - 1] == Floor &&
+                                            tileMap[x - 1][y] == Floor &&
+                                            tileMap[x - 1][y - 1] == Floor &&
+                                            tileMap[x + 1][y] != Floor &&
+                                            tileMap[x][y + 1] != Floor) {
+
+                                        tmpWall.set(Walls[LeftDown]);
+
+                                        drawWall(batch, x, y);
+                                    }
+                                }
+
+                                if (    tileMap[x - 1][y    ] == Floor &&
+                                        tileMap[x + 1][y    ] == Floor &&
+                                        tileMap[x    ][y - 1] == Floor) {
+
+                                    tmpWall.set(Walls[DownLeftRight]);
+
+                                    drawWall(batch, x, y);
+                                }
+                            }
+
+                            if (!outsideBoundsVerticallyUpper) {
+
+                                if (    tileMap[x - 1][y    ] == Floor &&
+                                        tileMap[x + 1][y    ] == Floor &&
+                                        tileMap[x    ][y + 1] == Floor) {
+
+                                    tmpWall.set(Walls[UpLeftRight]);
+
+                                    drawWall(batch, x, y);
+                                }
+                            }
                         }
 
-                        if (    tileMap[x    ][y + 1] == MapGenerator.Floor &&
-                                tileMap[x - 1][y    ] == MapGenerator.Floor &&
-                                tileMap[x - 1][y + 1] == MapGenerator.Floor &&
-                                tileMap[x + 1][y    ] != MapGenerator.Floor &&
-                                tileMap[x    ][y - 1] != MapGenerator.Floor) {
 
-                            tmpWall.set(Walls[LeftUp]);
+                        if (!outsideBoundsVerticallyLower && !outsideBoundsVerticallyUpper) {
 
-                            drawWall(batch, x, y);
+                            if (!outsideBoundsHorisontallyLower) {
+
+                                if (    tileMap[x - 1][y] == Floor &&
+                                        tileMap[x][y + 1] == Floor &&
+                                        tileMap[x][y - 1] == Floor) {
+
+                                    tmpWall.set(Walls[LeftUpDown]);
+
+                                    drawWall(batch, x, y);
+                                }
+                            }
+
+                            if (!outsideBoundsHorisontallyUpper) {
+
+                                if (    tileMap[x + 1][y] == Floor &&
+                                        tileMap[x][y + 1] == Floor &&
+                                        tileMap[x][y - 1] == Floor) {
+
+                                    tmpWall.set(Walls[RightUpDown]);
+
+                                    drawWall(batch, x, y);
+                                }
+                            }
                         }
-
-                        if (    tileMap[x    ][y - 1] == MapGenerator.Floor &&
-                                tileMap[x + 1][y    ] == MapGenerator.Floor &&
-                                tileMap[x + 1][y - 1] == MapGenerator.Floor &&
-                                tileMap[x    ][y + 1] != MapGenerator.Floor &&
-                                tileMap[x - 1][y    ] != MapGenerator.Floor) {
-
-                            tmpWall.set(Walls[RightDown]);
-
-                            drawWall(batch, x, y);
-                        }
-
-                        if (    tileMap[x    ][y - 1] == MapGenerator.Floor &&
-                                tileMap[x - 1][y    ] == MapGenerator.Floor &&
-                                tileMap[x - 1][y - 1] == MapGenerator.Floor &&
-                                tileMap[x + 1][y    ] != MapGenerator.Floor &&
-                                tileMap[x    ][y + 1] != MapGenerator.Floor) {
-
-                            tmpWall.set(Walls[LeftDown]);
-
-                            drawWall(batch, x, y);
-                        }
-
-
-                        if (    tileMap[x - 1][y] == MapGenerator.Floor &&
-                                tileMap[x][y + 1] == MapGenerator.Floor &&
-                                tileMap[x][y - 1] == MapGenerator.Floor) {
-
-                            tmpWall.set(Walls[LeftUpDown]);
-
-                            drawWall(batch, x, y);
-                        }
-
-                        if (    tileMap[x + 1][y] == MapGenerator.Floor &&
-                                tileMap[x][y + 1] == MapGenerator.Floor &&
-                                tileMap[x][y - 1] == MapGenerator.Floor) {
-
-                            tmpWall.set(Walls[RightUpDown]);
-
-                            drawWall(batch, x, y);
-                        }
-
-                        if (    tileMap[x - 1][y    ] == MapGenerator.Floor &&
-                                tileMap[x + 1][y    ] == MapGenerator.Floor &&
-                                tileMap[x    ][y - 1] == MapGenerator.Floor) {
-
-                            tmpWall.set(Walls[DownLeftRight]);
-
-                            drawWall(batch, x, y);
-                        }
-
-                        if (    tileMap[x - 1][y    ] == MapGenerator.Floor &&
-                                tileMap[x + 1][y    ] == MapGenerator.Floor &&
-                                tileMap[x    ][y + 1] == MapGenerator.Floor) {
-
-                            tmpWall.set(Walls[UpLeftRight]);
-
-                            drawWall(batch, x, y);
-                        }
-
 
                         break;
+                }
+            }
+        }
 
-                    case MapGenerator.Stone:
+        if (Game.DebubDraw) {
 
-                        tmpWall.set(Walls[Fill]);
+            for (int y = (int) ((playerPosition.y + Gdx.graphics.getHeight() / 2.0f) / CellSize); y >= (playerPosition.y - Gdx.graphics.getHeight() / 2.0f - CellSize) / CellSize; y--) {
 
-                        drawWall(batch, x, y);
+                for (int x = (int) ((playerPosition.x - Gdx.graphics.getWidth() / 2.0f) / CellSize); x < playerPosition.x + (Gdx.graphics.getWidth() / 2.0f) / CellSize; x++) {
 
-                        break;
+                    // Outside bounds
+                    if (!cellIsValid(x, y)) {
 
-                    case ExpandedObstacle:
+                        continue;
+                    }
 
-                        batch.draw(spriteSheet, x * TileSize, y * TileSize, TileSize, TileSize, 0, 0, 16, 16, false, false);
+                    if (collidableMap[x][y] == ExpandedObstacle) {
+
+                        batch.draw(spriteSheet, x * CellSize, y * CellSize, CellSize, CellSize, 32, 0, 16, 16, false, false);
+                    }
                 }
             }
         }
     }
 
+    /**
+     * Draws the wall at the given location.
+     */
     private void drawWall(SpriteBatch batch, int x, int y) {
 
         batch.draw(

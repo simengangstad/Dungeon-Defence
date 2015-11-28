@@ -8,6 +8,7 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.MathUtils;
 import io.github.simengangstad.defendthecaves.components.Scene;
+import io.github.simengangstad.defendthecaves.procedural.MapGenerator;
 
 public class Game extends ApplicationAdapter {
 
@@ -15,12 +16,14 @@ public class Game extends ApplicationAdapter {
 
     private Scene scene;
 
+    public static boolean DebubDraw = false;
+
     @Override
 	public void create () {
 
-        //MathUtils.random.setSeed(123);
-
         spriteSheet = new Texture("assets/spritesheet.png");
+
+        spriteSheet.setFilter(Texture.TextureFilter.Nearest, Texture.TextureFilter.Nearest);
 
         Player player = new Player(new OrthographicCamera(Gdx.graphics.getWidth(), Gdx.graphics.getHeight()));
 

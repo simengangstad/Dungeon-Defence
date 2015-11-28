@@ -1,0 +1,12 @@
+# 0001
+
+- [x] Clean up MapGenerator.java.
+- [x] Optimising PathfindingGrid.java by pooling.
+- [x] Implement player animation (walking and stationary).
+- [x] Add debug-drawing, showing the collidable boxes.
+- [x] Transfer the different tile types over to Map.java.
+- [x] Fix texture bleeding.
+
+# 0002
+
+- [ ] Implement combat system

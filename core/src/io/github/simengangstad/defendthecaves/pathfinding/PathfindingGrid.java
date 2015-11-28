@@ -11,6 +11,9 @@ import java.util.PriorityQueue;
  */
 public class PathfindingGrid {
 
+    /**
+     * The different directions.
+     */
     private static final PathfindingCoordinate[] Directions = new PathfindingCoordinate[] {
 
         new PathfindingCoordinate(0, 1),
@@ -27,8 +30,14 @@ public class PathfindingGrid {
         Open, Closed
     }
 
+    /**
+     * The dimension of the grid.
+     */
     public final int width, height;
 
+    /**
+     * The grid.
+     */
     private final State[][] grid;
 
     /**
@@ -37,14 +46,26 @@ public class PathfindingGrid {
      */
     public final PriorityQueue<PathfindingCoordinate> frontier = new PriorityQueue<>();
 
+    /**
+     * Temp value for the neigbours of a given tile.
+     */
     private final PathfindingCoordinate[] tmpNeighbours = new PathfindingCoordinate[4];
 
-    Pool<PathfindingCoordinate> coordinatePool = new Pool<PathfindingCoordinate>() {
+    Pool<PathfindingCoordinate> pathfindingCoordinatePool = new Pool<PathfindingCoordinate>() {
 
         @Override
         protected PathfindingCoordinate newObject() {
 
             return new PathfindingCoordinate();
+        }
+    };
+
+    Pool<Coordinate> coordinatePool = new Pool<Coordinate>() {
+
+        @Override
+        protected Coordinate newObject() {
+
+            return new Coordinate();
         }
     };
 
@@ -79,13 +100,21 @@ public class PathfindingGrid {
         return grid[x][y];
     }
 
-    public PathfindingCoordinate[][] performSearch(PathfindingCoordinate start, PathfindingCoordinate end) {
+    public Coordinate[][] performSearch(int x1, int y1, int x2, int y2)  {
+
+        PathfindingCoordinate start = pathfindingCoordinatePool.obtain();
+
+        start.set(x1, y1);
+
+        PathfindingCoordinate end = pathfindingCoordinatePool.obtain();
+
+        end.set(x2, y2);
 
         frontier.clear();
 
         frontier.add(start);
 
-        PathfindingCoordinate[][] cameFrom = new PathfindingCoordinate[width][height];
+        Coordinate[][] cameFrom = new Coordinate[width][height];
 
         while (!frontier.isEmpty()) {
 
@@ -93,7 +122,7 @@ public class PathfindingGrid {
 
             if (frontierCoordinate.equals(end)) {
 
-                //coordinatePool.free(frontierCoordinate);
+                pathfindingCoordinatePool.free(frontierCoordinate);
 
                 break;
             }
@@ -108,15 +137,16 @@ public class PathfindingGrid {
 
                         frontier.add(next);
 
-                        cameFrom[next.x][next.y] = new PathfindingCoordinate(frontierCoordinate);
+                        cameFrom[next.x][next.y] = new Coordinate(frontierCoordinate.x, frontierCoordinate.y);
                     }
                 }
             }
 
-            //System.out.println("freeing");
-
-            //coordinatePool.free(frontierCoordinate);
+            pathfindingCoordinatePool.free(frontierCoordinate);
         }
+
+        pathfindingCoordinatePool.free(start);
+        pathfindingCoordinatePool.free(end);
 
         return cameFrom;
     }
@@ -136,9 +166,7 @@ public class PathfindingGrid {
 
         for (int i = 0; i < Directions.length; i++) {
 
-            //PathfindingCoordinate neighbour = coordinatePool.obtain();
-
-            PathfindingCoordinate neighbour = new PathfindingCoordinate();
+            PathfindingCoordinate neighbour = pathfindingCoordinatePool.obtain();
 
             neighbour.set(coordinate.x + Directions[i].x, coordinate.y + Directions[i].y);
 
@@ -148,10 +176,102 @@ public class PathfindingGrid {
             }
             else {
 
-                coordinatePool.free(neighbour);
+                pathfindingCoordinatePool.free(neighbour);
             }
         }
 
         return tmpNeighbours;
+    }
+
+    /**
+     * @author simengangstad
+     * @since 09/11/15
+     */
+    private static class PathfindingCoordinate implements Comparable, Pool.Poolable {
+
+        /**
+         * The origin in the pathfinding algorithm
+         */
+        public PathfindingCoordinate origin;
+
+        public int x, y;
+
+        public PathfindingCoordinate(int x, int y) {
+
+            set(x, y);
+        }
+
+        public PathfindingCoordinate(PathfindingCoordinate pathfindingCoordinate) {
+
+            this(pathfindingCoordinate.x, pathfindingCoordinate.y);
+        }
+
+        public PathfindingCoordinate() {
+
+            this(0, 0);
+        }
+
+        public PathfindingCoordinate set(int x, int y) {
+
+            this.x = x;
+            this.y = y;
+
+            return this;
+        }
+
+        public PathfindingCoordinate set(PathfindingCoordinate pathfindingCoordinate) {
+
+            return set(pathfindingCoordinate.x, pathfindingCoordinate.y);
+        }
+
+        @Override
+        /**
+         * Compares how far this object is to the origin in comparison to
+         * the passed argument.
+         */
+        public int compareTo(Object o) {
+
+            if (!(o instanceof PathfindingCoordinate)) {
+
+                return 0;
+            }
+
+            PathfindingCoordinate pathfindingCoordinate = (PathfindingCoordinate) o;
+
+            return heuristic(this, origin) - heuristic(pathfindingCoordinate, origin);
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+
+            if (!(obj instanceof PathfindingCoordinate)) {
+
+                return false;
+            }
+
+            PathfindingCoordinate pathfindingCoordinate = (PathfindingCoordinate) obj;
+
+            return pathfindingCoordinate.x == x && pathfindingCoordinate.y == y;
+        }
+
+        @Override
+        public String toString() {
+
+            return "(" + x + ", " + y + ")";
+        }
+
+        @Override
+        public void reset() {
+
+            set(0, 0);
+        }
+
+        /**
+         * @return Returns the length from coordinate a to b.
+         */
+        private int heuristic(PathfindingCoordinate a, PathfindingCoordinate b) {
+
+            return Math.abs(a.x - b.x) + Math.abs(a.y - b.y);
+        }
     }
 }

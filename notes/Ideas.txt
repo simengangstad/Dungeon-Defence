@@ -1,0 +1,1 @@
+- [ ] Combat roll (like a James Bond roll)
