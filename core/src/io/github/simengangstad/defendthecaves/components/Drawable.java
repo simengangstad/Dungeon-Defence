@@ -1,8 +1,10 @@
 package io.github.simengangstad.defendthecaves.components;
 
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Vector2;
+import io.github.simengangstad.defendthecaves.Game;
 
 /**
  * @author simengangstad
@@ -16,10 +18,25 @@ public interface Drawable {
     TextureRegion getTextureRegion();
 
     /**
+      * @return If the texture region should be drawn flipped (on x-axis).
+     */
+    boolean flip();
+
+    /**
      * Draws the drawable with the given sprite batch.
      */
     default void draw(SpriteBatch batch, Vector2 position, Vector2 size) {
 
+        if (flip()) {
+
+            getTextureRegion().flip(true, false);
+        }
+
         batch.draw(getTextureRegion(), position.x, position.y, size.x, size.y);
+
+        if (flip()) {
+
+            getTextureRegion().flip(true, false);
+        }
     }
 }

@@ -8,10 +8,13 @@ import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.Array;
 import io.github.simengangstad.defendthecaves.Game;
 import io.github.simengangstad.defendthecaves.Map;
 import io.github.simengangstad.defendthecaves.scene.Entity;
+import io.github.simengangstad.defendthecaves.scene.Weapon;
+import io.github.simengangstad.defendthecaves.scene.weapons.Axe;
 
 /**
  * @author simengangstad
@@ -28,11 +31,6 @@ public class Player extends Entity {
      * The speed of the player in pixels per second.
      */
     public int speed = 300;
-
-    /**
-     * Reference to the drawable texture region of the player.
-     */
-    private final TextureRegion textureRegion;
 
     /**
      * The map the player is located in.
@@ -99,8 +97,13 @@ public class Player extends Entity {
      */
     private final int TileSize = 16;
 
+    private Axe axe;
 
-    private TextureRegion axe;
+    private Vector3 tmpVec = new Vector3();
+
+    private boolean raiseAxe = false;
+
+    private TextureRegion shadow = new TextureRegion(Game.spriteSheet, 0, 0, 16, 16);
 
     /**
      * Initializes the player with a camera.
@@ -111,7 +114,9 @@ public class Player extends Entity {
 
         this.camera = camera;
 
-        textureRegion = new TextureRegion(Game.spriteSheet, 8, TileSize, 2, 2);
+        axe = new Axe();
+
+        attachWeapon(axe);
 
         walkingTexture = new Texture("assets/animations/PlayerWalking.png");
 
@@ -137,8 +142,6 @@ public class Player extends Entity {
         stationaryAnimation = new Animation(0.2f, stationaryTextureRegions);
 
         currentTextureRegion = stationaryAnimation.getKeyFrame(stateTime, true);
-
-        axe = new TextureRegion(Game.spriteSheet, 16, 64, 32, 32);
     }
 
     /**
@@ -179,11 +182,15 @@ public class Player extends Entity {
             tmpDirection.add(1.0f, 0.0f);
         }
 
-        if (Gdx.input.isButtonPressed(Input.Buttons.LEFT) && !attacking) {
+        if (Gdx.input.isButtonPressed(Input.Buttons.LEFT)) {
 
-            //attacking = true;
+            tmpVec = camera.unproject(tmpVec.set(Gdx.input.getX(), Gdx.input.getY(), 0.0f));
 
-            //stateTime = 0.0f;
+            tmpPosition.set(tmpVec.x, tmpVec.y);
+
+            tmpPosition.sub(getPosition());
+
+            axe.attack(tmpPosition);
         }
 
         // Left
@@ -256,51 +263,98 @@ public class Player extends Entity {
             stateTime -= Gdx.graphics.getDeltaTime();
         }
 
-        /*
-        if (currentAnimation == attackingAnimation) {
+        int animationIndex = currentAnimation.getKeyFrameIndex(stateTime % currentAnimation.getAnimationDuration());
 
-            currentTextureRegion = currentAnimation.getKeyFrame(stateTime, false);
+        if (currentAnimation == stationaryAnimation) {
 
-            if (currentAnimation.isAnimationFinished(stateTime)) {
+            if (animationIndex == 1 || animationIndex == 2) {
 
-                attacking = false;
+                raiseAxe = true;
+            }
+            else {
+
+                raiseAxe = false;
             }
         }
-        else {
+        else if (currentAnimation == walkingAnimation) {
 
-            currentTextureRegion = currentAnimation.getKeyFrame(stateTime, true);
-        }*/
+            if (animationIndex == 1 || animationIndex == 2 || animationIndex == 4) {
+
+                raiseAxe = true;
+            }
+            else {
+
+                raiseAxe = false;
+            }
+        }
 
         currentTextureRegion = currentAnimation.getKeyFrame(stateTime, true);
+
+        axe.flip = facingRight;
+
+        tmpVec.set(Gdx.input.getX(), Gdx.input.getY(), 0.0f);
+
+        tmpVec.set(camera.unproject(tmpVec));
+
+        axe.setRotation((int) (Math.atan((tmpVec.y - getPosition().y) / (tmpVec.x - getPosition().x)) * 180 / Math.PI));
+
+        super.tick();
     }
+
+    Vector2 tmpPosition = new Vector2();
 
     @Override
     public void draw(SpriteBatch batch, Vector2 position, Vector2 size) {
 
-        if (!facingRight) {
+        if (flip()) {
 
-            currentTextureRegion.flip(true, false);
+            getTextureRegion().flip(true, false);
         }
 
-        batch.draw(currentTextureRegion, camera.position.x, camera.position.y, size.x, size.y);
-        batch.draw(axe, camera.position.x, camera.position.y, size.x * 2, size.y * 2);
+        // Shadow under the player
+        batch.draw(Game.spriteSheet, position.x, position.y - (size.y / 16), size.x, size.y, 0, 0, 16, 16, false, false);
 
-        if (!facingRight) {
+        batch.draw(getTextureRegion(), position.x, position.y, size.x, size.y);
 
-            currentTextureRegion.flip(true, false);
+        if (flip()) {
+
+            getTextureRegion().flip(true, false);
         }
+
+        tmpPosition.set(position);
+
+        if (raiseAxe) {
+
+            tmpPosition.add(0.0f, (size.y / 16.0f));
+        }
+
+        axe.draw(batch, tmpPosition, size);
+    }
+
+    @Override
+    public boolean flip() {
+
+        return !facingRight;
     }
 
     public void updateCameraPosition() {
 
         camera.position.set(Math.round(getPosition().x), Math.round(getPosition().y), 0.0f);
         camera.update();
+
+        getPosition().set(camera.position.x, camera.position.y);
     }
 
     @Override
     public TextureRegion getTextureRegion() {
 
-        return textureRegion;
+        return currentTextureRegion;
+    }
+
+    @Override
+    protected TextureRegion getShadowTextureRegion() {
+
+        return shadow;
     }
 
     @Override

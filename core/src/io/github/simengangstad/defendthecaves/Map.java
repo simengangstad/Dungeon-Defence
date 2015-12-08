@@ -7,6 +7,7 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.maps.tiled.TiledMapTileLayer;
 import com.badlogic.gdx.math.Vector2;
 import io.github.simengangstad.defendthecaves.procedural.MapGenerator;
+import io.github.simengangstad.defendthecaves.scene.Entity;
 
 /**
  * @author simengangstad
@@ -541,7 +542,7 @@ public class Map {
 
                     if (collidableMap[x][y] == ExpandedObstacle) {
 
-                        batch.draw(spriteSheet, x * CellSize, y * CellSize, CellSize, CellSize, 32, 0, 16, 16, false, false);
+                        batch.draw(spriteSheet, x * CellSize, y * CellSize, CellSize, CellSize, 48, 0, 16, 16, false, false);
                     }
                 }
             }

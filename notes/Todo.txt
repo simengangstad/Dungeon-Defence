@@ -1,7 +1,7 @@
 # 0001
 
 - [x] Clean up MapGenerator.java.
-- [x] Optimising PathfindingGrid.java by pooling.
+- [x] Optimise PathfindingGrid.java by pooling.
 - [x] Implement player animation (walking and stationary).
 - [x] Add debug-drawing, showing the collidable boxes.
 - [x] Transfer the different tile types over to Map.java.
@@ -9,4 +9,12 @@
 
 # 0002
 
-- [ ] Implement combat system
+- [x] Implement combat system.
+  - [x] Add attacking animation for axe.
+- [x] Add shadows for entities.
+
+#
+
+# Etc
+
+- [ ] Add more detailed shadows for the walls.

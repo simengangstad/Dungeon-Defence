@@ -1,5 +1,7 @@
 # By the 31st of December
 
-* Implement combat system
-* Implement basic AI
-* Make map editable during runtime
+- [ ] Implement combat system
+- [ ] Implement basic AI
+    - [ ] Spawn points for enemies (these are the barriers one can rebuild)
+    - [ ] Basic AI by pathfinding and range
+- [ ] Make map editable during runtime

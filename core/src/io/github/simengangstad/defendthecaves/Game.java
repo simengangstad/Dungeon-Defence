@@ -5,10 +5,9 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.badlogic.gdx.math.MathUtils;
-import io.github.simengangstad.defendthecaves.components.Scene;
-import io.github.simengangstad.defendthecaves.procedural.MapGenerator;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import io.github.simengangstad.defendthecaves.scene.Scene;
+import io.github.simengangstad.defendthecaves.scene.entities.Player;
 
 public class Game extends ApplicationAdapter {
 
@@ -18,6 +17,8 @@ public class Game extends ApplicationAdapter {
 
     public static boolean DebubDraw = false;
 
+    public static TextureRegion debugDrawTexture;
+
     @Override
 	public void create () {
 
@@ -25,9 +26,13 @@ public class Game extends ApplicationAdapter {
 
         spriteSheet.setFilter(Texture.TextureFilter.Nearest, Texture.TextureFilter.Nearest);
 
+        debugDrawTexture = new TextureRegion(spriteSheet, 48, 0, 16, 16);
+
         Player player = new Player(new OrthographicCamera(Gdx.graphics.getWidth(), Gdx.graphics.getHeight()));
 
         scene = new Scene(new Map(player.getSize()), player);
+
+        player.host = scene;
     }
 
     @Override
