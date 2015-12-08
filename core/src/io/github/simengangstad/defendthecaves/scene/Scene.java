@@ -1,11 +1,13 @@
-package io.github.simengangstad.defendthecaves.components;
+package io.github.simengangstad.defendthecaves.scene;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.utils.Disposable;
 import io.github.simengangstad.defendthecaves.Map;
-import io.github.simengangstad.defendthecaves.Player;
+import io.github.simengangstad.defendthecaves.components.Drawable;
+import io.github.simengangstad.defendthecaves.components.GameObject;
+import io.github.simengangstad.defendthecaves.scene.entities.Player;
 
 import java.util.ArrayList;
 

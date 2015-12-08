@@ -1,4 +1,4 @@
-package io.github.simengangstad.defendthecaves;
+package io.github.simengangstad.defendthecaves.scene.entities;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
@@ -9,14 +9,15 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Array;
-import io.github.simengangstad.defendthecaves.components.Drawable;
-import io.github.simengangstad.defendthecaves.components.GameObject;
+import io.github.simengangstad.defendthecaves.Game;
+import io.github.simengangstad.defendthecaves.Map;
+import io.github.simengangstad.defendthecaves.scene.Entity;
 
 /**
  * @author simengangstad
  * @since 10/11/15
  */
-public class Player extends GameObject implements Drawable {
+public class Player extends Entity {
 
     /**
      * The camera of the player.
@@ -98,6 +99,9 @@ public class Player extends GameObject implements Drawable {
      */
     private final int TileSize = 16;
 
+
+    private TextureRegion axe;
+
     /**
      * Initializes the player with a camera.
      */
@@ -133,6 +137,8 @@ public class Player extends GameObject implements Drawable {
         stationaryAnimation = new Animation(0.2f, stationaryTextureRegions);
 
         currentTextureRegion = stationaryAnimation.getKeyFrame(stateTime, true);
+
+        axe = new TextureRegion(Game.spriteSheet, 16, 64, 32, 32);
     }
 
     /**
@@ -277,6 +283,7 @@ public class Player extends GameObject implements Drawable {
         }
 
         batch.draw(currentTextureRegion, camera.position.x, camera.position.y, size.x, size.y);
+        batch.draw(axe, camera.position.x, camera.position.y, size.x * 2, size.y * 2);
 
         if (!facingRight) {
 
