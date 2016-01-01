@@ -1,21 +1,39 @@
-Tood: add more things from paper written
-
 - Combat and health system
   - [ ] Receive health from fallen enemies.
   - [ ] Have an option for walking silently (though slower).
   - [ ] Player has two armery slots. While the current isn't used the other one is on the back of player.
   - [ ] Combat roll (like a James Bond roll)
   - [ ] Screen shaking.
+  - [ ] Dashing (which is dependent on stamina)
+  - [ ] Hit boxes around the axe (this will enable the animation to stop once it has hit a target).
 
 - Map
   - [ ] Add stairways to make the make look more isometric (?).
   - [ ] Add entrances for enemies (which you can block).
+    - [ ] You have to collect stones in order to block them!
+    - [ ] Entrances need to be surrounded with solid material one cannot breach through
   - [ ] Add multiple levels with caves leading down to these levels (there has to be a maximum amount of levels though, as these
         levels has to be held in memory at runtime).
   - [ ] Add secret rooms.
   - [ ] Add loot.
   - [ ] Map is dark with the player having a torch which he can hide away to not attract enemies (in this way you can be kill the
         enemies silently).
+    - [ ] Torches can be placed around the map.
+
+- Traps
+    - [ ] Bombs
+    - [ ] Fire
+    - [ ] Stone
 
 - Crafting system
-  - [ ] Craft things from loot.
+  - [ ] Care packages are placed around the map
+  - [ ] Items drop from the enemies
+  - Items
+    - Food for health
+    - Iron
+    - Wood
+    - Armour
+    - Chemicals for traps
+    - Strings
+    - Rare items (?)
+        - Keys to open locked rooms with loot

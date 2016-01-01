@@ -3,194 +3,128 @@ package io.github.simengangstad.defendthecaves.scene.entities;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.Camera;
-import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
-import com.badlogic.gdx.utils.Array;
 import io.github.simengangstad.defendthecaves.Game;
-import io.github.simengangstad.defendthecaves.Map;
-import io.github.simengangstad.defendthecaves.scene.Entity;
-import io.github.simengangstad.defendthecaves.scene.Weapon;
+import io.github.simengangstad.defendthecaves.scene.Map;
+import io.github.simengangstad.defendthecaves.scene.MovableEntity;
+import io.github.simengangstad.defendthecaves.scene.RotatableWeapon;
 import io.github.simengangstad.defendthecaves.scene.weapons.Axe;
+import io.github.simengangstad.defendthecaves.scene.weapons.Shield;
 
 /**
  * @author simengangstad
  * @since 10/11/15
  */
-public class Player extends Entity {
+public class Player extends MovableEntity {
 
     /**
      * The camera of the player.
      */
     public final Camera camera;
 
-    /**
-     * The speed of the player in pixels per second.
-     */
-    public int speed = 300;
+    private final TextureRegion mousePointerTextureRegion = new TextureRegion(Game.spriteSheet, 96, 80, 16, 16);
 
-    /**
-     * The map the player is located in.
-     */
-    private Map map;
+    private final TextureRegion overlayTextureRegion = new TextureRegion(Game.spriteSheet, 80, 80, 16, 16);
 
-    /**
-     * Vector used for calculating direction.
-     */
-    private Vector2 tmpDirection = new Vector2();
+    private final Vector3 tmpVec = new Vector3();
 
-    /**
-     * The texture for the stationary animation.
-     */
-    private Texture stationaryTexture;
-
-    /**
-     * The animation when the player is standing still.
-     */
-    private Animation stationaryAnimation;
-
-    /**
-     * The texture for the walking animations.
-     */
-    private Texture walkingTexture;
-
-    /**
-     * The animation when the player is moving.
-     */
-    private Animation walkingAnimation;
-
-    /**
-     * If the player is facing right.
-     */
-    private boolean facingRight = true;
-
-    /**
-     * If the player is going backwards. Used for playing the walking loop backwards.
-     */
-    private boolean goingBackwards = false;
-
-    /**
-     * The current animation playing.
-     */
-    private Animation currentAnimation;
-
-    /**
-     * The current texture region.
-     */
-    private TextureRegion currentTextureRegion;
-
-    /**
-     * The state time.
-     */
-    private float stateTime = 0.0f;
-
-    /**
-     * If the player is attacking or not.
-     */
-    private boolean attacking = false;
-
-    /**
-     * The tile size of the player sprites in the sprite sheet.
-     */
-    private final int TileSize = 16;
-
-    private Axe axe;
-
-    private Vector3 tmpVec = new Vector3();
+    private final Vector2 tmpVec2 = new Vector2();
 
     private boolean raiseAxe = false;
 
-    private TextureRegion shadow = new TextureRegion(Game.spriteSheet, 0, 0, 16, 16);
+    private Shield shield = new Shield();
 
     /**
      * Initializes the player with a camera.
      */
     public Player(Camera camera) {
 
-        super(new Vector2(), new Vector2(80.0f, 80.0f));
+        super(new Vector2(), new Vector2(80.0f, 80.0f), "assets/animations/PlayerStationary.png", 0.2f, "assets/animations/PlayerWalking.png", 0.075f);
 
         this.camera = camera;
 
-        axe = new Axe();
+        leapTextureRegion = new TextureRegion(Game.spriteSheet, 96, 48, 16, 16);
 
-        attachWeapon(axe);
+        Axe axe = new Axe(() -> {
 
-        walkingTexture = new Texture("assets/animations/PlayerWalking.png");
+            tmpVec2.set(tmpVec.x, tmpVec.y);
 
-        Array<TextureRegion> walkingTextureRegions = new Array<>();
+            if (selectedSolid && map.lengthBetweenCoordinates(getPosition(), tmpVec2) <= 1) {
 
-        for (int i = 0; i < walkingTexture.getWidth() / TileSize; i++) {
-
-            walkingTextureRegions.add(new TextureRegion(walkingTexture, i * TileSize, 0, TileSize, TileSize));
-        }
-
-        walkingAnimation = new Animation(0.075f, walkingTextureRegions);
+                int x = map.toTileCoordinate(tmpVec2.x);
+                int y = map.toTileCoordinate(tmpVec2.y);
 
 
-        stationaryTexture = new Texture("assets/animations/PlayerStationary.png");
+                if (map.get(x, y) == Map.SolidBroken) {
 
-        Array<TextureRegion> stationaryTextureRegions = new Array<>();
+                    map.set(x, y, Map.Open);
+                }
+                else {
 
-        for (int i = 0; i < stationaryTexture.getWidth() / TileSize; i++) {
+                    map.set(x, y, map.get(x, y) + 1);
+                }
+            }
+        });
 
-            stationaryTextureRegions.add(new TextureRegion(stationaryTexture, i * TileSize, 0, TileSize, TileSize));
-        }
-
-        stationaryAnimation = new Animation(0.2f, stationaryTextureRegions);
-
-        currentTextureRegion = stationaryAnimation.getKeyFrame(stateTime, true);
+        attachTool(axe);
     }
 
-    /**
-     * Sets the map the player resolves its collision against.
-     */
-    public void setMap(Map map) {
+    @Override
+    protected void collides() {
 
-        this.map = map;
     }
 
     @Override
     public void tick() {
 
-        if (map == null) {
+        if (shield.parent == null) {
 
-            throw new RuntimeException("Need an assigned map in order to resolve collisions.");
+            shield.parent = this;
         }
 
-        tmpDirection.set(0.0f, 0.0f);
+        delta.set(0.0f, 0.0f);
+
+        if (Gdx.input.isKeyPressed(Input.Keys.SHIFT_LEFT)) {
+
+            currentTool = shield;
+        }
+        else {
+
+            currentTool = tools.get(0);
+        }
 
         if (Gdx.input.isKeyPressed(Input.Keys.W)) {
 
-            tmpDirection.add(0.0f, 1.0f);
+            delta.add(0.0f, 1.0f);
         }
 
         if (Gdx.input.isKeyPressed(Input.Keys.S)) {
 
-            tmpDirection.add(0.0f, -1.0f);
+            delta.add(0.0f, -1.0f);
         }
 
         if (Gdx.input.isKeyPressed(Input.Keys.A)) {
 
-            tmpDirection.add(-1.0f, 0.0f);
+            delta.add(-1.0f, 0.0f);
         }
 
         if (Gdx.input.isKeyPressed(Input.Keys.D)) {
 
-            tmpDirection.add(1.0f, 0.0f);
+            delta.add(1.0f, 0.0f);
         }
 
         if (Gdx.input.isButtonPressed(Input.Buttons.LEFT)) {
 
-            tmpVec = camera.unproject(tmpVec.set(Gdx.input.getX(), Gdx.input.getY(), 0.0f));
+            tmpVec.set(camera.unproject(tmpVec.set(Gdx.input.getX(), Gdx.input.getY(), 0.0f)));
 
             tmpPosition.set(tmpVec.x, tmpVec.y);
 
             tmpPosition.sub(getPosition());
 
-            axe.attack(tmpPosition);
+            interact(tmpPosition);
         }
 
         // Left
@@ -204,64 +138,9 @@ public class Player extends Entity {
             facingRight = true;
         }
 
-        if (tmpDirection.x != 0.0f || tmpDirection.y != 0.0f) {
+        super.tick();
 
-            if (currentAnimation != walkingAnimation && !attacking) {
-
-                currentAnimation = walkingAnimation;
-
-                stateTime = 0.0f;
-            }
-
-            // If facing right and going backwards
-            if (facingRight && tmpDirection.x < 0.0f) {
-
-                goingBackwards = true;
-            }
-            // if facing left and going backwards
-            else if (!facingRight && 0.0f < tmpDirection.x) {
-
-                goingBackwards = true;
-            }
-            else {
-
-                goingBackwards = false;
-            }
-
-            tmpDirection.nor();
-
-            map.resolveCollision(getPosition(), tmpDirection, speed);
-
-            updateCameraPosition();
-        }
-        else {
-
-            if (currentAnimation != stationaryAnimation && !attacking) {
-
-                currentAnimation = stationaryAnimation;
-
-                goingBackwards = false;
-
-                stateTime = 0.0f;
-            }
-        }
-
-
-        if (!goingBackwards) {
-
-            stateTime += Gdx.graphics.getDeltaTime();
-        }
-        else {
-
-            // Increment the state time by the whole animation if less than zero and decrement by
-            // delta time to run the animation backwards.
-            if (stateTime - Gdx.graphics.getDeltaTime() < 0.0f) {
-
-                stateTime += walkingAnimation.getAnimationDuration();
-            }
-
-            stateTime -= Gdx.graphics.getDeltaTime();
-        }
+        updateCameraPosition();
 
         int animationIndex = currentAnimation.getKeyFrameIndex(stateTime % currentAnimation.getAnimationDuration());
 
@@ -288,53 +167,53 @@ public class Player extends Entity {
             }
         }
 
-        currentTextureRegion = currentAnimation.getKeyFrame(stateTime, true);
-
-        axe.flip = facingRight;
+        currentTool.flip = facingRight;
 
         tmpVec.set(Gdx.input.getX(), Gdx.input.getY(), 0.0f);
 
         tmpVec.set(camera.unproject(tmpVec));
 
-        axe.setRotation((int) (Math.atan((tmpVec.y - getPosition().y) / (tmpVec.x - getPosition().x)) * 180 / Math.PI));
+        if (currentTool instanceof RotatableWeapon) {
 
-        super.tick();
+            ((RotatableWeapon) currentTool).setRotation((int) (Math.atan((tmpVec.y - getPosition().y) / (tmpVec.x - getPosition().x)) * 180 / Math.PI));
+        }
     }
+
+    private boolean selectedSolid = false;
 
     Vector2 tmpPosition = new Vector2();
 
     @Override
     public void draw(SpriteBatch batch, Vector2 position, Vector2 size) {
 
-        if (flip()) {
-
-            getTextureRegion().flip(true, false);
-        }
-
-        // Shadow under the player
-        batch.draw(Game.spriteSheet, position.x, position.y - (size.y / 16), size.x, size.y, 0, 0, 16, 16, false, false);
-
-        batch.draw(getTextureRegion(), position.x, position.y, size.x, size.y);
-
-        if (flip()) {
-
-            getTextureRegion().flip(true, false);
-        }
-
         tmpPosition.set(position);
 
         if (raiseAxe) {
 
-            tmpPosition.add(0.0f, (size.y / 16.0f));
+            currentTool.offset.set(0.0f, (size.y / 16.0f));
+        }
+        else {
+
+            currentTool.offset.set(0.0f, 0.0f);
         }
 
-        axe.draw(batch, tmpPosition, size);
-    }
+        super.draw(batch, position, size);
 
-    @Override
-    public boolean flip() {
+        if (map.isSolid((int) (tmpVec.x / Map.TileSizeInPixelsInWorldSpace), (int) (tmpVec.y / Map.TileSizeInPixelsInWorldSpace))) {
 
-        return !facingRight;
+            if (map.get((int) (tmpVec.x / Map.TileSizeInPixelsInWorldSpace), (int) (tmpVec.y / Map.TileSizeInPixelsInWorldSpace)) < Map.SpawnIntact) {
+
+                selectedSolid = true;
+
+                batch.draw(overlayTextureRegion, ((int) (tmpVec.x / Map.TileSizeInPixelsInWorldSpace)) * Map.TileSizeInPixelsInWorldSpace, ((int) (tmpVec.y / Map.TileSizeInPixelsInWorldSpace)) * Map.TileSizeInPixelsInWorldSpace, Map.TileSizeInPixelsInWorldSpace, Map.TileSizeInPixelsInWorldSpace);
+            }
+        }
+        else {
+
+            selectedSolid = false;
+        }
+
+        batch.draw(mousePointerTextureRegion, tmpVec.x - (Map.TileSizeInPixelsInWorldSpace / 2.0f) / 2.0f, tmpVec.y - (Map.TileSizeInPixelsInWorldSpace / 2.0f) / 2.0f, (Map.TileSizeInPixelsInWorldSpace / 2.0f), (Map.TileSizeInPixelsInWorldSpace / 2.0f));
     }
 
     public void updateCameraPosition() {
@@ -343,24 +222,5 @@ public class Player extends Entity {
         camera.update();
 
         getPosition().set(camera.position.x, camera.position.y);
-    }
-
-    @Override
-    public TextureRegion getTextureRegion() {
-
-        return currentTextureRegion;
-    }
-
-    @Override
-    protected TextureRegion getShadowTextureRegion() {
-
-        return shadow;
-    }
-
-    @Override
-    public void dispose() {
-
-        stationaryTexture.dispose();
-        walkingTexture.dispose();
     }
 }

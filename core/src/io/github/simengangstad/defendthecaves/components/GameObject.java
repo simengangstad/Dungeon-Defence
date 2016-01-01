@@ -2,7 +2,7 @@ package io.github.simengangstad.defendthecaves.components;
 
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Disposable;
-import io.github.simengangstad.defendthecaves.scene.Scene;
+import io.github.simengangstad.defendthecaves.Container;
 
 /**
  * @author simengangstad
@@ -15,7 +15,10 @@ public abstract class GameObject implements Disposable {
      */
     private final Vector2 position, size;
 
-    public Scene host;
+    /**
+     * The host of the game object.
+     */
+    public Container host;
 
     /**
      * Initializes the game object.

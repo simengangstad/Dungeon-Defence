@@ -32,6 +32,11 @@ public interface Drawable {
             getTextureRegion().flip(true, false);
         }
 
+        if (Game.DebubDraw) {
+
+            batch.draw(Game.debugDrawTexture, position.x, position.y, size.x, size.y);
+        }
+
         batch.draw(getTextureRegion(), position.x, position.y, size.x, size.y);
 
         if (flip()) {

@@ -13,8 +13,34 @@
   - [x] Add attacking animation for axe.
 - [x] Add shadows for entities.
 
-#
+# 0003
+
+- [x] Implement simple enemies.
+- [x] Implement randomly generated spawn points for enemies.
+    - [x] Implement animation for the enemies trying to breach through the barrier.
+- [x] Possibility to rebuild barriers.
+- [x] Better combat structure and animations.
+    - [x] Add more precise hitbox for weapons.
+    - [x] Enemies walk back disorientated once hit.
+    - [x] Better animation for swing.
+        - [x] Player jump up when the axe has hit the ground.
+    - [x] Make AI more random.
+- [x] Implement enemy AI.
+- [x] Add helper methods for lenth between things within the map.
+- [x] Change so that positions are from the centre of the game object.
+- [x] Rename TileSize reference to more appropiate variable names.
+- [x] Organise spritesheet.
+
+# 0004
+
+- [ ] Implement unbreakable solid tiles around the spawn points.
+- [ ] Make spawn points unbreakable.
+- [ ] Make enemies weapons go up and down as their corresponding animations elapse.
+
 
 # Etc
 
 - [ ] Add more detailed shadows for the walls.
+- [ ] Solve bug where the player sometimes ends up in rooms withuot entries.
+- [ ] After attack the axe swings back into place.
+

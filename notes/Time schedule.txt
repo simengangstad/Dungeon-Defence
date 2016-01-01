@@ -1,7 +1,17 @@
-# By the 31st of December
+# By the end of December 2015
 
-- [ ] Implement combat system
-- [ ] Implement basic AI
-    - [ ] Spawn points for enemies (these are the barriers one can rebuild)
-    - [ ] Basic AI by pathfinding and range
-- [ ] Make map editable during runtime
+- [x] Implement combat system
+- [x] Implement basic AI
+    - [x] Spawn points for enemies (these are the barriers one can rebuild)
+    - [x] Basic AI by pathfinding and range
+- [x] Make map editable during runtime
+
+
+# By the end of January 2016
+
+- [ ] Implement loot system
+    - [ ] Implement inventory
+- [ ] Make the map generate random loot and secret rooms (with corresponding keys)
+- [ ] Make at least three different enemies
+- [ ] Implement a GUI system
+- [ ] Clean up code

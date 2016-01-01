@@ -3,6 +3,7 @@ package io.github.simengangstad.defendthecaves.scene;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Vector2;
+import io.github.simengangstad.defendthecaves.Callback;
 
 /**
  * @author simengangstad
@@ -20,39 +21,47 @@ public abstract class RotatableWeapon extends Weapon {
      */
     protected int rotation = 0;
 
+
+    private boolean initialised = false;
+
     /**
      * The different texture regions for the given rotations.
      */
-    private final TextureRegion[] weaponTextureRegions, attackTextureRegions;
+    private TextureRegion[] weaponTextureRegions, attackTextureRegions;
 
     /**
      * The current texture regions.
      */
-    protected TextureRegion currentWeaponTextureRegion, currentAttackTextureRegion;
+    protected TextureRegion currentWeaponTextureRegion;
 
     /**
      * The last mouse position.
      */
     private int lastMouseXPosition, lastMouseYPosition;
 
+
+    // Attacking
+
     protected boolean attackTextureRegionIsFlipped = false;
-    protected int currentAttackTextureRegionIndex = 0;
-    protected int weaponIndex = 0;
-    private int lastWeaponIndex = 0;
 
+    private int weaponIndexBeforeAttacking = 0;
 
-    public RotatableWeapon(int attackDamage, int attackRange, int minRotation, int maxRotation, TextureRegion[] weaponTextureRegions, TextureRegion[] attackTextureRegions) {
+    public RotatableWeapon(int attackDamage, float attackDuration, Callback interactionCallback, int minRotation, int maxRotation) {
 
-        super(attackDamage, attackRange, 0.3f);
+        super(attackDamage, attackDuration, interactionCallback);
 
         this.maxRotation = maxRotation;
         this.minRotation = minRotation;
+    }
+
+    protected void setTextures(TextureRegion[] weaponTextureRegions, TextureRegion[] attackTextureRegions) {
 
         this.weaponTextureRegions = weaponTextureRegions;
         this.attackTextureRegions = attackTextureRegions;
 
-        currentWeaponTextureRegion = weaponTextureRegions[weaponIndex];
-        currentAttackTextureRegion = attackTextureRegions[0];
+        currentWeaponTextureRegion = weaponTextureRegions[0];
+
+        initialised = true;
     }
 
     public void setRotation(int rotation) {
@@ -61,71 +70,32 @@ public abstract class RotatableWeapon extends Weapon {
     }
 
     @Override
-    public void attack(Vector2 location) {
+    public void interact(Vector2 location) {
 
-        super.attack(location);
+        super.interact(location);
 
         // Check that we only apply logic one time per attack duration by checking
         // that we just set the state time.
-        if (getStateTime() == attackDuration) {
-
-            time = duration;
+        if (getStateTime() == interactionDuration) {
 
             attackTextureRegionIsFlipped = flip();
-
-            int angle = rotation + 90;
-
-            if (flip) {
-
-                angle = -(angle - 180);
-            }
-
-            int delta = (maxRotation - minRotation) / weaponTextureRegions.length;
-
-            if (maxRotation < angle) {
-
-                ///currentAttackTextureRegionIndex = weaponTextureRegions.length - 1;
-            }
-            else if (angle < minRotation) {
-
-                //currentAttackTextureRegionIndex = 0;
-            }
-            else {
-
-                int index = (angle - minRotation) / delta;
-
-                index = Math.max(index, 0);
-                index = Math.min(index, weaponTextureRegions.length - 1);
-
-                //currentAttackTextureRegionIndex = index;
-            }
         }
     }
-
-    private float duration = 0.01f;
-    private float time = 0.0f;
 
     @Override
     public void tick() {
 
         super.tick();
 
-        if (0.0f < time - Gdx.graphics.getDeltaTime()) {
+        if (!initialised) return;
 
-            time -= Gdx.graphics.getDeltaTime();
-        }
-        else {
+        if (lastMouseXPosition != Gdx.input.getX() || lastMouseYPosition != Gdx.input.getY() && !isInteracting()) {
 
-            time = 0.0f;
-        }
-
-        if (lastMouseXPosition != Gdx.input.getX() || lastMouseYPosition != Gdx.input.getY()) {
-
-            int angle = rotation + 90;
+            int angle = rotation;
 
             if (flip) {
 
-                angle = -(angle - 180);
+                angle = -angle;
             }
 
             int delta = (maxRotation - minRotation) / weaponTextureRegions.length;
@@ -149,42 +119,33 @@ public abstract class RotatableWeapon extends Weapon {
                 textureRegionIndex = index;
             }
 
-            //currentWeaponTextureRegion = weaponTextureRegions[textureRegionIndex];
+            currentWeaponTextureRegion = weaponTextureRegions[textureRegionIndex];
+
+            weaponIndexBeforeAttacking = textureRegionIndex;
 
             lastMouseXPosition = Gdx.input.getX();
             lastMouseYPosition = Gdx.input.getY();
         }
+        else if (isInteracting()) {
 
-        if (isAttacking()) {
+            int index = (int) Math.abs(getStateTime() / (interactionDuration / attackTextureRegions.length) - attackTextureRegions.length);
 
-            if (lastWeaponIndex == 0) {
+            if (index == attackTextureRegions.length - 2) {
 
-                weaponIndex = Math.round((weaponTextureRegions.length - 1) * (Math.abs(time - duration)) / duration);
+                ((MovableEntity) parent).leap();
             }
-            else {
 
-                weaponIndex = Math.round((weaponTextureRegions.length - 1) * time / duration);
-            }
+            currentWeaponTextureRegion = attackTextureRegions[index];
         }
         else {
 
-
-            if (weaponIndex == weaponTextureRegions.length - 1) {
-
-                lastWeaponIndex = weaponTextureRegions.length - 1;
-            }
-            else {
-
-                lastWeaponIndex = 0;
-            }
+            currentWeaponTextureRegion = weaponTextureRegions[weaponIndexBeforeAttacking];
         }
-
-        currentAttackTextureRegion = attackTextureRegions[currentAttackTextureRegionIndex];
     }
 
     @Override
     public TextureRegion getTextureRegion() {
 
-        return weaponTextureRegions[weaponIndex];
+        return currentWeaponTextureRegion;
     }
 }

@@ -21,7 +21,7 @@ public class MapGenerator {
 
     /**
      * Free - An empty tile
-     * Solid - A solid tile
+     * SolidIntact - A solid tile
      * Pathway obstacle - An obstacle constructed when forming a pathway
      * Obstacle - An obstacle. The difference between an obstale and a solid
      *            is that the pathfinding algorithm can go through a solid,
@@ -43,11 +43,6 @@ public class MapGenerator {
     private static final ArrayList<Rectangle> rooms = new ArrayList<>();
 
     /**
-     * The random number generator.
-     */
-    private static final Random random = new Random();
-
-    /**
      * The amount of rooms the generator will try to place.
      */
     public static int requestedAmountOfRooms = 10;
@@ -62,7 +57,7 @@ public class MapGenerator {
      * The space in tiles between the edge of the sides of the map and the content
      * within it.
      */
-    public static int sizeOfEdge = 3;
+    public static int sizeOfEdge = 2;
 
     /**
      * The amount of times the algorithm will try to place a room within the map if it
@@ -92,7 +87,7 @@ public class MapGenerator {
 
         map = new int[width][height];
 
-        random.setSeed(seed);
+        MathUtils.random.setSeed(seed);
 
         rooms.clear();
 
@@ -120,7 +115,7 @@ public class MapGenerator {
      */
     public static int[][] generate(int width, int height) {
 
-        return generate(width, height, random.nextInt());
+        return generate(width, height, MathUtils.random.nextInt());
     }
 
     /**
@@ -138,15 +133,15 @@ public class MapGenerator {
 
         for (int roomCount = 0; roomCount < requestedAmountOfRooms;) {
 
-            int width = random.nextInt(upperBoundry - lowerBoundry) + lowerBoundry;
-            int height = random.nextInt(upperBoundry - lowerBoundry) + lowerBoundry;
+            int width = MathUtils.random.nextInt(upperBoundry - lowerBoundry) + lowerBoundry;
+            int height = MathUtils.random.nextInt(upperBoundry - lowerBoundry) + lowerBoundry;
 
             // Check for even numbers and turn them odd if they are.
             width += (width % 2 == 0) ? 1 : 0;
             height += (height % 2 == 0) ? 1 : 0;
 
-            int x = random.nextInt((map[0].length - 1) - sizeOfEdge * 2 - (width - 1)) + sizeOfEdge + (width - 1) / 2;
-            int y = random.nextInt((map.length - 1) - sizeOfEdge * 2 - (height - 1)) + sizeOfEdge + (height - 1) / 2;
+            int x = MathUtils.random.nextInt((map[0].length - 1) - sizeOfEdge * 2 - (width - 1)) + sizeOfEdge + (width - 1) / 2;
+            int y = MathUtils.random.nextInt((map.length - 1) - sizeOfEdge * 2 - (height - 1)) + sizeOfEdge + (height - 1) / 2;
 
             // If the calculated x, y, width and height values end up intersecting
             // with one of the already added rooms, step will be set to false
@@ -190,7 +185,7 @@ public class MapGenerator {
 
             rooms.add(new Rectangle(x, y, width, height));
 
-            switch (random.nextInt(3)) {
+            switch (MathUtils.random.nextInt(3)) {
 
                 case RectangularRoom:
 
@@ -206,8 +201,8 @@ public class MapGenerator {
                     }
                     else {
 
-                        int centreWidth = random.nextInt(width - 4);
-                        int centreHeight = random.nextInt(height - 4);
+                        int centreWidth = MathUtils.random.nextInt(width - 4);
+                        int centreHeight = MathUtils.random.nextInt(height - 4);
 
                         centreWidth += (centreWidth % 2 == 0 ? 1 : 0);
                         centreHeight += (centreHeight % 2 == 0 ? 1 : 0);
@@ -249,7 +244,7 @@ public class MapGenerator {
         }
 
         {
-            Coordinate coordinate = new Coordinate((x - (width - 1) / 2) + random.nextInt(width - 2) + 1, random.nextBoolean() == true ? y + (height - 1) / 2 : y - (height - 1) / 2);
+            Coordinate coordinate = new Coordinate((x - (width - 1) / 2) + MathUtils.random.nextInt(width - 2) + 1, MathUtils.random.nextBoolean() == true ? y + (height - 1) / 2 : y - (height - 1) / 2);
 
             rooms.get(rooms.size() - 1).entrances.add(coordinate);
 
@@ -257,7 +252,7 @@ public class MapGenerator {
         }
 
         {
-            Coordinate coordinate = new Coordinate(random.nextBoolean() == true ? x + (width - 1) / 2 : x - (width - 1) / 2, (y - (height - 1) / 2) + random.nextInt(height - 2) + 1);
+            Coordinate coordinate = new Coordinate(MathUtils.random.nextBoolean() == true ? x + (width - 1) / 2 : x - (width - 1) / 2, (y - (height - 1) / 2) + MathUtils.random.nextInt(height - 2) + 1);
 
             rooms.get(rooms.size() - 1).entrances.add(coordinate);
 
@@ -329,7 +324,7 @@ public class MapGenerator {
 
         {
 
-            int xs = x + (random.nextBoolean() == true ? (width - 1) / 2 : -(width - 1) / 2);
+            int xs = x + (MathUtils.random.nextBoolean() == true ? (width - 1) / 2 : -(width - 1) / 2);
             int ys = y;
 
             Coordinate coordinate = new Coordinate(xs, ys);
@@ -341,7 +336,7 @@ public class MapGenerator {
 
         {
             int xs = x;
-            int ys = y + (random.nextBoolean() == true ? (height - 1) / 2 : -(height - 1) / 2);
+            int ys = y + (MathUtils.random.nextBoolean() == true ? (height - 1) / 2 : -(height - 1) / 2);
 
             Coordinate coordinate = new Coordinate(xs, ys);
 
@@ -352,9 +347,14 @@ public class MapGenerator {
 
         Vector2 spawnPoint = new Vector2();
 
-        spawnPoint.x = x + (int) (MathUtils.cosDeg(random.nextInt(360)) * width / 2.0f - 1);
-        spawnPoint.y = y + (int) (MathUtils.sinDeg(random.nextInt(360)) * height / 2.0f - 1);
+        spawnPoint.x = x + (int) (MathUtils.cosDeg(MathUtils.random.nextInt(360)) * width / 2.0f - 1);
+        spawnPoint.y = y + (int) (MathUtils.sinDeg(MathUtils.random.nextInt(360)) * height / 2.0f - 1);
 
+    }
+
+    private static boolean validCoordinate(int x, int y) {
+
+        return (0 <= x && x < map.length) && (0 <= y && y < map[0].length);
     }
 
     /**
@@ -391,7 +391,17 @@ public class MapGenerator {
 
             map[startCoordinate.x][startCoordinate.y] = Free;
 
-            Coordinate[][] cameFrom = grid.performSearch(startCoordinate.x, startCoordinate.y, endCoordinate.x, endCoordinate.y);
+            Coordinate[][] cameFrom = new Coordinate[grid.width][grid.height];
+
+            for (int x = 0; x < cameFrom.length; x++) {
+
+                for (int y = 0; y < cameFrom[0].length; y++) {
+
+                    cameFrom[x][y] = new Coordinate(-1, -1);
+                }
+            }
+
+            grid.performSearch(endCoordinate.x, endCoordinate.y, startCoordinate.x, startCoordinate.y, cameFrom);
 
             current.set(endCoordinate.x, endCoordinate.y);
 
@@ -408,22 +418,22 @@ public class MapGenerator {
 
                 map[current.x][current.y] = Free;
 
-                if (map[current.x][current.y + 1] != Free) {
+                if (validCoordinate(current.x, current.y + 1) && map[current.x][current.y + 1] != Free) {
 
                     map[current.x][current.y + 1] = PathwayObstacle;
                 }
 
-                if (map[current.x][current.y - 1] != Free) {
+                if (validCoordinate(current.x, current.y - 1) && map[current.x][current.y - 1] != Free) {
 
                     map[current.x][current.y - 1] = PathwayObstacle;
                 }
 
-                if (map[current.x + 1][current.y] != Free) {
+                if (validCoordinate(current.x + 1, current.y) && map[current.x + 1][current.y] != Free) {
 
                     map[current.x + 1][current.y] = PathwayObstacle;
                 }
 
-                if (map[current.x - 1][current.y] != Free) {
+                if (validCoordinate(current.x - 1, current.y) && map[current.x - 1][current.y] != Free) {
 
                     map[current.x - 1][current.y] = PathwayObstacle;
                 }
@@ -465,7 +475,7 @@ public class MapGenerator {
         }
 
         /**
-         * @return If the given coordinate and size isSolid with this rectangle.
+         * @return If the given coordinate and size cellIsSolid with this rectangle.
          */
         public boolean intersect(int x, int y, int width, int height) {
 
@@ -477,7 +487,7 @@ public class MapGenerator {
         }
 
         /**
-         * @return If the given rectangle isSolid with this rectangle.
+         * @return If the given rectangle cellIsSolid with this rectangle.
          */
         public boolean intersect(Rectangle rectangle) {
 

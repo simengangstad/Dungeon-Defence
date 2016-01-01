@@ -100,55 +100,69 @@ public class PathfindingGrid {
         return grid[x][y];
     }
 
-    public Coordinate[][] performSearch(int x1, int y1, int x2, int y2)  {
+    PathfindingCoordinate start = new PathfindingCoordinate(), end = new PathfindingCoordinate();
 
-        PathfindingCoordinate start = pathfindingCoordinatePool.obtain();
+    /**
+     *
+     * @param x1
+     * @param y1
+     * @param x2
+     * @param y2
+     * @param cameFrom The reference to the coordinates which builds the path.
+     *
+     * @return Whether the search for a path was successful or not.
+     */
+    public boolean performSearch(int x1, int y1, int x2, int y2, Coordinate[][] cameFrom)  {
 
-        start.set(x1, y1);
-
-        PathfindingCoordinate end = pathfindingCoordinatePool.obtain();
-
-        end.set(x2, y2);
+        start.set(x2, y2);
+        end.set(x1, y1);
 
         frontier.clear();
 
         frontier.add(start);
 
-        Coordinate[][] cameFrom = new Coordinate[width][height];
+        cameFrom[start.x][start.y].set(start.x, start.y);
 
         while (!frontier.isEmpty()) {
 
             PathfindingCoordinate frontierCoordinate = frontier.poll();
 
-            if (frontierCoordinate.equals(end)) {
-
-                pathfindingCoordinatePool.free(frontierCoordinate);
-
-                break;
-            }
-
             for (PathfindingCoordinate next : getNeighbours(frontierCoordinate)) {
 
                 if (next != null) {
 
-                    if (cameFrom[next.x][next.y] == null) {
+                    Coordinate came = cameFrom[next.x][next.y];
+
+                    if (came.x == -1 && came.y == -1) {
 
                         next.origin = end;
 
                         frontier.add(next);
 
-                        cameFrom[next.x][next.y] = new Coordinate(frontierCoordinate.x, frontierCoordinate.y);
+                        cameFrom[next.x][next.y].set(frontierCoordinate.x, frontierCoordinate.y);
+
+                        if (cameFrom[end.x][end.y].x != -1) {
+
+                            frontier.clear();
+
+                            break;
+                        }
                     }
                 }
+            }
+
+            if (frontier.isEmpty() && (cameFrom[end.x][end.y].x != frontierCoordinate.x || cameFrom[end.x][end.y].y != frontierCoordinate.y)) {
+
+                return false;
             }
 
             pathfindingCoordinatePool.free(frontierCoordinate);
         }
 
-        pathfindingCoordinatePool.free(start);
-        pathfindingCoordinatePool.free(end);
+        //pathfindingCoordinatePool.free(start);
+        //pathfindingCoordinatePool.free(end);
 
-        return cameFrom;
+        return true;
     }
 
     private boolean inBounds(PathfindingCoordinate coordinate) {

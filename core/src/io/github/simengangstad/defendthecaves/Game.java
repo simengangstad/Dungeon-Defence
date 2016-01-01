@@ -6,12 +6,19 @@ import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import io.github.simengangstad.defendthecaves.scene.Map;
 import io.github.simengangstad.defendthecaves.scene.Scene;
 import io.github.simengangstad.defendthecaves.scene.entities.Player;
 
 public class Game extends ApplicationAdapter {
 
     public static Texture spriteSheet;
+    public static Texture guiSheet;
+
+    /**
+     * The tile size of the movable entity sprites in the sprite sheet.
+     */
+    public static final int SizeOfTileInPixelsInSpritesheet = 16;
 
     private Scene scene;
 
@@ -23,16 +30,16 @@ public class Game extends ApplicationAdapter {
 	public void create () {
 
         spriteSheet = new Texture("assets/spritesheet.png");
+        guiSheet = new Texture("assets/gui_sheet.png");
 
-        spriteSheet.setFilter(Texture.TextureFilter.Nearest, Texture.TextureFilter.Nearest);
-
-        debugDrawTexture = new TextureRegion(spriteSheet, 48, 0, 16, 16);
+        debugDrawTexture = new TextureRegion(spriteSheet, 48, 80, 16, 16);
 
         Player player = new Player(new OrthographicCamera(Gdx.graphics.getWidth(), Gdx.graphics.getHeight()));
 
-        scene = new Scene(new Map(player.getSize()), player);
+        scene = new Scene(player);
 
-        player.host = scene;
+        Gdx.input.setCursorCatched(true);
+        Gdx.input.setCursorPosition(Gdx.graphics.getWidth() / 2, Gdx.graphics.getHeight() / 2);
     }
 
     @Override
@@ -44,7 +51,7 @@ public class Game extends ApplicationAdapter {
     @Override
 	public void render () {
 
-        Gdx.gl.glClearColor(0, 0, 0, 1);
+        Gdx.gl.glClearColor(0, 0, 0, 0);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
         Gdx.graphics.setTitle("FPS: " + Gdx.graphics.getFramesPerSecond());
