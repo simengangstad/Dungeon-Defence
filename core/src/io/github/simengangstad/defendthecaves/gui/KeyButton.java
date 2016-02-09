@@ -21,6 +21,14 @@ public abstract class KeyButton extends Button {
         this.key = key;
     }
 
+
+    public KeyButton(Vector2 position, Vector2 size, int key) {
+
+        super(position, size);
+
+        this.key = key;
+    }
+
     @Override
     public boolean condition() {
 

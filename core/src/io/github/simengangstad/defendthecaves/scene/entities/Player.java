@@ -9,12 +9,15 @@ import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import io.github.simengangstad.defendthecaves.Game;
-import io.github.simengangstad.defendthecaves.scene.Entity;
-import io.github.simengangstad.defendthecaves.scene.Map;
-import io.github.simengangstad.defendthecaves.scene.RotatableWeapon;
-import io.github.simengangstad.defendthecaves.scene.TextureUtil;
+import io.github.simengangstad.defendthecaves.gui.KeyButton;
+import io.github.simengangstad.defendthecaves.procedural.MapGenerator;
+import io.github.simengangstad.defendthecaves.scene.*;
+import io.github.simengangstad.defendthecaves.scene.item.Key;
 import io.github.simengangstad.defendthecaves.scene.tool.Axe;
 import io.github.simengangstad.defendthecaves.scene.tool.Shield;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author simengangstad
@@ -41,9 +44,33 @@ public class Player extends Entity {
 
     private boolean selectedSolid = false;
 
-    Vector2 tmpPosition = new Vector2();
+    private final Vector2 tmpPosition = new Vector2();
 
-    // TODO: Player doesn't manage to hurt other entiites.... hmmm
+    private boolean canOpen = false;
+
+    private List<Object> tmpList = new ArrayList<>();
+
+    private final KeyButton unlockButton = new KeyButton(new Vector2(0.0f, 0.0f), new Vector2(100.0f, 50.0f), Input.Keys.ENTER) {
+
+        @Override
+        public void buttonClicked() {
+
+            if (canOpen) {
+
+                map.set((int) tmpPosition.x, (int) tmpPosition.y, Map.DoorUnlocked);
+            }
+        }
+
+        @Override
+        public void buttonPressed() {
+
+        }
+
+        @Override
+        public void buttonReleased() {
+
+        }
+    };
 
     /**
      * Initializes the player with a camera.
@@ -54,6 +81,9 @@ public class Player extends Entity {
                 new Vector2(80.0f, 80.0f),
                 TextureUtil.getAnimation(Game.PlayerStationary, 16, 0.2f, Animation.PlayMode.NORMAL),
                 TextureUtil.getAnimation(Game.PlayerMoving, 16, 0.075f, Animation.PlayMode.NORMAL));
+
+
+        unlockButton.visible = true;
 
         this.camera = camera;
 
@@ -127,6 +157,54 @@ public class Player extends Entity {
         if (Gdx.input.isKeyJustPressed(Input.Keys.E)) {
 
             toggleInventory();
+        }
+
+        if (inventory.containsKeys()) {
+
+            if (tmpList.size() != inventory.getAmountOfKeys()) {
+
+                tmpList.clear();
+
+                inventory.getAllItemsByType(Key.class, tmpList);
+            }
+        }
+
+        for (MapGenerator.Room room : map.getRooms()) {
+
+            boolean inRangeOfRoom = false;
+
+            if (room.isLocked()) {
+
+                if (map.lengthBetweenTiles((int) (getPosition().x / Map.TileSizeInPixelsInWorldSpace), (int) (getPosition().y / Map.TileSizeInPixelsInWorldSpace), room.getEntrance(0).x, room.getEntrance(0).y) < 2) {
+
+                    inRangeOfRoom = true;
+
+                    unlockButton.getPosition().set(getPosition().x - getSize().x / 2.0f, getPosition().y + getSize().y / 2.0f + unlockButton.getSize().y);
+
+                    if (!unlockButton.visible) {
+
+                        unlockButton.visible = true;
+
+                        tmpPosition.set(room.getEntrance(0).x, room.getEntrance(0).y);
+
+                        for (Object object : tmpList) {
+
+                            Key key = (Key) object;
+
+                            if (key.positionOfDoor.equals(room.getEntrance(0))) {
+
+                                canOpen = true;
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (!inRangeOfRoom) {
+
+                unlockButton.visible = false;
+                canOpen = false;
+            }
         }
 
         if (!displayingInventory) {
@@ -243,6 +321,8 @@ public class Player extends Entity {
         }
 
         inventory.superview.visible = displayingInventory;
+
+        unlockButton.draw(batch, getPosition(), unlockButton.getSize());
 
         batch.draw(mousePointerTextureRegion, tmpVec.x - (Map.TileSizeInPixelsInWorldSpace / 2.0f) / 2.0f, tmpVec.y - (Map.TileSizeInPixelsInWorldSpace / 2.0f) / 2.0f, (Map.TileSizeInPixelsInWorldSpace / 2.0f), (Map.TileSizeInPixelsInWorldSpace / 2.0f));
     }

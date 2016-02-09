@@ -28,6 +28,9 @@ public class Game extends ApplicationAdapter {
     public static Texture CaterpillarMoving;
     public static Texture CaterpillarAttacking;
 
+    public static final int PotionSize = 60;
+    public static final int EntitySize = 80;
+
 
     /**
      * The tile size of the movable entity sprites in the sprite sheet.
@@ -36,7 +39,7 @@ public class Game extends ApplicationAdapter {
 
     private Scene scene;
 
-    public static boolean DebubDraw = true;
+    public static boolean DebubDraw = false;
 
     public static TextureRegion debugDrawTexture;
 

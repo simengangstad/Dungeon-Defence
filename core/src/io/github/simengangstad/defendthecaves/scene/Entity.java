@@ -21,8 +21,7 @@ import java.util.ArrayList;
  * @author simengangstad
  * @since 28/11/15
  */
-public abstract class Entity extends GameObject implements Drawable {
-
+public abstract class Entity extends Collidable {
 
     public static final int MaxHealth = 100;
 
@@ -73,16 +72,6 @@ public abstract class Entity extends GameObject implements Drawable {
 
 
     /**
-     * The map the entity is located in.
-     */
-    protected Map map;
-
-    /**
-     * The movement of the entity during the frames.
-     */
-    public Vector2 delta = new Vector2();
-
-    /**
      * The animation when the movable entity is standing still.
      */
     protected Animation stationaryAnimation;
@@ -101,8 +90,6 @@ public abstract class Entity extends GameObject implements Drawable {
      * If the entity is going backwards. Used for playing the walking loop backwards.
      */
     protected boolean goingBackwards = false;
-
-
 
     /**
      * The current animation playing.
@@ -129,15 +116,7 @@ public abstract class Entity extends GameObject implements Drawable {
      */
     private TextureRegion shadow = new TextureRegion(Game.SpriteSheet, 0, 80, Game.SizeOfTileInPixelsInSpritesheet, Game.SizeOfTileInPixelsInSpritesheet);
 
-
     public int speed = 300;
-
-    // Force
-
-    protected final Vector2 forceApplied = new Vector2();
-
-    private boolean forcePositiveX = false, forcePositiveY = false;
-
 
     // Leap
 
@@ -147,7 +126,6 @@ public abstract class Entity extends GameObject implements Drawable {
 
 
     private Vector2 tmpVector = new Vector2();
-
 
 
     private Callback requestedAnimationCallback;
@@ -165,22 +143,6 @@ public abstract class Entity extends GameObject implements Drawable {
 
         currentTextureRegion = stationaryAnimation.getKeyFrame(stateTime, true);
         currentAnimation = stationaryAnimation;
-    }
-
-    /**
-     * Sets the map the movable entity resolves its collision against.
-     */
-    public void setMap(Map map) {
-
-        this.map = map;
-    }
-
-    public void applyForce(Vector2 force) {
-
-        forceApplied.set(force);
-
-        forcePositiveX = 0 < forceApplied.x;
-        forcePositiveY = 0 < forceApplied.y;
     }
 
     public void leap() {
@@ -257,7 +219,28 @@ public abstract class Entity extends GameObject implements Drawable {
 
         health = 0;
 
-        // TODO: Play some sort of die animation.
+        System.out.println("Entity (" + this + ") died, dropping inventory...");
+
+        Vector2 force = new Vector2();
+
+        for (int x = 0; x < inventory.columns; x++) {
+
+            for (int y = 0; y < inventory.rows; y++) {
+
+                for (Item item : inventory.obtainItem(x, y, inventory.getItemList(x, y).size())) {
+
+                    item.getPosition().set(getPosition());
+
+                    force.set(MathUtils.random(-1, 1), MathUtils.random(-1, 1));
+
+                    force.scl(Map.TileSizeInPixelsInWorldSpace);
+
+                    item.applyForce(force);
+
+                    host.addGameObject(item);
+                }
+            }
+        }
     }
 
     /**
@@ -282,21 +265,7 @@ public abstract class Entity extends GameObject implements Drawable {
     @Override
     public void tick() {
 
-        if (map == null) {
-
-            throw new RuntimeException("Need an assigned map in order to resolve collisions.");
-        }
-
-        if (forceApplied.x != 0.0f || forceApplied.y != 0.0f) {
-
-            float delta = Gdx.graphics.getDeltaTime() * 7.5f;
-
-            this.delta.add(forceApplied.x * delta, forceApplied.y * delta);
-
-            forceApplied.add(delta * (forcePositiveX == false ? 1 : -1), delta * (forcePositiveY == false ? 1 : -1));
-
-            forceApplied.set(forcePositiveX == true ? Math.max(0, forceApplied.x) : Math.min(0, forceApplied.x), forcePositiveY == true ? Math.max(0, forceApplied.y) : Math.min(0, forceApplied.y));
-        }
+        super.tick();
 
         if (delta.x != 0.0f || delta.y != 0.0f) {
 

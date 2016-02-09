@@ -24,7 +24,7 @@ public class Potion extends Item {
 
     public Potion(Vector2 position, Vector2 size) {
 
-        super(position, size, new TextureRegion(Game.SpriteSheet, 32, 208, 16, 16));
+        super(position, size, new TextureRegion(Game.SpriteSheet, 32, 208, 16, 16), false);
     }
 
     public void addChemical(Chemical... chemicals) {
@@ -69,6 +69,11 @@ public class Potion extends Item {
         batch.setColor(Color.WHITE);
 
         super.draw(batch, position, size);
+    }
 
+    @Override
+    public String toString() {
+
+        return "Potion (stability: " + stability + ", toxicity: " + toxicity + ", flammability: " + flammability + ")";
     }
 }

@@ -329,7 +329,8 @@ public class Map {
                             SpawnIntact = 10,
                             SpawnSlightlyBroken = 11,
                             SpawnBroken = 12,
-                            Door = MapGenerator.Door;
+                            Door = MapGenerator.Door,
+                            DoorUnlocked = MapGenerator.Door + 1;
 
     /**
      * The renderable tile map.
@@ -672,16 +673,12 @@ public class Map {
 
         if (cellIsValid(cellX, cellY) && collidableMap[cellX][cellY] != Open) {
 
-            point.set(tmpTargetPosition);
+            if (point != null) point.set(tmpTargetPosition);
 
             return true;
         }
 
-        System.out.println("1: " + position);
-
         position.set(tmpTargetPosition);
-
-        System.out.println("2: " + position);
 
         return false;
     }
@@ -840,10 +837,15 @@ public class Map {
 
                     case Door:
 
-                        batch.draw(Game.SpriteSheet, x * TileSizeInPixelsInWorldSpace, y * TileSizeInPixelsInWorldSpace, TileSizeInPixelsInWorldSpace, TileSizeInPixelsInWorldSpace, 96, 48, Game.SizeOfTileInPixelsInSpritesheet, Game.SizeOfTileInPixelsInSpritesheet, false, false);
+                        batch.draw(Game.SpriteSheet, x * TileSizeInPixelsInWorldSpace, y * TileSizeInPixelsInWorldSpace, TileSizeInPixelsInWorldSpace, TileSizeInPixelsInWorldSpace, 0, 320, Game.SizeOfTileInPixelsInSpritesheet, Game.SizeOfTileInPixelsInSpritesheet, false, false);
 
                         break;
 
+                    case DoorUnlocked:
+
+                        batch.draw(Game.SpriteSheet, x * TileSizeInPixelsInWorldSpace, y * TileSizeInPixelsInWorldSpace, TileSizeInPixelsInWorldSpace, TileSizeInPixelsInWorldSpace, 16, 320, Game.SizeOfTileInPixelsInSpritesheet, Game.SizeOfTileInPixelsInSpritesheet, false, false);
+
+                        break;
                 }
             }
         }

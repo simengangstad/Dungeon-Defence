@@ -13,11 +13,11 @@ import io.github.simengangstad.defendthecaves.scene.TextureUtil;
  */
 public class HumanLikeEnemy extends Enemy {
 
-    public HumanLikeEnemy(Vector2 position, Vector2 size, Player player) {
+    public HumanLikeEnemy(Vector2 position, Vector2 size, int coverageRadius, Player player) {
 
         super(position,
                 player,
-                10,
+                coverageRadius,
                 size,
                 TextureUtil.getAnimation(Game.OrcStationary, 16, 0.2f, Animation.PlayMode.NORMAL),
                 TextureUtil.getAnimation(Game.OrcMoving, 16, 0.075f, Animation.PlayMode.NORMAL));

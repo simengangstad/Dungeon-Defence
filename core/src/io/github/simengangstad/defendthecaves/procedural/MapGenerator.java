@@ -202,6 +202,8 @@ public class MapGenerator {
 
             Room room = new Room(x, y, width, height, false);
 
+            room.locked = false;
+
             rooms.add(room);
 
             if (MathUtils.random(100) < chanceOfLockedRoom) {
@@ -209,6 +211,7 @@ public class MapGenerator {
                 constructRectangualarLockedRoom(x, y, width, height, MathUtils.random(100));
 
                 room.key = new Key(new Vector2(), new Coordinate(room.getEntrance(0).x, room.getEntrance(0).y));
+                room.locked = true;
             }
             else {
 
@@ -217,8 +220,6 @@ public class MapGenerator {
                     case RectangularRoom:
 
                         constructRectangularRoom(x, y, width, height);
-
-                        rooms.get(rooms.size() - 1).locked = true;
 
                         break;
 
@@ -421,6 +422,8 @@ public class MapGenerator {
             Room startRoom = rooms.get(index);
             Room endRoom = rooms.get((index + 1) % rooms.size());
 
+            System.out.println("Start room is locked locked: " + startRoom.locked);
+
             int a = index + 1;
 
             while (endRoom.locked) {
@@ -457,7 +460,7 @@ public class MapGenerator {
             }
 
             Coordinate startCoordinate = startRoom.pollEntrance();
-            Coordinate endCoordinate = new Coordinate(endRoom.x, endRoom.y);
+            Coordinate endCoordinate = new Coordinate(endRoom.centreX, endRoom.centreY);
 
             System.out.println("Constructing corridor between " + endCoordinate + " and " + startCoordinate);
 
@@ -490,7 +493,7 @@ public class MapGenerator {
 
                 current.set(cameFromCoordinate);
 
-                if (map[current.x][current.y] == Free && !current.equals(endCoordinate) && !endRoom.isInside(current.x, current.y)) {
+                if (!startRoom.locked && map[current.x][current.y] == Free && !current.equals(endCoordinate) && !endRoom.isInside(current.x, current.y)) {
 
                     System.out.println("Corridor found another free tile before the end destination. Stopped at " + current + ".");
 
@@ -529,6 +532,8 @@ public class MapGenerator {
 
             index++;
         }
+
+        System.out.println("---- Finished constructing corridors ----\n");
     }
 
     private boolean validCoordinate(int x, int y) {
@@ -555,8 +560,11 @@ public class MapGenerator {
         /**
          * The centre of the rectangle.
          */
-        public final int x, y;
+        public final int centreX, centreY;
 
+        /**
+         * The dimensions of the whole room.
+         */
         public final int width, height;
 
         private Queue<Coordinate> entrancesQueue = new LinkedList<>();
@@ -570,10 +578,10 @@ public class MapGenerator {
          */
         private Key key;
 
-        Room(int x, int y, int width, int height, boolean locked) {
+        Room(int centreX, int centreY, int width, int height, boolean locked) {
 
-            this.x = x;
-            this.y = y;
+            this.centreX = centreX;
+            this.centreY = centreY;
             this.width = width;
             this.height = height;
             this.locked = locked;
@@ -621,7 +629,7 @@ public class MapGenerator {
         public boolean intersect(int x, int y, int width, int height) {
 
             int x1 = x - (width - 1) / 2,      y1 = y - (height - 1) / 2;
-            int x2 = this.x - (this.width - 1) / 2, y2 = this.y - (this.height - 1) / 2;
+            int x2 = this.centreX - (this.width - 1) / 2, y2 = this.centreY - (this.height - 1) / 2;
 
             return  (x1 <= x2 + this.width) && (x1 + width >= x2) &&
                     (y1 <= y2 + this.height) && (y1 + height >= y2);
@@ -629,8 +637,8 @@ public class MapGenerator {
 
         public boolean isInside(int x0, int y0) {
 
-            int x = this.x - width / 2;
-            int y = this.y - height / 2;
+            int x = this.centreX - width / 2;
+            int y = this.centreY - height / 2;
 
             return (x <= x0 && x0 <= x + width) && (y <= y0 && y0 <= y + height);
         }
@@ -640,7 +648,13 @@ public class MapGenerator {
          */
         public boolean intersect(Room room) {
 
-            return intersect(room.x, room.y, room.width, room.height);
+            return intersect(room.centreX, room.centreY, room.width, room.height);
+        }
+
+        @Override
+        public String toString() {
+
+            return "Centre (" + centreX + ", " + centreY + ")" + ", dimension (" + width + ", " + height + ")";
         }
     }
 }

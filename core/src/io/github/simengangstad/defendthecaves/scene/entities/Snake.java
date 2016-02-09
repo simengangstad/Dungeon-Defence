@@ -17,7 +17,7 @@ public class Snake extends Enemy {
 
     public int attackDamage = 30;
 
-    public Snake(Vector2 position, Player player, int coverageRadius, Vector2 size) {
+    public Snake(Vector2 position, Vector2 size, int coverageRadius, Player player) {
 
         super(position,
                 player,

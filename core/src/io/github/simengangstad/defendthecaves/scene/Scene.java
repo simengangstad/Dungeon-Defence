@@ -12,7 +12,6 @@ import io.github.simengangstad.defendthecaves.components.Drawable;
 import io.github.simengangstad.defendthecaves.components.GameObject;
 import io.github.simengangstad.defendthecaves.gui.KeyButton;
 import io.github.simengangstad.defendthecaves.gui.View;
-import io.github.simengangstad.defendthecaves.pathfinding.Coordinate;
 import io.github.simengangstad.defendthecaves.pathfinding.PathfindingGrid;
 import io.github.simengangstad.defendthecaves.procedural.MapGenerator;
 import io.github.simengangstad.defendthecaves.scene.entities.*;
@@ -22,7 +21,9 @@ import io.github.simengangstad.defendthecaves.scene.item.Potion;
 import io.github.simengangstad.defendthecaves.scene.tool.Cudgel;
 import io.github.simengangstad.defendthecaves.scene.tool.Shield;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
 
 /**
  * @author simengangstad
@@ -127,8 +128,6 @@ public class Scene extends Container {
 
         inventoryView.addSubview(player.inventory);
         inventoryFrame.addGameObject(inventoryView);
-
-        player.inventory.placeItem(new Key(new Vector2(0.0f, 0.0f), new Coordinate()));
     }
 
     private void initialiseWidgetFrame() {
@@ -159,9 +158,61 @@ public class Scene extends Container {
         widgetFrame.addGameObject(button);
     }
 
+    /**
+     * Adds random loot to a room. The total amount of added loot will be
+     * the amount of random loot plus the required items.
+     *
+     * @param amountOfRandomLoot The amount of loot to be added.
+     * @param requiredItems The required items which will be added regardless.
+     */
+    private void addRandomLootInRoom(MapGenerator.Room room, int amountOfRandomLoot, Item... requiredItems) {
+
+        System.out.println("\n ---- Adding random loot ----");
+
+        for (int i = 0; i < amountOfRandomLoot + requiredItems.length; i++) {
+
+            Item itemToAdd;
+
+            Vector2 position = new Vector2(
+
+                    MathUtils.random(room.centreX - (room.width - 2) / 2 + 0.5f, room.centreX + (room.width - 2) / 2 - 0.5f),
+                    MathUtils.random(room.centreY - (room.height - 2) / 2 + 0.5f, room.centreY + (room.height - 2) / 2 - 0.5f)
+            );
+
+            if (i < requiredItems.length) {
+
+               itemToAdd = requiredItems[i];
+            }
+            else {
+
+                Potion potion = new Potion(position,
+
+                        new Vector2(Game.PotionSize, Game.PotionSize)
+                );
+
+                for (int j = 0; j < MathUtils.random(1, 5); j++) {
+
+                    potion.addChemical(new Chemical());
+                }
+
+                itemToAdd = potion;
+            }
+
+            System.out.println("Placing random loot (" + itemToAdd + ") at position: " + position + " inside room: " + room);
+
+            position.scl(Map.TileSizeInPixelsInWorldSpace);
+
+            itemToAdd.setMap(map);
+
+            addGameObject(itemToAdd);
+        }
+
+        System.out.println("---- Finished adding random loot ----\n");
+    }
+
     private void initialiseMap() {
 
-        map = new Map(40, 40, 15, 3, 7, 162, player.getSize(), 1, 3);
+        map = new Map(25, 25, 5, 3, 15, 162, player.getSize(), 1, 3);
 
         pathfindingGrid = new PathfindingGrid(map.getWidth(), map.getHeight());
 
@@ -177,6 +228,8 @@ public class Scene extends Container {
             if (room.isLocked()) {
 
                 keys.add(room.getKey());
+
+                addRandomLootInRoom(room, (int) Math.sqrt((room.width - 2) * (room.height - 2)));
             }
         }
 
@@ -219,7 +272,7 @@ public class Scene extends Container {
 
         Spawner<Barrier> spawner = new Spawner<>(barriers);
 
-        spawner.spawn(2, 4000, item -> {
+        spawner.spawn(1, 4000, item -> {
 
             Barrier barrier = (Barrier) item;
 
@@ -250,38 +303,57 @@ public class Scene extends Container {
                 }
             }
 
-            position.add(0.5f, 0.5f);
+            //position.add(0.5f, 0.5f);
 
+            Vector2 positionOfEnemy = position.cpy().scl(Map.TileSizeInPixelsInWorldSpace);
 
-            HumanLikeEnemy orc = new HumanLikeEnemy(position.cpy().scl(Map.TileSizeInPixelsInWorldSpace), new Vector2(80, 80), player);
+            Enemy enemyToAdd = null;
 
-            orc.attachTool(new Cudgel(() -> {}));
+            switch (MathUtils.random(2)) {
 
-            // TODO: Add different types of enemues
-            enemiesAtHold.get(barrier).add(orc);
+                case 0:
+
+                    enemyToAdd = new HumanLikeEnemy(positionOfEnemy, new Vector2(Game.EntitySize, Game.EntitySize), 6, player);
+
+                    enemyToAdd.attachTool(new Cudgel(() -> {}));
+
+                    break;
+
+                case 1:
+
+                    enemyToAdd = new Snake(position, new Vector2(Game.EntitySize * 2, Game.EntitySize), 4, player);
+
+                    break;
+
+                case 2:
+
+                    enemyToAdd = new Caterpillar(positionOfEnemy, new Vector2(Game.EntitySize, Game.EntitySize), 5, player, gameObjects);
+
+                    break;
+            }
+
+            enemyToAdd.inventory = new Inventory(null, null, 6, 4, null, null);
+
+            Potion potion = new Potion(position,
+
+                    new Vector2(Game.PotionSize, Game.PotionSize)
+            );
+
+            for (int j = 0; j < MathUtils.random(1, 5); j++) {
+
+                potion.addChemical(new Chemical());
+            }
+
+            enemyToAdd.inventory.placeItem(potion);
+
+            if (!keys.isEmpty()) {
+
+                enemyToAdd.inventory.placeItem(keys.get(keys.size() - 1));
+            }
+
+            enemiesAtHold.get(barrier).add(enemyToAdd);
         });
-/*
-        Snake snake = new Snake(player.getPosition().cpy().add(5 * Map.TileSizeInPixelsInWorldSpace, 0.0f), player, 3, new Vector2(160, 80));
-
-        addGameObject(snake);
-        */
-/*
-        HumanLikeEnemy humanLikeEnemy = new HumanLikeEnemy(player.getPosition().cpy(), new Vector2(80, 80), player);
-
-        humanLikeEnemy.attachTool(new Cudgel(() -> {}));
-
-        addGameObject(humanLikeEnemy);
-*/
-        Caterpillar caterpillar = new Caterpillar(player.getPosition().cpy(), player, gameObjects);
-
-        addGameObject(caterpillar);
-
-        Potion potion = new Potion(player.getPosition().cpy(), new Vector2(60, 60));
-
-        potion.addChemical(new Chemical(50, -50, -50));
-
-        addGameObject(potion);
-    }
+     }
 
     private void updatePathfindingGrid() {
 
@@ -312,11 +384,25 @@ public class Scene extends Container {
 
         super.addGameObject(gameObject);
 
-        if (gameObject instanceof Entity) {
+        if (gameObject instanceof Collidable) {
 
-            Entity entity = (Entity) gameObject;
+            ((Collidable) gameObject).setMap(map);
+        }
 
-            entity.setMap(map);
+        if (gameObject instanceof Item) {
+
+            ((Item) gameObject).toggleTimer();
+        }
+    }
+
+    @Override
+    public void removeGameObject(GameObject gameObject) {
+
+        super.removeGameObject(gameObject);
+
+        if (gameObject instanceof Item) {
+
+            ((Item) gameObject).toggleTimer();
         }
     }
 
@@ -513,7 +599,6 @@ public class Scene extends Container {
                 }
             }
 
-
             if (gameObject instanceof Entity) {
 
                 Entity entity = (Entity) gameObject;
@@ -558,6 +643,46 @@ public class Scene extends Container {
 
                         closestsBarrier = null;
                         button.visible = false;
+                    }
+                }
+            }
+            else if (gameObject instanceof Item) {
+
+                Item item = ((Item) gameObject);
+
+                for (GameObject gameObjectToCheckAgainst : gameObjects) {
+
+                    if (gameObjectToCheckAgainst instanceof Entity) {
+
+                        Entity entity = ((Entity) gameObjectToCheckAgainst);
+
+                        float length = map.lengthBetweenCoordinates(item.getPosition(), entity.getPosition());
+
+                        if (length < 0.5) {
+
+                            item.forceApplied.set(0.0f, 0.0f);
+
+                            //System.out.println("Item timer: " + item.getTimer());
+
+                            if (item.getTimer() > 0.75f) {
+
+                                if (entity.inventory.placeItem(item)) {
+
+                                    System.out.println("Entity (" + entity + ") picked up item: " + item);
+
+                                    removeGameObject(item);
+                                }
+                            }
+                        }
+                        else if (length < 2) {
+
+                            if (entity.inventory.sufficientPlaceForItem(item) && item.forceApplied.x == 0.0f && item.forceApplied.y == 0.0f) {
+
+                                System.out.println("Applying force to item: " + item);
+
+                                item.applyForce(entity.getPosition().cpy().sub(item.getPosition()).scl(2.0f));
+                            }
+                        }
                     }
                 }
             }

@@ -10,11 +10,11 @@
 # By the end of January 2016
 
 - [ ] Clean up code
-- [ ] Implement loot system
-    - [ ] Implement inventory
+- [x] Implement loot system
+    - [x] Implement inventory
 - [ ] Make the system of the map generate random loot and secret rooms (with corresponding keys)
-- [ ] Make at least three different enemies
-- [ ] Implement a GUI system
+- [x] Make at least three different enemies
+- [x] Implement a GUI system
 
 
 # By the end of February 2016

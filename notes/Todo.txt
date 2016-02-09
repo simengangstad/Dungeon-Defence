@@ -39,17 +39,24 @@
 - [x] Give map a more isometric feel.
 - [x] Implement zooming.
 - [x] Add art for breakable tiles.
-- [ ] Clean up code.
-- [ ] Make the map generate random loot and secret rooms (with corresponding keys and doors)
 - [x] Add unbreakable tiles which are distinguishable from the other tiles and fill the edges with this.
 - GUI system
     - [x] Add a generic view
     - [x] Add possibility to add subviews to views
-        - [ ] Buttons
-- [ ] Construct three new enemies
+- [x] Construct three new enemies
 - [x] After attack the axe swings back into place.
 - [x] Add more detailed shadows for the walls.
-- [ ] Some way of picking up loot (probably just attraction).
+
+
+# 0005
+
+- [x] Some way of picking up loot (probably just attraction).
+
+
+# 0006
+
+- [ ] Make the map generate random loot and secret rooms (with corresponding keys and doors)
+
 
 # Etc
 

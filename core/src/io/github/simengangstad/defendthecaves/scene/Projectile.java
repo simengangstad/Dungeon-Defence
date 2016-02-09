@@ -36,11 +36,11 @@ public class Projectile extends GameObject implements Drawable {
 
     public Callback finishedPlayingImpactAnimationCallback;
 
-    private final Entity sender;
+    private final Class avoidable;
 
     private final boolean flip;
 
-    public Projectile(Vector2 position, Vector2 size, Vector2 velocity, Animation projectingAnimation, Animation impactAnimation, Map map, List<GameObject> gameObjectList, Entity sender) {
+    public Projectile(Vector2 position, Vector2 size, Vector2 velocity, Animation projectingAnimation, Animation impactAnimation, Map map, List<GameObject> gameObjectList, Class avoidable) {
 
         super(position, size);
 
@@ -55,7 +55,7 @@ public class Projectile extends GameObject implements Drawable {
 
         currentTextureRegion = projectingAnimation.getKeyFrame(stateTime, true);
 
-        this.sender = sender;
+        this.avoidable = avoidable;
 
         flip = velocity.x > 0;
     }
@@ -90,7 +90,7 @@ public class Projectile extends GameObject implements Drawable {
 
                 for (GameObject gameObject : gameObjectList) {
 
-                    if (gameObject != sender && gameObject instanceof Entity) {
+                    if ((gameObject instanceof Entity) & !(gameObject.getClass().getSuperclass().equals(avoidable))) {
 
                         if (gameObject.intersects(this)) {
 

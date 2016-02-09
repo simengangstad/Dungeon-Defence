@@ -28,12 +28,12 @@ public class Caterpillar extends Enemy {
 
     private List<GameObject> gameObjectList;
 
-    public Caterpillar(Vector2 position, Player player, List<GameObject> gameObjectList) {
+    public Caterpillar(Vector2 position, Vector2 size, int coverageRadius, Player player, List<GameObject> gameObjectList) {
 
         super(position,
                 player,
-                6,
-                new Vector2(80, 80),
+                coverageRadius,
+                size,
                 TextureUtil.getAnimation(Game.CaterpillarStationary, 16, 0.2f, Animation.PlayMode.NORMAL),
                 TextureUtil.getAnimation(Game.CaterpillarMoving, 16, 0.2f, Animation.PlayMode.NORMAL));
 
@@ -67,7 +67,7 @@ public class Caterpillar extends Enemy {
 
             requestAnimation(AttackAnimation, () -> {
 
-                Projectile projectile = new Projectile(getPosition().cpy(), new Vector2(80, 80), tmp.cpy(), projectingAnimation, impactAnimation, map, gameObjectList, this);
+                Projectile projectile = new Projectile(getPosition().cpy(), new Vector2(80, 80), tmp.cpy(), projectingAnimation, impactAnimation, map, gameObjectList, Enemy.class);
 
                 projectile.impactCallback = (object) -> {
 

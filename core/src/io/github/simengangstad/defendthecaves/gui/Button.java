@@ -16,6 +16,11 @@ public abstract class Button extends View {
         super(position, size, textureRegion);
     }
 
+    public Button(Vector2 position, Vector2 size) {
+
+        super(position, size);
+    }
+
     public boolean isPressed() {
 
         return pressed;

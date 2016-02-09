@@ -15,7 +15,7 @@ public class Axe extends RotatableWeapon {
 
     public Axe(Callback interactionCallback) {
 
-        super(10, 0.225f, interactionCallback, -45, 45);
+        super(50, 0.225f, interactionCallback, -45, 45);
 
         TextureRegion[] textureRegions = new TextureRegion[5];
 

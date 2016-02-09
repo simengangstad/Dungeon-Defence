@@ -5,8 +5,10 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Vector2;
 import io.github.simengangstad.defendthecaves.gui.View;
+import io.github.simengangstad.defendthecaves.scene.item.Key;
 
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * The inventory of entites and other objects. Consits of {@link Item} and extends {@link View} so
@@ -20,7 +22,7 @@ public class Inventory extends View {
     /**
      * The dimension of the inventory.
      */
-    private final int columns, rows;
+    public final int columns, rows;
 
     /**
      * The items in the inventory.
@@ -46,6 +48,13 @@ public class Inventory extends View {
      * Reference to the position the {@link Inventory#currentItem} was placed at.
      */
     private int lastColumn = 0, lastRow = 0;
+
+    /**
+     * The keys in the inventory.
+     */
+    private int keys = 0;
+
+    private final Vector2 tmp = new Vector2(), tmp2 = new Vector2();
 
     /**
      * Initialises the inventory with a origin and a size used for drawing the inventory.
@@ -76,12 +85,23 @@ public class Inventory extends View {
      */
     public boolean isFull() {
 
-        return size == rows * columns;
+        return size == rows * columns - 1;
     }
 
     public boolean isValidPosition(int x, int y) {
 
         return 0 <= x && x < columns && 0 <= y && y < rows;
+    }
+
+    public boolean containsKeys() {
+
+        return keys > 0;
+    }
+
+
+    public int getAmountOfKeys() {
+
+        return keys;
     }
 
     public boolean placeItem(Item item, int x, int y) {
@@ -93,11 +113,16 @@ public class Inventory extends View {
 
         Class itemType = getItemType(x, y);
 
-        if (itemType == item.getClass() || itemType == null) {
+        if ((item.stackable && itemType == item.getClass()) || itemType == null) {
 
             if (itemType == null) {
 
                 size++;
+            }
+
+            if (itemType == Key.class) {
+
+                keys++;
             }
 
             getItemList(x, y).add(item);
@@ -114,7 +139,33 @@ public class Inventory extends View {
         }
     }
 
-    public void placeItem(Item item) {
+    /**
+     * @return If the given item can be added to the inventory.
+     */
+    public boolean sufficientPlaceForItem(Item item) {
+
+        for (int x = 0;  x < items.length; x++) {
+
+            for (int y = 0; y < items[0].length; y++) {
+
+                Class itemType = getItemType(x, y);
+
+                if ((item.stackable && itemType == item.getClass()) || itemType == null) {
+
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Places an item (if possible) in the inventory.
+     *
+     * @return If the placement was successful.
+     */
+    public boolean placeItem(Item item) {
 
         boolean foundPlace = false;
 
@@ -124,11 +175,16 @@ public class Inventory extends View {
 
                 Class itemType = getItemType(x, y);
 
-                if (itemType == item.getClass() || itemType == null) {
+                if ((item.stackable && itemType == item.getClass()) || itemType == null) {
 
                     if (itemType == null) {
 
                         size++;
+                    }
+
+                    if (itemType == Key.class) {
+
+                        keys++;
                     }
 
                     getItemList(x, y).add(item);
@@ -146,6 +202,8 @@ public class Inventory extends View {
                 break;
             }
         }
+
+        return foundPlace;
     }
 
     public ArrayList<Item> getItemList(int x, int y) {
@@ -175,6 +233,23 @@ public class Inventory extends View {
         }
 
         return null;
+    }
+
+    /**
+     * Adds all items of the given type to the list.
+     */
+    public void getAllItemsByType(Class type, List<Object> list) {
+
+        for (int x = 0; x < items.length; x++) {
+
+            for (int y = 0; y < items[0].length; y++) {
+
+                if (getItemType(x, y) == type) {
+
+                    list.addAll(getItemList(x, y));
+                }
+            }
+        }
     }
 
     /**
@@ -209,6 +284,11 @@ public class Inventory extends View {
             items[x][y].remove(i);
         }
 
+        if (getItemType(x, y) == Key.class) {
+
+            keys--;
+        }
+
         return newItems;
     }
 
@@ -230,12 +310,10 @@ public class Inventory extends View {
 
                 if (!getItemList(x, y).isEmpty()) {
 
-                    batch.draw(
-                            getItemList(x, y).get(0).getTextureRegion(),
-                            position.x + x * (size.x / columns) + (size.x / columns / 16) * 1,
-                            position.y + y * (size.y / rows) + (size.y / rows / 16) * 1,
-                            size.x / columns - (size.x / columns / 16) * 2,
-                            size.y / rows - (size.y / rows / 16) * 2);
+                    tmp2.set(size.x / columns - (size.x / columns / 16) * 2, size.y / rows - (size.y / rows / 16) * 2);
+                    tmp.set(position.x + x * (size.x / columns) + tmp2.x / 2.0f + (size.x / columns / 16) * 1, position.y + tmp2.y / 2.0f + y * (size.y / rows) + (size.y / rows / 16) * 1);
+
+                    getItemList(x, y).get(0).draw(batch, tmp, tmp2);
                 }
             }
         }
@@ -266,7 +344,7 @@ public class Inventory extends View {
 
         if (currentItem != null && !Gdx.input.isButtonPressed(0)) {
 
-            if (isValidPosition(column, row) && (getItemType(column, row) == currentItem.getClass() || getItemType(column, row) == null)) {
+            if (isValidPosition(column, row) && ((currentItem.stackable && getItemType(column, row) == currentItem.getClass()) || getItemType(column, row) == null)) {
 
                 placeItem(currentItem, column, row);
             }

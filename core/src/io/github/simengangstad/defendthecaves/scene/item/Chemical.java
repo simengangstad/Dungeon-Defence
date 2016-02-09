@@ -1,6 +1,7 @@
 package io.github.simengangstad.defendthecaves.scene.item;
 
 import com.badlogic.gdx.math.MathUtils;
+import com.sun.javafx.jmx.HighlightRegion;
 
 /**
  * @author simengangstad
@@ -21,5 +22,13 @@ public class Chemical {
         this.stability = MathUtils.clamp(stability, LowerBoundary, UpperBoundary);
         this.toxicity = MathUtils.clamp(toxicity, LowerBoundary, UpperBoundary);
         this.flammability = MathUtils.clamp(flammability, LowerBoundary, UpperBoundary);
+    }
+
+    /**
+     * Generates a random chemical.
+     */
+    public Chemical() {
+
+        this(MathUtils.random(LowerBoundary, UpperBoundary), MathUtils.random(LowerBoundary, UpperBoundary), MathUtils.random(LowerBoundary, UpperBoundary));
     }
 }

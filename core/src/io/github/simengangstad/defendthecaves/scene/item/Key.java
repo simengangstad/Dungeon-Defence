@@ -12,11 +12,11 @@ import io.github.simengangstad.defendthecaves.scene.Item;
  */
 public class Key extends Item {
 
-    private Coordinate positionOfDoor;
+    public final Coordinate positionOfDoor;
 
     public Key(Vector2 position, Coordinate positionOfDoor) {
 
-        super(position, new Vector2(30.0f, 30.0f), new TextureRegion(Game.SpriteSheet, 0, 208, 16, 16));
+        super(position, new Vector2(30.0f, 30.0f), new TextureRegion(Game.SpriteSheet, 0, 208, 16, 16), false);
 
         this.positionOfDoor = positionOfDoor;
     }
