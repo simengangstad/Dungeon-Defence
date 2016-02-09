@@ -3,7 +3,9 @@ package io.github.simengangstad.defendthecaves.pathfinding;
 import com.badlogic.gdx.utils.Pool;
 
 import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.PriorityQueue;
+import java.util.Queue;
 
 /**
  * @author simengangstad
@@ -44,7 +46,13 @@ public class PathfindingGrid {
      * The queue used for the expanding ring (frontier) that determines the properties
      * of the tiles within the map.
      */
-    public final PriorityQueue<PathfindingCoordinate> frontier = new PriorityQueue<>();
+    private final Queue<PathfindingCoordinate> frontier = new LinkedList<>();
+
+    /**
+     * The priority queue used for the expanding ring (frontier) which also takes in account distance
+     * to the goal.
+     */
+    private final PriorityQueue<PathfindingCoordinate> priorityFrontier = new PriorityQueue<>();
 
     /**
      * Temp value for the neigbours of a given tile.
@@ -103,6 +111,53 @@ public class PathfindingGrid {
     PathfindingCoordinate start = new PathfindingCoordinate(), end = new PathfindingCoordinate();
 
     /**
+     * Performs a flood from the given position and marks all the solid tiles where 0 is defined as a
+     * non-solid tile and 1 is a solid tile.
+     */
+    public void performFlood(int x0, int y0, int[][] map) {
+
+        start.set(x0, y0);
+
+        for (int i = 0; i < width; i++) {
+
+            for (int j = 0; j < height; j++) {
+
+                map[i][j] = -1;
+            }
+        }
+
+        frontier.clear();
+
+        frontier.add(start);
+
+        while (!frontier.isEmpty()) {
+
+            PathfindingCoordinate frontierCoordinate = frontier.poll();
+
+            for (PathfindingCoordinate next : getNeighbours(frontierCoordinate, false)) {
+
+                if (next != null && map[next.x][next.y] == -1) {
+
+                    if (get(next.x, next.y) == State.Closed) {
+
+                        System.out.println(next);
+
+                        map[next.x][next.y] = 1;
+                    }
+                    else {
+
+                        map[next.x][next.y] = 0;
+
+                        frontier.add(next);
+                    }
+                }
+            }
+
+            pathfindingCoordinatePool.free(frontierCoordinate);
+        }
+    }
+
+    /**
      *
      * @param x1
      * @param y1
@@ -117,17 +172,17 @@ public class PathfindingGrid {
         start.set(x2, y2);
         end.set(x1, y1);
 
-        frontier.clear();
+        priorityFrontier.clear();
 
-        frontier.add(start);
+        priorityFrontier.add(start);
 
         cameFrom[start.x][start.y].set(start.x, start.y);
 
-        while (!frontier.isEmpty()) {
+        while (!priorityFrontier.isEmpty()) {
 
-            PathfindingCoordinate frontierCoordinate = frontier.poll();
+            PathfindingCoordinate frontierCoordinate = priorityFrontier.poll();
 
-            for (PathfindingCoordinate next : getNeighbours(frontierCoordinate)) {
+            for (PathfindingCoordinate next : getNeighbours(frontierCoordinate, true)) {
 
                 if (next != null) {
 
@@ -137,13 +192,13 @@ public class PathfindingGrid {
 
                         next.origin = end;
 
-                        frontier.add(next);
+                        priorityFrontier.add(next);
 
                         cameFrom[next.x][next.y].set(frontierCoordinate.x, frontierCoordinate.y);
 
                         if (cameFrom[end.x][end.y].x != -1) {
 
-                            frontier.clear();
+                            priorityFrontier.clear();
 
                             break;
                         }
@@ -151,16 +206,13 @@ public class PathfindingGrid {
                 }
             }
 
-            if (frontier.isEmpty() && (cameFrom[end.x][end.y].x != frontierCoordinate.x || cameFrom[end.x][end.y].y != frontierCoordinate.y)) {
+            if (priorityFrontier.isEmpty() && (cameFrom[end.x][end.y].x != frontierCoordinate.x || cameFrom[end.x][end.y].y != frontierCoordinate.y)) {
 
                 return false;
             }
 
             pathfindingCoordinatePool.free(frontierCoordinate);
         }
-
-        //pathfindingCoordinatePool.free(start);
-        //pathfindingCoordinatePool.free(end);
 
         return true;
     }
@@ -174,7 +226,7 @@ public class PathfindingGrid {
     /**
      * @return The neighbours of the given coordinate.
      */
-    public PathfindingCoordinate[] getNeighbours(PathfindingCoordinate coordinate) {
+    public PathfindingCoordinate[] getNeighbours(PathfindingCoordinate coordinate, boolean checkAgainstClosedState) {
 
         Arrays.fill(tmpNeighbours, null);
 
@@ -184,9 +236,19 @@ public class PathfindingGrid {
 
             neighbour.set(coordinate.x + Directions[i].x, coordinate.y + Directions[i].y);
 
-            if (inBounds(neighbour) && grid[neighbour.x][neighbour.y] != State.Closed) {
+            if (inBounds(neighbour)) {
 
-                tmpNeighbours[i] = neighbour;
+                if (checkAgainstClosedState) {
+
+                    if (grid[neighbour.x][neighbour.y] != State.Closed) {
+
+                        tmpNeighbours[i] = neighbour;
+                    }
+                }
+                else {
+
+                    tmpNeighbours[i] = neighbour;
+                }
             }
             else {
 

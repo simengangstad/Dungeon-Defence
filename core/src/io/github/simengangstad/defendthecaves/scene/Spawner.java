@@ -37,7 +37,7 @@ public class Spawner<T> {
                     }
                     catch (InterruptedException interruptedException) {
 
-                        System.err.println(interruptedException.getStackTrace());
+                        interruptedException.printStackTrace();
                     }
                 }
 

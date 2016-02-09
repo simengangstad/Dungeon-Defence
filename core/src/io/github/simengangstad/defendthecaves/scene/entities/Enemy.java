@@ -1,16 +1,13 @@
 package io.github.simengangstad.defendthecaves.scene.entities;
 
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
-import io.github.simengangstad.defendthecaves.Callback;
-import io.github.simengangstad.defendthecaves.Game;
 import io.github.simengangstad.defendthecaves.pathfinding.Coordinate;
+import io.github.simengangstad.defendthecaves.scene.Entity;
 import io.github.simengangstad.defendthecaves.scene.Map;
-import io.github.simengangstad.defendthecaves.scene.MovableEntity;
 import io.github.simengangstad.defendthecaves.scene.Scene;
-import io.github.simengangstad.defendthecaves.scene.weapons.Axe;
 
 import java.util.ArrayList;
 
@@ -18,9 +15,9 @@ import java.util.ArrayList;
  * @author simengangstad
  * @since 08/12/15
  */
-public class Enemy extends MovableEntity {
+public abstract class Enemy extends Entity {
 
-    private final Vector2 playerPositionReference, playerSizeReference;
+    protected final Vector2 playerPositionReference, playerSizeReference;
 
     private final Vector2 tmpVector = new Vector2();
 
@@ -32,37 +29,9 @@ public class Enemy extends MovableEntity {
 
     private Coordinate[][] cameFrom;
 
-    public Enemy(Vector2 position, Vector2 playerPositionReference, Vector2 playerSizeReference, int coverageRadius) {
-
-        super(position, new Vector2(80.0f, 80.0f), "assets/animations/PlayerStationary.png", 0.2f, "assets/animations/PlayerWalking.png", 0.075f);
-
-        this.playerPositionReference = playerPositionReference;
-        this.playerSizeReference = playerSizeReference;
-
-        this.coverageRadius = coverageRadius;
-
-        leapTextureRegion = new TextureRegion(Game.spriteSheet, 96, 48, 16, 16);
-
-        attachTool(new Axe(new Callback() {
-
-            @Override
-            public void callback() {}
-        }));
-
-        destination.set((int) (position.x / Map.TileSizeInPixelsInWorldSpace), (int) (position.y / Map.TileSizeInPixelsInWorldSpace));
-
-        lastPosition.set(getPosition());
-    }
-
     float scaleFactor = 0.9f;
 
     float timeLeftStationary = -1.0f;
-
-    @Override
-    protected void collides() {
-
-        // TODO: Replace with pathfinding?
-    }
 
     final Vector2 lastPosition = new Vector2();
 
@@ -71,6 +40,34 @@ public class Enemy extends MovableEntity {
     int currentIndex = 0;
 
     float timePassedGoingInTheGivenDirection = 0.0f;
+
+    public Enemy(Vector2 position, Player player, int coverageRadius, Vector2 size, Animation stationaryAnimation, Animation movingAnimation) {
+
+        super(position, size, stationaryAnimation, movingAnimation);
+
+        this.playerPositionReference = player.getPosition();
+        this.playerSizeReference = player.getSize();
+
+        this.coverageRadius = coverageRadius;
+
+        destination.set((int) (position.x / Map.TileSizeInPixelsInWorldSpace), (int) (position.y / Map.TileSizeInPixelsInWorldSpace));
+
+        lastPosition.set(getPosition());
+    }
+
+    protected abstract void hurtPlayer(Vector2 direction);
+
+    /**
+     * Called once the enemy notices the player, and not when the enemy is heading towards the player.
+     *
+     * @param direction the direction of the player in relative to the enemy.
+     */
+    protected abstract void noticedPlayer(Vector2 direction);
+
+    @Override
+    protected void collides() {
+
+    }
 
     @Override
     public void tick() {
@@ -92,13 +89,16 @@ public class Enemy extends MovableEntity {
 
             if (tmpVector.set(playerPositionReference.x - getPosition().x, playerPositionReference.y - getPosition().y).len() < coverageRadius * map.TileSizeInPixelsInWorldSpace) {
 
+
                 if (tmpVector.len() < playerSizeReference.x) {
 
-                    interact(tmpVector);
+                    hurtPlayer(tmpVector);
                 }
                 else {
 
                     delta.set(tmpVector).nor().scl(scaleFactor);
+
+                    noticedPlayer(tmpVector);
                 }
 
                 destination.set((int) (getPosition().x / Map.TileSizeInPixelsInWorldSpace), (int) (getPosition().y / Map.TileSizeInPixelsInWorldSpace));
@@ -175,9 +175,6 @@ public class Enemy extends MovableEntity {
 
                                 destination.set(xs, ys);
 
-//                                System.out.println("Start: " + x + ", " + y);
-//                                System.out.println("Destination: " + destination);
-
                                 for (int xp = 0; xp < ((Scene) host).pathfindingGrid.width; xp++) {
 
                                     for (int yp = 0; yp < ((Scene) host).pathfindingGrid.height; yp++) {
@@ -194,16 +191,6 @@ public class Enemy extends MovableEntity {
                                 }
 
                                 path.clear();
-//
-//                                for (int i = cameFrom.length - 1; i >= 0; i--) {
-//
-//                                    for (int j = 0; j < cameFrom.length; j++) {
-//
-//                                        System.out.print(cameFrom[j][i] + "\t");
-//                                    }
-//
-//                                    System.out.println();
-//                                }
 
                                 Coordinate coordinate = null;
 
@@ -230,8 +217,6 @@ public class Enemy extends MovableEntity {
                                     path.add(coordinate);
                                 }
 
-//                                System.out.println(path.toString());
-
                                 lastPosition.set(getPosition());
                                 currentIndex = 0;
                             }
@@ -252,11 +237,21 @@ public class Enemy extends MovableEntity {
                 }
             }
 
-            currentTool.flip = facingRight;
-
+            if (currentTool != null) currentTool.flip = facingRight;
         }
 
         super.tick();
+
+        int animationIndex = currentAnimation.getKeyFrameIndex(stateTime % currentAnimation.getAnimationDuration());
+
+        if (currentAnimation == stationaryAnimation) {
+
+            raiseTool = animationIndex == 1 || animationIndex == 2;
+        }
+        else if (currentAnimation == movingAnimation) {
+
+            raiseTool = animationIndex == 1 || animationIndex == 2 || animationIndex == 4;
+        }
 
         if (forceApplied.x != 0.0f || forceApplied.y != 0.0f) {
 

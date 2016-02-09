@@ -7,7 +7,7 @@ import com.badlogic.gdx.math.Vector2;
  * @author simengangstad
  * @since 20/12/15
  */
-public abstract class Button extends Widget {
+public abstract class Button extends View {
 
     private boolean pressed = false;
 

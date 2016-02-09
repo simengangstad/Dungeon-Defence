@@ -130,11 +130,6 @@ public abstract class RotatableWeapon extends Weapon {
 
             int index = (int) Math.abs(getStateTime() / (interactionDuration / attackTextureRegions.length) - attackTextureRegions.length);
 
-            if (index == attackTextureRegions.length - 2) {
-
-                ((MovableEntity) parent).leap();
-            }
-
             currentWeaponTextureRegion = attackTextureRegions[index];
         }
         else {

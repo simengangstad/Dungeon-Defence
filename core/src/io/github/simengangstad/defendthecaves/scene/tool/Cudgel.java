@@ -1,4 +1,4 @@
-package io.github.simengangstad.defendthecaves.scene.weapons;
+package io.github.simengangstad.defendthecaves.scene.tool;
 
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
@@ -9,39 +9,39 @@ import io.github.simengangstad.defendthecaves.scene.RotatableWeapon;
 
 /**
  * @author simengangstad
- * @since 28/11/15
+ * @since 29/01/16
  */
-public class Axe extends RotatableWeapon {
+public class Cudgel extends RotatableWeapon {
 
-    public Axe(Callback interactionCallback) {
+    public Cudgel(Callback interactionCallback) {
 
         super(10, 0.35f, interactionCallback, -45, 45);
 
-        TextureRegion[] textureRegions = new TextureRegion[3 * 2];
+        TextureRegion[] textureRegions = new TextureRegion[5];
 
         int index = 0;
 
-        for (int x = 0; x < 32 * 6; x += 32) {
+        for (int x = 0; x < 32 * textureRegions.length; x += 32) {
 
-            textureRegions[index] =  new TextureRegion(Game.spriteSheet, x, 96, 32, 32);
+            textureRegions[index] =  new TextureRegion(Game.SpriteSheet, x, 272, 32, 32);
 
             index++;
         }
 
-        TextureRegion[] attackTextureRegions = new TextureRegion[5];
+        TextureRegion[] attackTextureRegions = new TextureRegion[11];
 
         index = 0;
 
-        for (int x = 192; x < 192 + 32 * 5; x += 32) {
+        for (int x = 160; x < 160 + 32 * attackTextureRegions.length; x += 32) {
 
-            attackTextureRegions[index] =  new TextureRegion(Game.spriteSheet, x, 96, 32, 32);
+            attackTextureRegions[index] =  new TextureRegion(Game.SpriteSheet, x, 272, 32, 32);
 
             index++;
         }
 
         setTextures(textureRegions, attackTextureRegions);
 
-        size.set(80, 100);
+        size.set(120, 100);
     }
 
     @Override
@@ -56,11 +56,11 @@ public class Axe extends RotatableWeapon {
 
             getTextureRegion().flip(true, false);
 
-            xDelta = -size.x / 2.0f - (size.x / 16);
+            xDelta = -size.x / 2.0f - (size.x / 16) * 6;
         }
         else {
 
-            xDelta = -size.x / 2.0f + (size.x / 16);
+            xDelta = -size.x / 2.0f + (size.x / 16) * 6;
         }
 
         batch.draw(getTextureRegion(), position.x + xDelta + offset.x, position.y + yDelta + offset.y, size.x * 2, size.y * 2);

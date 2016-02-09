@@ -4,6 +4,7 @@ import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
 import io.github.simengangstad.defendthecaves.pathfinding.Coordinate;
 import io.github.simengangstad.defendthecaves.pathfinding.PathfindingGrid;
+import io.github.simengangstad.defendthecaves.scene.item.Key;
 
 import java.util.*;
 
@@ -15,49 +16,52 @@ import java.util.*;
  */
 public class MapGenerator {
 
-    private static final int RectangularRoom = 0,
-                             RectanglularRoomWithCentre = 1,
-                             CircularRoom = 2;
+    private final int RectangularRoom = 0,
+                      RectangularRoomWithCentre = 1,
+                      CircularRoom = 2;
 
     /**
-     * Free - An empty tile
-     * SolidIntact - A solid tile
-     * Pathway obstacle - An obstacle constructed when forming a pathway
-     * Obstacle - An obstacle. The difference between an obstale and a solid
-     *            is that the pathfinding algorithm can go through a solid,
-     *            but not an obstacle.
+     * Free - The floor within the map.
+     * Solid - Everything besides the floor within the map.
+     * Unbreakable - Solid unbreakable.
+     * Door - No need for explanation, huh?
      */
-    private static final int Free = 0,
-                             Solid = 1,
-                             PathwayObstacle = 2,
-                             Obstacle = 3;
+    public static final int Free = 0,
+                            Solid = 1,
+                            Unbreakable = 300,
+                            Door = 1043;
 
     /**
      * The map.
      */
-    private static int[][] map;
+    private int[][] map;
 
     /**
      * The rooms in the map.
      */
-    private static final ArrayList<Rectangle> rooms = new ArrayList<>();
+    private final ArrayList<Room> rooms = new ArrayList<>();
 
     /**
      * The amount of rooms the generator will try to place.
      */
-    public static int requestedAmountOfRooms = 10;
+    public int requestedAmountOfRooms = 10;
 
     /**
      * The range of the rooms; they can be of a size between lower boundry and
      * upper boundry (inclusive).
      */
-    public static int lowerBoundry = 5, upperBoundry = 9;
+    public int lowerBoundary = 5, upperBoundary = 9;
 
     /**
      * The space in tiles between the edge of the sides of the map and the content
      * within it.
      */
-    public static int sizeOfEdge = 2;
+    public int sizeOfEdge = 2;
+
+    /**
+     * The chance of the generator creating a locked room.
+     */
+    public int chanceOfLockedRoom = 20;
 
     /**
      * The amount of times the algorithm will try to place a room within the map if it
@@ -67,29 +71,42 @@ public class MapGenerator {
      *
      * @see MapGenerator#requestedAmountOfRooms
      */
-    public static int amountOfRetries = 50;
+    public int amountOfRetries = 50;
 
     /**
      * The amount of times the algorithm has tried placing a room under a certain state.
      * If this value exceeds {@link MapGenerator#amountOfRetries} it will decrease the
-     * {@link MapGenerator#upperBoundry} with one. This process is repeated until the
+     * {@link MapGenerator#upperBoundary} with one. This process is repeated until the
      * upper boundry is equal to the lower boundry. When this happens, it will stop the
      * process.
      */
-    private static int tries = 0;
+    private int tries = 0;
 
     /**
-     * Generates the map with a specific seed.
-     *
-     * @return The procedurally generated map. 1 for solid and 0 for free.
+     * Initialises the map generator.
      */
-    public static int[][] generate(int width, int height, int seed) {
+    public MapGenerator(int width, int height, int seed) {
 
         map = new int[width][height];
 
         MathUtils.random.setSeed(seed);
+    }
+
+    public MapGenerator(int width, int height) {
+
+        this(width, height, MathUtils.randomSign());
+    }
+
+    /**
+     * Generates the map with a specific seed.
+     *
+     * @return The procedurally generated map.
+     */
+    public int[][] generate() {
 
         rooms.clear();
+
+        clearMap();
 
         placeRooms();
         constructCorridors();
@@ -98,9 +115,9 @@ public class MapGenerator {
 
             for (int y = 0; y < map[0].length; y++) {
 
-                if (map[x][y] >= Solid) {
+                if ((x < sizeOfEdge || map.length - sizeOfEdge <= x)/* || (y < sizeOfEdge || map[0].length - sizeOfEdge <= y)*/) {
 
-                    map[x][y] = Solid;
+                    map[x][y] = Unbreakable;
                 }
             }
         }
@@ -108,33 +125,33 @@ public class MapGenerator {
         return map;
     }
 
-    /**
-     * Generates the map without a specific seed.
-     *
-     * @return The procedurally generated map. 1 for solid and 0 for free.
-     */
-    public static int[][] generate(int width, int height) {
+    public Room[] getRooms() {
 
-        return generate(width, height, MathUtils.random.nextInt());
+        Room[] rooms = new Room[this.rooms.size()];
+
+        for (int i = 0; i < rooms.length; i++) {
+
+            rooms[i] = this.rooms.get(i);
+        }
+
+        return rooms;
     }
 
     /**
      * Places rooms up to the amount requested, {@link MapGenerator#requestedAmountOfRooms}. A range of
      * different types of rooms can be placed.
      */
-    private static void placeRooms() {
+    private void placeRooms() {
 
-        clearMap();
-
-        if (sizeOfEdge + upperBoundry >= map.length || sizeOfEdge + upperBoundry >= map[0].length) {
+        if (sizeOfEdge + upperBoundary >= map.length || sizeOfEdge + upperBoundary >= map[0].length) {
 
             throw new RuntimeException("Distance to sides plus upper boundry can't be more than the boundries of the rectangle.");
         }
 
         for (int roomCount = 0; roomCount < requestedAmountOfRooms;) {
 
-            int width = MathUtils.random.nextInt(upperBoundry - lowerBoundry) + lowerBoundry;
-            int height = MathUtils.random.nextInt(upperBoundry - lowerBoundry) + lowerBoundry;
+            int width = MathUtils.random.nextInt(upperBoundary - lowerBoundary) + lowerBoundary;
+            int height = MathUtils.random.nextInt(upperBoundary - lowerBoundary) + lowerBoundary;
 
             // Check for even numbers and turn them odd if they are.
             width += (width % 2 == 0) ? 1 : 0;
@@ -148,20 +165,20 @@ public class MapGenerator {
             // and the process will be repeated.
             boolean step = false;
 
-            for (Rectangle addedRoom : rooms) {
+            for (Room addedRoom : rooms) {
 
                 if (addedRoom.intersect(x, y, width, height)) {
 
                     tries++;
 
-                    if (tries > amountOfRetries && upperBoundry > lowerBoundry) {
+                    if (tries > amountOfRetries && upperBoundary > lowerBoundary) {
 
-                        upperBoundry--;
+                        upperBoundary--;
 
                         tries = 0;
                     }
 
-                    if (upperBoundry == lowerBoundry) {
+                    if (upperBoundary == lowerBoundary) {
 
                         // Stop trying to add new rooms; this will end the whole loop.
                         roomCount = requestedAmountOfRooms;
@@ -183,40 +200,53 @@ public class MapGenerator {
             // coordinate and size.
             tries = 0;
 
-            rooms.add(new Rectangle(x, y, width, height));
+            Room room = new Room(x, y, width, height, false);
 
-            switch (MathUtils.random.nextInt(3)) {
+            rooms.add(room);
 
-                case RectangularRoom:
+            if (MathUtils.random(100) < chanceOfLockedRoom) {
 
-                    constructRectangularRoom(x, y, width, height);
+                constructRectangualarLockedRoom(x, y, width, height, MathUtils.random(100));
 
-                    break;
+                room.key = new Key(new Vector2(), new Coordinate(room.getEntrance(0).x, room.getEntrance(0).y));
+            }
+            else {
 
-                case RectanglularRoomWithCentre:
+                switch (MathUtils.random.nextInt(3)) {
 
-                    if (width == 3 || height == 3) {
+                    case RectangularRoom:
 
                         constructRectangularRoom(x, y, width, height);
-                    }
-                    else {
 
-                        int centreWidth = MathUtils.random.nextInt(width - 4);
-                        int centreHeight = MathUtils.random.nextInt(height - 4);
+                        rooms.get(rooms.size() - 1).locked = true;
 
-                        centreWidth += (centreWidth % 2 == 0 ? 1 : 0);
-                        centreHeight += (centreHeight % 2 == 0 ? 1 : 0);
+                        break;
 
-                        constructRectangularRoomWithCentre(x, y, width, height, centreWidth, centreHeight);
-                    }
+                    case RectangularRoomWithCentre:
 
-                    break;
+                        if (width == 3 || height == 3) {
 
-                case CircularRoom:
+                            constructRectangularRoom(x, y, width, height);
+                        }
+                        else {
 
-                    constructCircularRoom(x, y, width, height);
+                            int centreWidth = MathUtils.random.nextInt(width - 4);
+                            int centreHeight = MathUtils.random.nextInt(height - 4);
 
-                    break;
+                            centreWidth += (centreWidth % 2 == 0 ? 1 : 0);
+                            centreHeight += (centreHeight % 2 == 0 ? 1 : 0);
+
+                            constructRectangularRoomWithCentre(x, y, width, height, centreWidth, centreHeight);
+                        }
+
+                        break;
+
+                    case CircularRoom:
+
+                        constructCircularRoom(x, y, width, height);
+
+                        break;
+                }
             }
 
             roomCount++;
@@ -226,7 +256,7 @@ public class MapGenerator {
     /**
      * Constructs a rectangular room.
      */
-    private static void constructRectangularRoom(int x, int y, int width, int height) {
+    private void constructRectangularRoom(int x, int y, int width, int height) {
 
         for (int xs = x - (width - 1) / 2; xs <= x + (width - 1) / 2; xs++) {
 
@@ -234,7 +264,7 @@ public class MapGenerator {
 
                 if ((xs == (x - (width - 1) / 2) || xs == x + (width - 1) / 2) || ((ys == (y - (height - 1) / 2)) || ys == (y + (height - 1) / 2))) {
 
-                    map[xs][ys] = Obstacle;
+                    map[xs][ys] = Solid;
                 }
                 else {
 
@@ -243,27 +273,18 @@ public class MapGenerator {
             }
         }
 
-        {
-            Coordinate coordinate = new Coordinate((x - (width - 1) / 2) + MathUtils.random.nextInt(width - 2) + 1, MathUtils.random.nextBoolean() == true ? y + (height - 1) / 2 : y - (height - 1) / 2);
+        for (int i = 0; i < MathUtils.random(2); i++) {
 
-            rooms.get(rooms.size() - 1).entrances.add(coordinate);
+            Coordinate coordinate = new Coordinate((x - (width - 1) / 2) + MathUtils.random.nextInt(width - 2) + 1, MathUtils.random.nextBoolean() ? y + (height - 1) / 2 : y - (height - 1) / 2);
 
-            map[coordinate.x][coordinate.y] = Solid;
-        }
-
-        {
-            Coordinate coordinate = new Coordinate(MathUtils.random.nextBoolean() == true ? x + (width - 1) / 2 : x - (width - 1) / 2, (y - (height - 1) / 2) + MathUtils.random.nextInt(height - 2) + 1);
-
-            rooms.get(rooms.size() - 1).entrances.add(coordinate);
-
-            map[coordinate.x][coordinate.y] = Solid;
+            rooms.get(rooms.size() - 1).addEntrance(coordinate);
         }
     }
 
     /**
      * Constructs a rectangular room with a centre of an arbitrary size.
      */
-    private static void constructRectangularRoomWithCentre(int x, int y, int width, int height, int centreWidth, int centreHeight) {
+    private void constructRectangularRoomWithCentre(int x, int y, int width, int height, int centreWidth, int centreHeight) {
 
         if (centreWidth >= width - 1 || centreHeight >= height - 1) {
 
@@ -279,7 +300,7 @@ public class MapGenerator {
 
         if (centreWidth == 1 && centreHeight == 1) {
 
-            map[x][y] = Obstacle;
+            map[x][y] = Solid;
         }
         else {
 
@@ -287,16 +308,42 @@ public class MapGenerator {
 
                 for (int ys = y - (centreHeight - 1) / 2; ys <= y + (centreHeight - 1) / 2; ys++) {
 
-                    map[xs][ys] = Obstacle;
+                    map[xs][ys] = Solid;
                 }
             }
         }
     }
 
+    private void constructRectangualarLockedRoom(int x, int y, int width, int height, int rareness) {
+
+        for (int xs = x - (width - 1) / 2; xs <= x + (width - 1) / 2; xs++) {
+
+            for (int ys = y - (height - 1) / 2; ys <= y + (height - 1) / 2; ys++) {
+
+                if ((xs == (x - (width - 1) / 2) || xs == x + (width - 1) / 2) || ((ys == (y - (height - 1) / 2)) || ys == (y + (height - 1) / 2))) {
+
+                    map[xs][ys] = Unbreakable;
+                }
+                else {
+
+                    map[xs][ys] = Free;
+                }
+            }
+        }
+
+        // TODO: add loot
+
+        Coordinate coordinate = new Coordinate((x - (width - 1) / 2) + MathUtils.random.nextInt(width - 2) + 1, MathUtils.random.nextBoolean() ? y + (height - 1) / 2 : y - (height - 1) / 2);
+
+        rooms.get(rooms.size() - 1).addEntrance(coordinate);
+
+        map[coordinate.x][coordinate.y] = Door;
+    }
+
     /**
      * Constructs a circular room.
      */
-    private static void constructCircularRoom(int x, int y, int width, int height) {
+    private void constructCircularRoom(int x, int y, int width, int height) {
 
         final int initialStep = Math.min(width, height);
 
@@ -311,7 +358,7 @@ public class MapGenerator {
 
                 if (steps >= initialStep - 1) {
 
-                    map[xs][ys] = Obstacle;
+                    map[xs][ys] = Solid;
                 }
                 else {
 
@@ -322,27 +369,14 @@ public class MapGenerator {
             steps--;
         }
 
-        {
+        for (int i = 0; i < MathUtils.random(2); i++) {
 
-            int xs = x + (MathUtils.random.nextBoolean() == true ? (width - 1) / 2 : -(width - 1) / 2);
-            int ys = y;
-
-            Coordinate coordinate = new Coordinate(xs, ys);
-
-            map[xs][ys] = Solid;
-
-            rooms.get(rooms.size() - 1).entrances.add(coordinate);
-        }
-
-        {
-            int xs = x;
-            int ys = y + (MathUtils.random.nextBoolean() == true ? (height - 1) / 2 : -(height - 1) / 2);
+            int xs = x + (MathUtils.random.nextBoolean() ? (width - 1) / 2 : -(width - 1) / 2);
+            int ys = y + (MathUtils.random.nextBoolean() ? (height - 1) / 2 : -(height - 1) / 2);
 
             Coordinate coordinate = new Coordinate(xs, ys);
 
-            map[xs][ys] = Solid;
-
-            rooms.get(rooms.size() - 1).entrances.add(coordinate);
+            rooms.get(rooms.size() - 1).addEntrance(coordinate);
         }
 
         Vector2 spawnPoint = new Vector2();
@@ -352,44 +386,82 @@ public class MapGenerator {
 
     }
 
-    private static boolean validCoordinate(int x, int y) {
-
-        return (0 <= x && x < map.length) && (0 <= y && y < map[0].length);
-    }
-
     /**
      * Constructs corridors by going from room to room and binding them together
      * with the use of an algorithm.
      */
-    private static void constructCorridors() {
+    private void constructCorridors() {
+
+        System.out.println("\n---- Constructing corridors ----");
 
         PathfindingGrid grid = new PathfindingGrid(map.length, map[0].length);
         Coordinate current = new Coordinate();
 
-        for (int i = 0; i < rooms.size(); i++) {
+        int index = 0;
 
-            grid.clear();
+        while (index < rooms.size()) {
 
             for (int x = 0; x < grid.width; x++) {
 
                 for (int y = 0; y < grid.height; y++) {
 
-                    if (map[x][y] == Obstacle) {
+                    if (map[x][y] == Unbreakable) {
 
                         grid.set(x, y, PathfindingGrid.State.Closed);
+                    }
+                    else {
+
+                        grid.set(x, y, PathfindingGrid.State.Open);
                     }
                 }
             }
 
             // Determine the directions from the different tiles to the current room.
 
-            Rectangle startRoom = rooms.get(i);
-            Rectangle endRoom = rooms.get((i + 1) % rooms.size());
+            Room startRoom = rooms.get(index);
+            Room endRoom = rooms.get((index + 1) % rooms.size());
 
-            Coordinate startCoordinate = startRoom.entrances.poll();
-            Coordinate endCoordinate = endRoom.entrances.poll();
+            int a = index + 1;
 
-            map[startCoordinate.x][startCoordinate.y] = Free;
+            while (endRoom.locked) {
+
+                endRoom = rooms.get((a++ + 1) % rooms.size());
+            }
+
+            if (startRoom.getEntrancesLeftInQueue() == 0) {
+
+                boolean changed = false;
+
+                for (int j = 0; j < rooms.size(); j++) {
+
+                    Room newRoom = rooms.get(j);
+
+                    if (newRoom == startRoom || newRoom == endRoom) {
+
+                        continue;
+                    }
+
+                    if (newRoom.getEntrancesLeftInQueue() > 0) {
+
+                        startRoom = newRoom;
+
+                        changed = true;
+                    }
+                }
+
+                // No rooms with entrances left in the queues
+                if (!changed) {
+
+                    break;
+                }
+            }
+
+            Coordinate startCoordinate = startRoom.pollEntrance();
+            Coordinate endCoordinate = new Coordinate(endRoom.x, endRoom.y);
+
+            System.out.println("Constructing corridor between " + endCoordinate + " and " + startCoordinate);
+
+            map[endCoordinate.x][endCoordinate.y] = Free;
 
             Coordinate[][] cameFrom = new Coordinate[grid.width][grid.height];
 
@@ -407,55 +479,78 @@ public class MapGenerator {
 
             while (!current.equals(startCoordinate)) {
 
-                if (cameFrom[current.x][current.y] == null) {
+                Coordinate cameFromCoordinate = cameFrom[current.x][current.y];
+
+                if (cameFromCoordinate.x == -1) {
 
                     System.err.println("Current came from null...");
 
                     break;
                 }
 
-                current.set(cameFrom[current.x][current.y]);
+                current.set(cameFromCoordinate);
 
-                map[current.x][current.y] = Free;
+                if (map[current.x][current.y] == Free && !current.equals(endCoordinate) && !endRoom.isInside(current.x, current.y)) {
 
-                if (validCoordinate(current.x, current.y + 1) && map[current.x][current.y + 1] != Free) {
+                    System.out.println("Corridor found another free tile before the end destination. Stopped at " + current + ".");
 
-                    map[current.x][current.y + 1] = PathwayObstacle;
+                    break;
                 }
 
-                if (validCoordinate(current.x, current.y - 1) && map[current.x][current.y - 1] != Free) {
 
-                    map[current.x][current.y - 1] = PathwayObstacle;
+                if (map[current.x][current.y] != Unbreakable && map[current.x][current.y] != Door) {
+
+                    map[current.x][current.y] = Free;
                 }
 
-                if (validCoordinate(current.x + 1, current.y) && map[current.x + 1][current.y] != Free) {
+                // Walls for the corridor
+                if (validCoordinate(current.x, current.y + 1) && map[current.x][current.y + 1] != Free && map[current.x][current.y + 1] != Unbreakable && map[current.x][current.y + 1] != Door) {
 
-                    map[current.x + 1][current.y] = PathwayObstacle;
+                    map[current.x][current.y + 1] = Solid;
                 }
 
-                if (validCoordinate(current.x - 1, current.y) && map[current.x - 1][current.y] != Free) {
+                if (validCoordinate(current.x, current.y - 1) && map[current.x][current.y - 1] != Free && map[current.x][current.y - 1] != Unbreakable && map[current.x][current.y - 1] != Door) {
 
-                    map[current.x - 1][current.y] = PathwayObstacle;
+                    map[current.x][current.y - 1] = Solid;
+                }
+
+                if (validCoordinate(current.x + 1, current.y) && map[current.x + 1][current.y] != Free && map[current.x + 1][current.y] != Unbreakable && map[current.x + 1][current.y] != Door) {
+
+                    map[current.x + 1][current.y] = Solid;
+                }
+
+                if (validCoordinate(current.x - 1, current.y) && map[current.x - 1][current.y] != Free && map[current.x - 1][current.y] != Unbreakable && map[current.x - 1][current.y] != Door) {
+
+                    map[current.x - 1][current.y] = Solid;
                 }
             }
+
+            System.out.println();
+
+            index++;
         }
+    }
+
+    private boolean validCoordinate(int x, int y) {
+
+        return (0 <= x && x < map.length) && (0 <= y && y < map[0].length);
     }
 
     /**
      * Clears the map to a solid state.
      */
-    private static void clearMap() {
+    private void clearMap() {
 
-        for (int i = 0; i < map.length; i++) {
+        for (int[] list : map) {
 
-            Arrays.fill(map[i], Solid);
+            Arrays.fill(list, Solid);
         }
     }
 
     /**
      * A class for representing the different rooms within the map.
      */
-    private static class Rectangle {
+    public static class Room {
 
         /**
          * The centre of the rectangle.
@@ -464,18 +559,64 @@ public class MapGenerator {
 
         public final int width, height;
 
-        public Queue<Coordinate> entrances = new LinkedList<>();
+        private Queue<Coordinate> entrancesQueue = new LinkedList<>();
 
-        Rectangle(int x, int y, int width, int height) {
+        private List<Coordinate> entrancesList = new ArrayList<>();
+
+        private boolean locked;
+
+        /**
+         * A key that points to this rooms entrance if it's locked.
+         */
+        private Key key;
+
+        Room(int x, int y, int width, int height, boolean locked) {
 
             this.x = x;
             this.y = y;
             this.width = width;
             this.height = height;
+            this.locked = locked;
+        }
+
+        public void addEntrance(Coordinate entrance) {
+
+            entrancesQueue.add(entrance);
+            entrancesList.add(entrance);
+        }
+
+        public int getEntrancesLeftInQueue() {
+
+            return entrancesQueue.size();
+        }
+
+        public Coordinate pollEntrance() {
+
+            return entrancesQueue.poll();
+        }
+
+        public int getAmountOfEntrances() {
+
+            return entrancesList.size();
+        }
+
+        public Coordinate getEntrance(int index) {
+
+            return entrancesList.get(index);
+        }
+
+        public Key getKey() {
+
+            return key;
+        }
+
+        public boolean isLocked() {
+
+            return locked;
         }
 
         /**
-         * @return If the given coordinate and size cellIsSolid with this rectangle.
+         * @return If the given room intersects with this room.
          */
         public boolean intersect(int x, int y, int width, int height) {
 
@@ -486,12 +627,20 @@ public class MapGenerator {
                     (y1 <= y2 + this.height) && (y1 + height >= y2);
         }
 
-        /**
-         * @return If the given rectangle cellIsSolid with this rectangle.
-         */
-        public boolean intersect(Rectangle rectangle) {
+        public boolean isInside(int x0, int y0) {
 
-            return intersect(rectangle.x, rectangle.y, rectangle.width, rectangle.height);
+            int x = this.x - width / 2;
+            int y = this.y - height / 2;
+
+            return (x <= x0 && x0 <= x + width) && (y <= y0 && y0 <= y + height);
+        }
+
+        /**
+         * @return If the given room intersects with this room.
+         */
+        public boolean intersect(Room room) {
+
+            return intersect(room.x, room.y, room.width, room.height);
         }
     }
 }

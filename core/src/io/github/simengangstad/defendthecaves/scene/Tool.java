@@ -102,7 +102,8 @@ public abstract class Tool implements Drawable {
 
         if (Game.DebubDraw) {
 
-            batch.draw(Game.debugDrawTexture, parent.getPosition().x + (flip() == false ? -size.x : 0), parent.getPosition().y - size.y / 2.0f, size.x, size.y);
+            batch.draw(Game.debugDrawTexture, parent.getPosition().x - (!flip() ? size.x : 0), parent.getPosition().y - size.y / 2.0f, size.x, size.y);
+            batch.draw(Game.debugDrawTexture, parent.getPosition().x - (!flip() ? this.size.x : 0), parent.getPosition().y - this.size.y / 2.0f, this.size.x, this.size.y);
         }
     }
 

@@ -1,7 +1,9 @@
 package io.github.simengangstad.defendthecaves.scene;
 
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Vector2;
 import io.github.simengangstad.defendthecaves.Callback;
+import io.github.simengangstad.defendthecaves.Game;
 
 /**
  * @author simengangstad
@@ -32,6 +34,6 @@ public abstract class Weapon extends Tool {
     @Override
     protected void doneInteracting() {
 
-        ((Scene) parent.host).damage(this, direction, parent.getPosition().x + (flip() == false ? -size.x : 0), parent.getPosition().y - size.y / 2.0f, size.x, size.y, parent);
+        ((Scene) parent.host).damage(attackDamage, direction, parent.getPosition().x + (!flip() ? -size.x / 2.0f : size.x / 2.0f), parent.getPosition().y, size.x, size.y, parent);
     }
 }

@@ -1,4 +1,4 @@
-package io.github.simengangstad.defendthecaves.scene.entities;
+package io.github.simengangstad.defendthecaves.scene;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
@@ -16,8 +16,8 @@ public class FallingStone extends GameObject implements Drawable {
 
     private static TextureRegion[] textureRegions = new TextureRegion[] {
 
-            new TextureRegion(Game.spriteSheet, 160, 80, 16, 16),
-            new TextureRegion(Game.spriteSheet, 176, 80, 16, 16)
+            new TextureRegion(Game.SpriteSheet, 160, 80, 16, 16),
+            new TextureRegion(Game.SpriteSheet, 176, 80, 16, 16)
     };
 
     private TextureRegion textureRegion;

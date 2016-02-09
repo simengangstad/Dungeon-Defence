@@ -1,4 +1,4 @@
-package io.github.simengangstad.defendthecaves.scene.weapons;
+package io.github.simengangstad.defendthecaves.scene.tool;
 
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
@@ -13,7 +13,7 @@ import io.github.simengangstad.defendthecaves.scene.Tool;
  */
 public class Shield extends Tool {
 
-    private TextureRegion textureRegions = new TextureRegion(Game.spriteSheet, 0, 128, 32, 32);
+    private TextureRegion textureRegions = new TextureRegion(Game.SpriteSheet, 0, 128, 32, 32);
 
 
     public Shield() {

@@ -11,7 +11,7 @@ void main() {
 
     v_color = a_color;
     v_color.a = v_color.a * (255.0/254.0);
-    v_texCoords = a_texCoord0;
+    v_texCoords = vec2(a_texCoord0.x, a_texCoord0.y);
 
     gl_Position =  u_projTrans * a_position;
 }

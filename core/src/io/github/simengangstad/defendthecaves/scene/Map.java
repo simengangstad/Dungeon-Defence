@@ -3,10 +3,12 @@ package io.github.simengangstad.defendthecaves.scene;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.MathUtils;
+import com.badlogic.gdx.math.Vector;
 import com.badlogic.gdx.math.Vector2;
 import io.github.simengangstad.defendthecaves.Game;
 import io.github.simengangstad.defendthecaves.procedural.MapGenerator;
 
+import java.sql.SQLSyntaxErrorException;
 import java.util.ArrayList;
 
 /**
@@ -79,50 +81,144 @@ public class Map {
             new Vector2(11, 1),
             new Vector2(11, 2),
 
-            // Wall facing left, up and right
+            // Wall facing down and up
             new Vector2(12, 0),
             new Vector2(12, 1),
             new Vector2(12, 2),
 
-            // Wall facing left, down and right
+            // Wall facing left, up and right
             new Vector2(13, 0),
             new Vector2(13, 1),
             new Vector2(13, 2),
 
-            // Spawn facing down
+            // Wall facing left, down and right
             new Vector2(14, 0),
             new Vector2(14, 1),
             new Vector2(14, 2),
 
-            // Spawn facing up
+            // Spawn facing down
             new Vector2(15, 0),
             new Vector2(15, 1),
             new Vector2(15, 2),
 
-            // Spawn facing right
+            // Spawn facing up
             new Vector2(16, 0),
             new Vector2(16, 1),
             new Vector2(16, 2),
 
-            // Spawn facing left
+            // Spawn facing right
             new Vector2(17, 0),
             new Vector2(17, 1),
             new Vector2(17, 2),
 
-            // Up left corner
+            // Spawn facing left
             new Vector2(18, 0),
+            new Vector2(18, 1),
+            new Vector2(18, 2),
 
-            // Up right corner
+            // Up left corner
             new Vector2(19, 0),
 
-            // Down right corner
+            // Up right corner
             new Vector2(20, 0),
 
-            // Down left corner
+            // Down right corner
             new Vector2(21, 0),
 
-            // Shadow under walls
+            // Down left corner
+            new Vector2(22, 0),
+
+            // Edge facing up
+            new Vector2(7, 5),
+
+            // Edge facing right
+            new Vector2(8, 5),
+
+            // Edge facing right wall
+            new Vector2(9, 5),
+
+            // Edge facing left wall
             new Vector2(10, 5),
+
+            // Wall facing left, down, right and up
+            new Vector2(23, 0),
+            new Vector2(23, 1),
+            new Vector2(23, 2),
+
+            // Wall filling
+
+            new Vector2(0, 1),
+
+
+
+            // UNBREAKABLE TILES
+
+            // Wall facing left and down
+            new Vector2(2, 15),
+
+            // Wall facing down
+            new Vector2(3, 15),
+
+            // Wall facing right and down
+            new Vector2(4, 15),
+
+            // Wall facing left
+            new Vector2(5, 15),
+
+            // Wall facing left and up
+            new Vector2(6, 15),
+
+            // Wall facing up
+            new Vector2(7, 15),
+
+            // Wall facing right and up
+            new Vector2(8, 15),
+
+            // Wall facing right
+            new Vector2(9, 15),
+
+            // Wall facing down, left and up
+            new Vector2(10, 15),
+
+            // Wall facing down, right and up
+            new Vector2(11, 15),
+
+            // Wall facing down and up
+            new Vector2(12, 15),
+
+            // Wall facing left, up and right
+            new Vector2(13, 15),
+
+            // Wall facing left, down and right
+            new Vector2(14, 15),
+
+            // Up left corner
+            new Vector2(19, 15),
+
+            // Up right corner
+            new Vector2(20, 15),
+
+            // Down right corner
+            new Vector2(21, 15),
+
+            // Down left corner
+            new Vector2(22, 15),
+
+            // Edge facing up
+            new Vector2(15, 15),
+
+            // Edge facing right
+            new Vector2(16, 15),
+
+            // Edge facing right wall
+            new Vector2(17, 15),
+
+            // Edge facing left wall
+            new Vector2(18, 15),
+
+
+            // Wall facing left, down, right and up
+            new Vector2(23, 15),
     };
 
     /**
@@ -159,32 +255,66 @@ public class Map {
             WallFacingDownLeftUp0 = 26,
             WallFacingDownLeftUp1 = 27,
             WallFacingDownLeftUp2 = 28,
-            WallFacingDownRightUp0 = 29,
-            WallFacingDownRightUp1 = 30,
-            WallFacingDownRightUp2 = 31,
-            WallFacingLeftUpRight0 = 32,
-            WallFacingLeftUpRight1 = 33,
-            WallFacingLeftUpRight2 = 34,
-            WallFacingLeftDownRight0 = 35,
-            WallFacingLeftDownRight1 = 36,
-            WallFacingLeftDownRight2 = 37,
-            SpawnFacingDown0 = 38,
-            SpawnFacingDown1 = 39,
-            SpawnFacingDown2 = 40,
-            SpawnFacingUp0 = 41,
-            SpawnFacingUp1 = 42,
-            SpawnFacingUp2 = 43,
-            SpawnFacingRight0 = 44,
-            SpawnFacingRight1 = 45,
-            SpawnFacingRight2 = 46,
-            SpawnFacingLeft0 = 47,
-            SpawnFacingLeft1 = 48,
-            SpawnFacingLeft2 = 49,
-            CornerUpLeft = 50,
-            CornerUpRight = 51,
-            CornerDownLeft = 52,
-            CornerDownRight = 53,
-            ShadowUnderWallsFacingDown = 54;
+            WallFacingUpDown0 = 29,
+            WallFacingUpDown1 = 30,
+            WallFacingUpDown2 = 31,
+            WallFacingDownRightUp0 = 32,
+            WallFacingDownRightUp1 = 33,
+            WallFacingDownRightUp2 = 34,
+            WallFacingLeftUpRight0 = 35,
+            WallFacingLeftUpRight1 = 36,
+            WallFacingLeftUpRight2 = 37,
+            WallFacingLeftDownRight0 = 38,
+            WallFacingLeftDownRight1 = 39,
+            WallFacingLeftDownRight2 = 40,
+            SpawnFacingDown0 = 41,
+            SpawnFacingDown1 = 42,
+            SpawnFacingDown2 = 43,
+            SpawnFacingUp0 = 44,
+            SpawnFacingUp1 = 45,
+            SpawnFacingUp2 = 46,
+            SpawnFacingRight0 = 47,
+            SpawnFacingRight1 = 48,
+            SpawnFacingRight2 = 49,
+            SpawnFacingLeft0 = 50,
+            SpawnFacingLeft1 = 51,
+            SpawnFacingLeft2 = 52,
+            CornerUpLeft = 53,
+            CornerUpRight = 54,
+            CornerDownLeft = 55,
+            CornerDownRight = 56,
+            EdgeFacingUp = 57,
+            EdgeFacingRight = 58,
+            EdgeFacingRightWall = 59,
+            EdgeFacingLeft = 60,
+            WallFacingAllSides0 = 61,
+            WallFacingAllSides1 = 62,
+            WallFacingAllSides2 = 63,
+            WallFilling         = 64,
+
+            UnbreakableWallFacingLeftDown = 65,
+            UnbreakableWallFacingDown = 66,
+            UnbreakableWallFacingRightDown = 67,
+            UnbreakableWallFacingLeft = 68,
+            UnbreakableWallFacingLeftUp = 69,
+            UnbreakableWallFacingUp = 70,
+            UnbreakableWallFacingRightUp = 71,
+            UnbreakableWallFacingRight = 72,
+            UnbreakableWallFacingDownLeftUp = 73,
+            UnbreakableWallFacingUpDown = 74,
+            UnbreakableWallFacingDownRightUp = 75,
+            UnbreakableWallFacingLeftUpRight = 76,
+            UnbreakableWallFacingLeftDownRight = 77,
+            UnbreakableCornerUpLeft = 78,
+            UnbreakableCornerUpRight = 79,
+            UnbreakableCornerDownLeft = 80,
+            UnbreakableCornerDownRight = 81,
+            UnbreakableEdgeFacingUp = 82,
+            UnbreakableEdgeFacingRight = 83,
+            UnbreakableEdgeFacingRightWall = 84,
+            UnbreakableEdgeFacingLeft = 85,
+            UnbreakableWallFacingAllSides = 86;
+
 
     private final Vector2 tmpWall = new Vector2();
 
@@ -195,9 +325,11 @@ public class Map {
                             SolidIntact = 1,
                             SolidSlightlyBroken = 2,
                             SolidBroken = 3,
+                            SolidUnbreakable = MapGenerator.Unbreakable,
                             SpawnIntact = 10,
                             SpawnSlightlyBroken = 11,
-                            SpawnBroken = 12;
+                            SpawnBroken = 12,
+                            Door = MapGenerator.Door;
 
     /**
      * The renderable tile map.
@@ -249,6 +381,8 @@ public class Map {
      */
     public Vector2 playerPosition;
 
+    private final MapGenerator.Room[] rooms;
+
     /**
      * Tmp values.
      */
@@ -258,21 +392,25 @@ public class Map {
                           tmpDiff = new Vector2(),
                           tmpResult = new Vector2();
 
-
     public Map(int width, int height, int requestedAmountOfRooms, int lowerBoundry, int upperBoundry, int seed, Vector2 playerSize, int enemySpawnPoints, int spawnpointRadius) {
 
-        MapGenerator.requestedAmountOfRooms = requestedAmountOfRooms;
-        MapGenerator.lowerBoundry = lowerBoundry;
-        MapGenerator.upperBoundry = upperBoundry;
+        MapGenerator mapGenerator = new MapGenerator(width, height, seed);
+
+        mapGenerator.requestedAmountOfRooms = requestedAmountOfRooms;
+        mapGenerator.lowerBoundary = lowerBoundry;
+        mapGenerator.upperBoundary = upperBoundry;
+        mapGenerator.chanceOfLockedRoom = 10;
 
         MathUtils.random.setSeed(seed);
 
-        tileMap = MapGenerator.generate(width, height);
+        tileMap = mapGenerator.generate();
 
         if (TileSizeInPixelsInWorldSpace % playerSize.x != 0) {
 
             throw new RuntimeException("Invalid scale between player size and tile size.");
         }
+
+        rooms = mapGenerator.getRooms();
 
         Subdivision = (int) (TileSizeInPixelsInWorldSpace / playerSize.x) * 2;
 
@@ -293,6 +431,11 @@ public class Map {
 
                 for (int x = 0; x < getWidth(); x++) {
 
+                    if (tileMap[x][y] == MapGenerator.Unbreakable) {
+
+                        continue;
+                    }
+
                     if (isSolid(x, y) && surroundedByAtLeastOneNonSolids(x, y) && MathUtils.random(100) < 20 && !spawnpointIsCloseToPositionWithinRadius(x, y, spawnpointRadius)) {
 
                         if (    ((isValidTile(x - 1, y) && isSolid(x - 1, y)) && (isValidTile(x + 1, y) && isSolid(x + 1, y))) ||
@@ -301,6 +444,19 @@ public class Map {
                             spawnPoints.add(new Vector2(x, y));
 
                             tileMap[x][y] = SpawnIntact;
+
+                            for (int xs = x - 1; xs <= x + 1; xs++) {
+
+                                for (int ys = y - 1; ys <= y + 1; ys++) {
+
+                                    int tile = tileMap[xs][ys];
+
+                                    if (tile == SolidIntact) {
+
+                                        tileMap[xs][ys] = SolidUnbreakable;
+                                    }
+                                }
+                            }
 
                             spawnPointsLeftToPlace--;
 
@@ -322,6 +478,11 @@ public class Map {
 
             amountOfTries--;
         }
+    }
+
+    public MapGenerator.Room[] getRooms() {
+
+        return rooms;
     }
 
     public int get(int x, int y) {
@@ -367,7 +528,7 @@ public class Map {
                     break;
                 }
 
-                collidableMap[xs][ys] = tileMap[(int) Math.ceil(xs / Subdivision)][(int) Math.ceil(ys / Subdivision)];
+                if (cellIsValid(xs, ys)) collidableMap[xs][ys] = tileMap[(int) Math.ceil(xs / Subdivision)][(int) Math.ceil(ys / Subdivision)];
             }
         }
 
@@ -385,7 +546,7 @@ public class Map {
                     break;
                 }
 
-                if (!cellIsSolid(xs, ys)) {
+                if (!cellIsSolid(xs, ys) && cellIsValid(xs, ys)) {
 
                     // Right
                     if (cellIsValid(xs + 1, ys) && cellIsSolid(xs + 1, ys)) {
@@ -450,6 +611,11 @@ public class Map {
      */
     public boolean isSolid(int x, int y) {
 
+        if (!isValidTile(x, y)) {
+
+            return false;
+        }
+
         return tileMap[x][y] >= SolidIntact;
     }
 
@@ -457,6 +623,11 @@ public class Map {
      * @return If a given cell is solid.
      */
     private boolean cellIsSolid(int x, int y) {
+
+        if (!cellIsValid(x, y)) {
+
+            return false;
+        }
 
         return collidableMap[x][y] >= SolidIntact && collidableMap[x][y] != ExpandedObstacle;
     }
@@ -490,6 +661,31 @@ public class Map {
         return tileMap[0].length;
     }
 
+    public boolean retrieveCollisionPoint(Vector2 position, Vector2 direction, float speed, Vector2 point) {
+
+        tmpDelta.set(direction).scl(speed * Gdx.graphics.getDeltaTime());
+        tmpTargetPosition.set(position).add(tmpDelta);
+
+        // Find the cell corresponding to the target position.
+        final int cellX = (int)(tmpTargetPosition.x / CellSize);
+        final int cellY = (int)(tmpTargetPosition.y / CellSize);
+
+        if (cellIsValid(cellX, cellY) && collidableMap[cellX][cellY] != Open) {
+
+            point.set(tmpTargetPosition);
+
+            return true;
+        }
+
+        System.out.println("1: " + position);
+
+        position.set(tmpTargetPosition);
+
+        System.out.println("2: " + position);
+
+        return false;
+    }
+
     /**
      * Resolves the collision with the map (if any).
      *
@@ -497,7 +693,7 @@ public class Map {
      * @param direction The direction of the movement.
      * @param speed The speed of the movement.
      *
-     * @return The new position.
+     * @return If there was a collision.
      */
     public boolean resolveCollision(Vector2 position, Vector2 direction, float speed) {
 
@@ -524,7 +720,7 @@ public class Map {
 
             // If the cell is empty, we just move to the new position and
             // continue.
-            if (collidableMap[cellX][cellY] == Open) {
+            if (isValidTile(cellX, cellY) && collidableMap[cellX][cellY] == Open) {
 
                 position.set(tmpTargetPosition);
             }
@@ -595,11 +791,11 @@ public class Map {
     /**
      * Draws the map with the given batch. It will only draw the visible tiles.
      */
-    public void draw(SpriteBatch batch) {
+    public void draw(SpriteBatch batch, float scaleFactor) {
 
-        for (int y = (int) (playerPosition.y + Gdx.graphics.getHeight() / 2.0f) / TileSizeInPixelsInWorldSpace; y >= (playerPosition.y - Gdx.graphics.getHeight() / 2.0f - TileSizeInPixelsInWorldSpace) / TileSizeInPixelsInWorldSpace; y--) {
+        for (int y = (int) (playerPosition.y + (Gdx.graphics.getHeight() / 2.0f) * scaleFactor) / TileSizeInPixelsInWorldSpace; y >= (playerPosition.y - (Gdx.graphics.getHeight() / 2.0f) * scaleFactor - TileSizeInPixelsInWorldSpace) / TileSizeInPixelsInWorldSpace; y--) {
 
-            for (int x = (int) (playerPosition.x - Gdx.graphics.getWidth() / 2.0f) / TileSizeInPixelsInWorldSpace; x < (playerPosition.x + Gdx.graphics.getWidth() / 2.0f) / TileSizeInPixelsInWorldSpace; x++) {
+            for (int x = (int) (playerPosition.x - (Gdx.graphics.getWidth() / 2.0f) * scaleFactor) / TileSizeInPixelsInWorldSpace; x < (playerPosition.x + (Gdx.graphics.getWidth() / 2.0f) * scaleFactor) / TileSizeInPixelsInWorldSpace; x++) {
 
                 // Outside bounds
                 if (x < 0 || tileMap.length <= x || y < 0 || tileMap[0].length <= y) {
@@ -616,13 +812,7 @@ public class Map {
 
                     case Open:
 
-                        batch.draw(Game.spriteSheet, x * TileSizeInPixelsInWorldSpace, y * TileSizeInPixelsInWorldSpace, TileSizeInPixelsInWorldSpace, TileSizeInPixelsInWorldSpace, 0, 0, Game.SizeOfTileInPixelsInSpritesheet, Game.SizeOfTileInPixelsInSpritesheet, false, false);
-
-                        // Draw shadow under wall
-                        if (tileMap[x][y + 1] != Open) {
-
-                            batch.draw(Game.spriteSheet, x * TileSizeInPixelsInWorldSpace, y * TileSizeInPixelsInWorldSpace, TileSizeInPixelsInWorldSpace, TileSizeInPixelsInWorldSpace, 48, 48, Game.SizeOfTileInPixelsInSpritesheet, Game.SizeOfTileInPixelsInSpritesheet, false, false);
-                        }
+                        drawOpenTile(x, y, batch);
 
                         break;
 
@@ -630,176 +820,13 @@ public class Map {
                     case SolidSlightlyBroken:
                     case SolidBroken:
 
-                        tmpWall.set(Tiles[Filling]);
+                        drawSolidTile(x, y, batch, outsideBoundsHorisontallyUpper, outsideBoundsHorisontallyLower, outsideBoundsVerticallyUpper, outsideBoundsVerticallyLower);
 
-                        drawWall(batch, x, y);
+                        break;
 
-                        // Walls facing down and up
-                        if ((!outsideBoundsHorisontallyLower && tileMap[x - 1][y] != Open) || (!outsideBoundsHorisontallyUpper && tileMap[x + 1][y] != Open)) {
+                    case SolidUnbreakable:
 
-                            if (!outsideBoundsVerticallyLower && tileMap[x][y - 1] == Open) {
-
-                                tmpWall.set(Tiles[WallFacingDown0 + (tileMap[x][y] - SolidIntact)]);
-
-                                drawWall(batch, x, y);
-                            }
-
-                            if (!outsideBoundsVerticallyUpper && tileMap[x][y + 1] == Open) {
-
-                                tmpWall.set(Tiles[WallFacingUp0 + (tileMap[x][y] - SolidIntact)]);
-
-                                drawWall(batch, x, y);
-                            }
-                        }
-
-                        // Walls facing left and right
-                        if ((!outsideBoundsVerticallyLower && tileMap[x][y - 1] != Open) || (!outsideBoundsVerticallyUpper && tileMap[x][y + 1] != Open)) {
-
-                            if (!outsideBoundsHorisontallyUpper && tileMap[x + 1][y] == Open) {
-
-                                tmpWall.set(Tiles[WallFacingRight0 + (tileMap[x][y] - SolidIntact)]);
-
-                                drawWall(batch, x, y);
-                            }
-
-                            if (!outsideBoundsHorisontallyLower && tileMap[x - 1][y] == Open) {
-
-                                tmpWall.set(Tiles[WallFacingLeft0 + (tileMap[x][y] - SolidIntact)]);
-
-                                drawWall(batch, x, y);
-                            }
-                        }
-
-                        // Corners
-                        if (!outsideBoundsHorisontallyUpper && !outsideBoundsVerticallyUpper && tileMap[x][y + 1] != Open && tileMap[x + 1][y] != Open && tileMap[x + 1][y + 1] == Open) {
-
-                            tmpWall.set(Tiles[CornerDownLeft]);
-
-                            drawWall(batch, x, y);
-                        }
-
-                        if (!outsideBoundsHorisontallyLower && !outsideBoundsVerticallyUpper && tileMap[x][y + 1] != Open && tileMap[x - 1][y] != Open && tileMap[x - 1][y + 1] == Open) {
-
-                            tmpWall.set(Tiles[CornerDownRight]);
-
-                            drawWall(batch, x, y);
-                        }
-
-                        if (!outsideBoundsHorisontallyUpper && !outsideBoundsVerticallyLower && tileMap[x][y - 1] != Open && tileMap[x + 1][y] != Open && tileMap[x + 1][y - 1] == Open) {
-
-                            tmpWall.set(Tiles[CornerUpLeft]);
-
-                            drawWall(batch, x, y);
-                        }
-
-                        if (!outsideBoundsHorisontallyLower && !outsideBoundsVerticallyLower && tileMap[x][y - 1] != Open && tileMap[x - 1][y] != Open && tileMap[x - 1][y - 1] == Open) {
-
-                            tmpWall.set(Tiles[CornerUpRight]);
-
-                            drawWall(batch, x, y);
-                        }
-
-                        if (!outsideBoundsHorisontallyLower && !outsideBoundsHorisontallyUpper) {
-
-                            if (!outsideBoundsVerticallyLower) {
-
-                                if (!outsideBoundsVerticallyUpper) {
-
-                                    if (    tileMap[x][y + 1] == Open &&
-                                            tileMap[x + 1][y] == Open &&
-                                            tileMap[x + 1][y + 1] == Open &&
-                                            tileMap[x - 1][y] != Open &&
-                                            tileMap[x][y - 1] != Open) {
-
-                                        tmpWall.set(Tiles[WallFacingRightUp0 + (tileMap[x][y] - SolidIntact)]);
-
-                                        drawWall(batch, x, y);
-                                    }
-
-                                    if (    tileMap[x][y + 1] == Open &&
-                                            tileMap[x - 1][y] == Open &&
-                                            tileMap[x - 1][y + 1] == Open &&
-                                            tileMap[x + 1][y] != Open &&
-                                            tileMap[x][y - 1] != Open) {
-
-                                        tmpWall.set(Tiles[WallFacingLeftUp0 + (tileMap[x][y] - SolidIntact)]);
-
-                                        drawWall(batch, x, y);
-                                    }
-
-                                    if (    tileMap[x][y - 1] == Open &&
-                                            tileMap[x + 1][y] == Open &&
-                                            tileMap[x + 1][y - 1] == Open &&
-                                            tileMap[x][y + 1] != Open &&
-                                            tileMap[x - 1][y] != Open) {
-
-                                        tmpWall.set(Tiles[WallFacingRightDown0 + (tileMap[x][y] - SolidIntact)]);
-
-                                        drawWall(batch, x, y);
-                                    }
-
-                                    if (    tileMap[x][y - 1] == Open &&
-                                            tileMap[x - 1][y] == Open &&
-                                            tileMap[x - 1][y - 1] == Open &&
-                                            tileMap[x + 1][y] != Open &&
-                                            tileMap[x][y + 1] != Open) {
-
-                                        tmpWall.set(Tiles[WallFacingLeftDown0 + (tileMap[x][y] - SolidIntact)]);
-
-                                        drawWall(batch, x, y);
-                                    }
-                                }
-
-                                if (    tileMap[x - 1][y    ] == Open &&
-                                        tileMap[x + 1][y    ] == Open &&
-                                        tileMap[x    ][y - 1] == Open) {
-
-                                    tmpWall.set(Tiles[WallFacingLeftDownRight0 + (tileMap[x][y] - SolidIntact)]);
-
-                                    drawWall(batch, x, y);
-                                }
-                            }
-
-                            if (!outsideBoundsVerticallyUpper) {
-
-                                if (    tileMap[x - 1][y    ] == Open &&
-                                        tileMap[x + 1][y    ] == Open &&
-                                        tileMap[x    ][y + 1] == Open) {
-
-                                    tmpWall.set(Tiles[WallFacingLeftUpRight0 + (tileMap[x][y] - SolidIntact)]);
-
-                                    drawWall(batch, x, y);
-                                }
-                            }
-                        }
-
-
-                        if (!outsideBoundsVerticallyLower && !outsideBoundsVerticallyUpper) {
-
-                            if (!outsideBoundsHorisontallyLower) {
-
-                                if (    tileMap[x - 1][y] == Open &&
-                                        tileMap[x][y + 1] == Open &&
-                                        tileMap[x][y - 1] == Open) {
-
-                                    tmpWall.set(Tiles[WallFacingDownLeftUp0 + (tileMap[x][y] - SolidIntact)]);
-
-                                    drawWall(batch, x, y);
-                                }
-                            }
-
-                            if (!outsideBoundsHorisontallyUpper) {
-
-                                if (    tileMap[x + 1][y] == Open &&
-                                        tileMap[x][y + 1] == Open &&
-                                        tileMap[x][y - 1] == Open) {
-
-                                    tmpWall.set(Tiles[WallFacingDownRightUp0 + (tileMap[x][y] - SolidIntact)]);
-
-                                    drawWall(batch, x, y);
-                                }
-                            }
-                        }
+                        drawSolidUnbreakable(x, y, batch, outsideBoundsHorisontallyUpper, outsideBoundsHorisontallyLower, outsideBoundsVerticallyUpper, outsideBoundsVerticallyLower);
 
                         break;
 
@@ -807,46 +834,16 @@ public class Map {
                     case SpawnBroken:
                     case SpawnSlightlyBroken:
 
-                        tmpWall.set(Tiles[Filling]);
-
-                        drawWall(batch, x, y);
-
-                        // Up and down
-                        if ((!outsideBoundsHorisontallyLower && tileMap[x - 1][y] != Open) && (!outsideBoundsHorisontallyUpper && tileMap[x + 1][y] != Open)) {
-
-                            if (!outsideBoundsVerticallyLower && tileMap[x][y - 1] == Open) {
-
-                                tmpWall.set(Tiles[SpawnFacingDown0 + (tileMap[x][y] - SpawnIntact)]);
-
-                                drawWall(batch, x, y);
-                            }
-
-                            if (!outsideBoundsVerticallyUpper && tileMap[x][y + 1] == Open) {
-
-                                tmpWall.set(Tiles[SpawnFacingUp0 + (tileMap[x][y] - SpawnIntact)]);
-
-                                drawWall(batch, x, y);
-                            }
-                        }
-                        // Left and right
-                        else  {
-
-                            if (!outsideBoundsHorisontallyUpper && tileMap[x + 1][y] == Open) {
-
-                                tmpWall.set(Tiles[SpawnFacingRight0 + (tileMap[x][y] - SpawnIntact)]);
-
-                                drawWall(batch, x, y);
-                            }
-
-                            if (!outsideBoundsHorisontallyLower && tileMap[x - 1][y] == Open) {
-
-                                tmpWall.set(Tiles[SpawnFacingLeft0 + (tileMap[x][y] - SpawnIntact)]);
-
-                                drawWall(batch, x, y);
-                            }
-                        }
+                        drawSpawnTile(x, y, batch, outsideBoundsHorisontallyUpper, outsideBoundsHorisontallyLower, outsideBoundsVerticallyUpper, outsideBoundsVerticallyLower);
 
                         break;
+
+                    case Door:
+
+                        batch.draw(Game.SpriteSheet, x * TileSizeInPixelsInWorldSpace, y * TileSizeInPixelsInWorldSpace, TileSizeInPixelsInWorldSpace, TileSizeInPixelsInWorldSpace, 96, 48, Game.SizeOfTileInPixelsInSpritesheet, Game.SizeOfTileInPixelsInSpritesheet, false, false);
+
+                        break;
+
                 }
             }
         }
@@ -865,9 +862,585 @@ public class Map {
 
                     if (collidableMap[x][y] == ExpandedObstacle) {
 
-                        batch.draw(Game.spriteSheet, x * CellSize, y * CellSize, CellSize, CellSize, 48, 80, 16, 16, false, false);
+                        batch.draw(Game.SpriteSheet, x * CellSize, y * CellSize, CellSize, CellSize, 48, 80, 16, 16, false, false);
                     }
                 }
+            }
+        }
+    }
+
+    private void drawOpenTile(int x, int y, SpriteBatch batch) {
+
+        batch.draw(Game.SpriteSheet, x * TileSizeInPixelsInWorldSpace, y * TileSizeInPixelsInWorldSpace, TileSizeInPixelsInWorldSpace, TileSizeInPixelsInWorldSpace, 0, 0, Game.SizeOfTileInPixelsInSpritesheet, Game.SizeOfTileInPixelsInSpritesheet, false, false);
+
+        // Shadows
+        if (tileMap[x][y + 1] != Open && tileMap[x - 1][y + 1] != Open && tileMap[x + 1][y + 1] != Open) {
+
+            batch.draw(Game.SpriteSheet, x * TileSizeInPixelsInWorldSpace, y * TileSizeInPixelsInWorldSpace, TileSizeInPixelsInWorldSpace, TileSizeInPixelsInWorldSpace, 48, 48, Game.SizeOfTileInPixelsInSpritesheet, Game.SizeOfTileInPixelsInSpritesheet, false, false);
+        }
+
+        if (tileMap[x][y + 1] != Open && tileMap[x - 1][y + 1] == Open && tileMap[x + 1][y + 1] != Open) {
+
+            batch.draw(Game.SpriteSheet, x * TileSizeInPixelsInWorldSpace, y * TileSizeInPixelsInWorldSpace, TileSizeInPixelsInWorldSpace, TileSizeInPixelsInWorldSpace, 32, 48, Game.SizeOfTileInPixelsInSpritesheet, Game.SizeOfTileInPixelsInSpritesheet, false, false);
+        }
+
+        if (tileMap[x][y + 1] != Open && tileMap[x - 1][y + 1] == Open && tileMap[x + 1][y + 1] == Open) {
+
+            batch.draw(Game.SpriteSheet, x * TileSizeInPixelsInWorldSpace, y * TileSizeInPixelsInWorldSpace, TileSizeInPixelsInWorldSpace, TileSizeInPixelsInWorldSpace, 208, 48, Game.SizeOfTileInPixelsInSpritesheet, Game.SizeOfTileInPixelsInSpritesheet, false, false);
+        }
+
+        if (tileMap[x - 1][y] != Open && tileMap[x][y + 1] == Open && tileMap[x - 1][y + 1] != Open) {
+
+            batch.draw(Game.SpriteSheet, x * TileSizeInPixelsInWorldSpace, y * TileSizeInPixelsInWorldSpace, TileSizeInPixelsInWorldSpace, TileSizeInPixelsInWorldSpace, 144, 48, Game.SizeOfTileInPixelsInSpritesheet, Game.SizeOfTileInPixelsInSpritesheet, false, false);
+        }
+
+        if (tileMap[x - 1][y] != Open && tileMap[x][y + 1] != Open && tileMap[x - 1][y + 1] != Open) {
+
+            batch.draw(Game.SpriteSheet, x * TileSizeInPixelsInWorldSpace, y * TileSizeInPixelsInWorldSpace, TileSizeInPixelsInWorldSpace, TileSizeInPixelsInWorldSpace, 144, 64, Game.SizeOfTileInPixelsInSpritesheet, Game.SizeOfTileInPixelsInSpritesheet, false, false);
+        }
+
+        if (tileMap[x - 1][y] != Open && tileMap[x - 1][y + 1] == Open) {
+
+            batch.draw(Game.SpriteSheet, x * TileSizeInPixelsInWorldSpace, y * TileSizeInPixelsInWorldSpace, TileSizeInPixelsInWorldSpace, TileSizeInPixelsInWorldSpace, 128, 48, Game.SizeOfTileInPixelsInSpritesheet, Game.SizeOfTileInPixelsInSpritesheet, false, false);
+        }
+
+        if (tileMap[x][y + 1] != Open && tileMap[x + 1][y + 1] == Open && tileMap[x - 1][y + 1] != Open) {
+
+            batch.draw(Game.SpriteSheet, x * TileSizeInPixelsInWorldSpace, y * TileSizeInPixelsInWorldSpace, TileSizeInPixelsInWorldSpace, TileSizeInPixelsInWorldSpace, 64, 64, Game.SizeOfTileInPixelsInSpritesheet, Game.SizeOfTileInPixelsInSpritesheet, false, false);
+        }
+
+        if (tileMap[x - 1][y + 1] != Open && tileMap[x][y + 1] == Open) {
+
+            batch.draw(Game.SpriteSheet, x * TileSizeInPixelsInWorldSpace, y * TileSizeInPixelsInWorldSpace, TileSizeInPixelsInWorldSpace, TileSizeInPixelsInWorldSpace, 80, 64, Game.SizeOfTileInPixelsInSpritesheet, Game.SizeOfTileInPixelsInSpritesheet, false, false);
+        }
+
+        if (tileMap[x][y + 1] != Open && tileMap[x - 1][y + 1] == Open && tileMap[x + 1][y + 1] == Open) {
+
+            batch.draw(Game.SpriteSheet, x * TileSizeInPixelsInWorldSpace, y * TileSizeInPixelsInWorldSpace, TileSizeInPixelsInWorldSpace, TileSizeInPixelsInWorldSpace, 224, 48, Game.SizeOfTileInPixelsInSpritesheet, Game.SizeOfTileInPixelsInSpritesheet, false, false);
+        }
+    }
+
+    private void drawSolidTile(int x, int y, SpriteBatch batch, boolean outsideBoundsHorisontallyUpper, boolean outsideBoundsHorisontallyLower, boolean outsideBoundsVerticallyUpper, boolean outsideBoundsVerticallyLower) {
+
+        batch.draw(Game.SpriteSheet, x * TileSizeInPixelsInWorldSpace, y * TileSizeInPixelsInWorldSpace, TileSizeInPixelsInWorldSpace, TileSizeInPixelsInWorldSpace, 0, 0, Game.SizeOfTileInPixelsInSpritesheet, Game.SizeOfTileInPixelsInSpritesheet, false, false);
+
+
+        tmpWall.set(Tiles[WallFilling]);
+
+        drawWall(batch, x, y);
+
+        // Walls facing down and up
+        if ((!outsideBoundsHorisontallyLower && tileMap[x - 1][y] != Open) && (!outsideBoundsHorisontallyUpper && tileMap[x + 1][y] != Open)) {
+
+            if (!outsideBoundsVerticallyLower && tileMap[x][y - 1] == Open) {
+
+                tmpWall.set(Tiles[WallFacingDown0 + (tileMap[x][y] != SolidUnbreakable ? (tileMap[x][y] - SolidIntact) : 0)]);
+            }
+            else if (!outsideBoundsVerticallyUpper && tileMap[x][y + 1] == Open) {
+
+                tmpWall.set(Tiles[WallFacingUp0 + (tileMap[x][y] == SolidUnbreakable ? 0  : (tileMap[x][y] - SolidIntact))]);
+            }
+        }
+
+        // Walls facing left and right
+        if ((!outsideBoundsVerticallyLower && tileMap[x][y - 1] != Open) && (!outsideBoundsVerticallyUpper && tileMap[x][y + 1] != Open)) {
+
+            if (!outsideBoundsHorisontallyLower && !outsideBoundsHorisontallyUpper && tileMap[x - 1][y] == Open && tileMap[x + 1][y] == Open) {
+
+                tmpWall.set(Tiles[WallFacingLeft0 + (tileMap[x][y] == SolidUnbreakable ? 0  : (tileMap[x][y] - SolidIntact))]);
+
+                drawWall(batch, x, y);
+
+                tmpWall.set(Tiles[EdgeFacingRight]);
+
+                drawWall(batch, x, y);
+
+                return;
+            }
+            else if (!outsideBoundsHorisontallyUpper && tileMap[x + 1][y] == Open) {
+
+                tmpWall.set(Tiles[WallFacingRight0 + (tileMap[x][y] == SolidUnbreakable ? 0  : (tileMap[x][y] - SolidIntact))]);
+            }
+            else if (!outsideBoundsHorisontallyLower && tileMap[x - 1][y] == Open) {
+
+                tmpWall.set(Tiles[WallFacingLeft0 + (tileMap[x][y] == SolidUnbreakable ? 0  : (tileMap[x][y] - SolidIntact))]);
+            }
+        }
+
+        // Corners
+        if (!outsideBoundsHorisontallyUpper && !outsideBoundsVerticallyUpper && tileMap[x][y + 1] != Open && tileMap[x + 1][y] != Open && tileMap[x + 1][y + 1] == Open && (outsideBoundsVerticallyLower || tileMap[x][y - 1] != Open)) {
+
+            tmpWall.set(Tiles[CornerDownLeft]);
+
+            if (tileMap[x - 1][y] == Open) {
+
+                drawWall(batch, x,  y);
+
+                tmpWall.set(Tiles[EdgeFacingLeft]);
+
+                drawWall(batch, x, y);
+
+                return;
+            }
+        }
+
+        if (!outsideBoundsHorisontallyLower && !outsideBoundsVerticallyUpper && !outsideBoundsVerticallyLower && tileMap[x][y + 1] != Open && tileMap[x - 1][y] != Open && tileMap[x - 1][y + 1] == Open && tileMap[x][y - 1] != Open && (outsideBoundsHorisontallyUpper || tileMap[x + 1][y] != Open)) {
+
+            tmpWall.set(Tiles[CornerDownRight]);
+        }
+
+        if (!outsideBoundsHorisontallyUpper && !outsideBoundsVerticallyLower && tileMap[x][y - 1] != Open && tileMap[x + 1][y] != Open && tileMap[x + 1][y - 1] == Open && (x - 1 < 0 || tileMap[x - 1][y] != Open)) {
+
+            tmpWall.set(Tiles[CornerUpLeft]);
+
+            if (tileMap[x][y + 1] == Open) {
+
+                drawWall(batch, x,  y);
+
+                tmpWall.set(Tiles[EdgeFacingUp]);
+
+                drawWall(batch, x, y);
+
+                return;
+            }
+        }
+
+        if (!outsideBoundsHorisontallyLower && !outsideBoundsVerticallyLower && tileMap[x][y - 1] != Open && tileMap[x - 1][y] != Open && tileMap[x - 1][y - 1] == Open) {
+
+            tmpWall.set(Tiles[CornerUpRight]);
+
+            if (tileMap[x + 1][y] == Open || tileMap[x][y + 1] == Open) {
+
+                drawWall(batch, x, y);
+
+                if (tileMap[x + 1][y] == Open) {
+
+                    tmpWall.set(Tiles[EdgeFacingRight]);
+
+                    drawWall(batch, x, y);
+                }
+
+                if (tileMap[x][y + 1] == Open) {
+
+                    tmpWall.set(Tiles[EdgeFacingUp]);
+
+                    drawWall(batch, x, y);
+                }
+
+                return;
+            }
+        }
+
+        if (!outsideBoundsHorisontallyLower && !outsideBoundsHorisontallyUpper) {
+
+            if (!outsideBoundsVerticallyLower) {
+
+                if (!outsideBoundsVerticallyUpper) {
+
+                    if (    tileMap[x][y + 1] == Open &&
+                            tileMap[x + 1][y] == Open &&
+                            tileMap[x + 1][y + 1] == Open &&
+                            tileMap[x - 1][y] != Open &&
+                            tileMap[x][y - 1] != Open) {
+
+                        tmpWall.set(Tiles[WallFacingRightUp0 + (tileMap[x][y] == SolidUnbreakable ? 0  : (tileMap[x][y] - SolidIntact))]);
+
+                    }
+
+                    if (    tileMap[x][y + 1] == Open &&
+                            tileMap[x - 1][y] == Open &&
+                            tileMap[x - 1][y + 1] == Open &&
+                            tileMap[x + 1][y] != Open &&
+                            tileMap[x][y - 1] != Open) {
+
+                        tmpWall.set(Tiles[WallFacingLeftUp0 + (tileMap[x][y] == SolidUnbreakable ? 0  : (tileMap[x][y] - SolidIntact))]);
+
+                    }
+
+                    if (    tileMap[x][y - 1] == Open &&
+                            tileMap[x + 1][y] == Open &&
+                            tileMap[x + 1][y - 1] == Open &&
+                            tileMap[x][y + 1] != Open &&
+                            tileMap[x - 1][y] != Open) {
+
+                        tmpWall.set(Tiles[WallFacingRightDown0 + (tileMap[x][y] == SolidUnbreakable ? 0  : (tileMap[x][y] - SolidIntact))]);
+
+                    }
+
+                    if (    tileMap[x][y - 1] == Open &&
+                            tileMap[x - 1][y] == Open &&
+                            tileMap[x - 1][y - 1] == Open &&
+                            tileMap[x + 1][y] != Open &&
+                            tileMap[x][y + 1] != Open) {
+
+                        tmpWall.set(Tiles[WallFacingLeftDown0 + (tileMap[x][y] == SolidUnbreakable ? 0  : (tileMap[x][y] - SolidIntact))]);
+
+                    }
+
+                    if (    tileMap[x - 1][y    ] == Open &&
+                            tileMap[x + 1][y    ] == Open &&
+                            tileMap[x    ][y - 1] == Open &&
+                            tileMap[x    ][y + 1] == Open) {
+
+                        tmpWall.set(Tiles[WallFacingAllSides0 + (tileMap[x][y] == SolidUnbreakable ? 0  : (tileMap[x][y] - SolidIntact))]);
+
+                        drawWall(batch, x, y);
+
+                        return;
+                    }
+                }
+
+                if (    tileMap[x - 1][y    ] == Open &&
+                        tileMap[x + 1][y    ] == Open &&
+                        tileMap[x    ][y - 1] == Open) {
+
+                    tmpWall.set(Tiles[WallFacingLeftDownRight0 + (tileMap[x][y] == SolidUnbreakable ? 0  : (tileMap[x][y] - SolidIntact))]);
+
+                }
+            }
+
+            if (!outsideBoundsVerticallyUpper) {
+
+                if (    tileMap[x - 1][y    ] == Open &&
+                        tileMap[x + 1][y    ] == Open &&
+                        tileMap[x    ][y + 1] == Open) {
+
+                    tmpWall.set(Tiles[WallFacingLeftUpRight0 + (tileMap[x][y] == SolidUnbreakable ? 0  : (tileMap[x][y] - SolidIntact))]);
+
+                }
+            }
+        }
+
+
+        if (!outsideBoundsVerticallyLower && !outsideBoundsVerticallyUpper) {
+
+            if (!outsideBoundsHorisontallyLower) {
+
+                if (!outsideBoundsHorisontallyUpper) {
+
+                    if (    tileMap[x - 1][y] != Open &&
+                            tileMap[x + 1][y] != Open &&
+                            tileMap[x][y + 1] == Open &&
+                            tileMap[x][y - 1] == Open) {
+
+                        tmpWall.set(Tiles[WallFacingUpDown0 + (tileMap[x][y] == SolidUnbreakable ? 0  : (tileMap[x][y] - SolidIntact))]);
+
+                    }
+                }
+
+                if (    tileMap[x - 1][y] == Open &&
+                        tileMap[x][y + 1] == Open &&
+                        tileMap[x][y - 1] == Open) {
+
+                    tmpWall.set(Tiles[WallFacingDownLeftUp0 + (tileMap[x][y] == SolidUnbreakable ? 0  : (tileMap[x][y] - SolidIntact))]);
+
+                }
+            }
+
+            if (!outsideBoundsHorisontallyUpper) {
+
+                if (    tileMap[x + 1][y] == Open &&
+                        tileMap[x][y + 1] == Open &&
+                        tileMap[x][y - 1] == Open) {
+
+                    tmpWall.set(Tiles[WallFacingDownRightUp0 + (tileMap[x][y] == SolidUnbreakable ? 0  : (tileMap[x][y] - SolidIntact))]);
+
+                }
+            }
+
+            if (tmpWall.equals(Tiles[WallFilling])) {
+
+                tmpWall.set(Tiles[Filling]);
+            }
+
+            drawWall(batch, x, y);
+
+            if (!outsideBoundsHorisontallyUpper && tileMap[x + 1][y] != Open && tileMap[x][y - 1] != Open && tileMap[x + 1][y - 1] == Open) {
+
+                tmpWall.set(Tiles[EdgeFacingRightWall]);
+
+                drawWall(batch, x, y);
+            }
+        }
+    }
+
+    private void drawSolidUnbreakable(int x, int y, SpriteBatch batch, boolean outsideBoundsHorisontallyUpper, boolean outsideBoundsHorisontallyLower, boolean outsideBoundsVerticallyUpper, boolean outsideBoundsVerticallyLower) {
+
+        tmpWall.set(Tiles[WallFilling]);
+
+        drawWall(batch, x, y);
+
+        batch.draw(Game.SpriteSheet, x * TileSizeInPixelsInWorldSpace, y * TileSizeInPixelsInWorldSpace, TileSizeInPixelsInWorldSpace, TileSizeInPixelsInWorldSpace, 0, 0, Game.SizeOfTileInPixelsInSpritesheet, Game.SizeOfTileInPixelsInSpritesheet, false, false);
+
+        // Walls facing down and up
+        if ((!outsideBoundsHorisontallyLower && tileMap[x - 1][y] != Open) && (!outsideBoundsHorisontallyUpper && tileMap[x + 1][y] != Open)) {
+
+            if (!outsideBoundsVerticallyLower && tileMap[x][y - 1] == Open) {
+
+                tmpWall.set(Tiles[UnbreakableWallFacingDown]);
+            }
+            else if (!outsideBoundsVerticallyUpper && tileMap[x][y + 1] == Open) {
+
+                tmpWall.set(Tiles[UnbreakableWallFacingUp]);
+            }
+        }
+
+        // Walls facing left and right
+        if ((!outsideBoundsVerticallyLower && tileMap[x][y - 1] != Open) && (!outsideBoundsVerticallyUpper && tileMap[x][y + 1] != Open)) {
+
+            if (!outsideBoundsHorisontallyLower && !outsideBoundsHorisontallyUpper && tileMap[x - 1][y] == Open && tileMap[x + 1][y] == Open) {
+
+                tmpWall.set(Tiles[UnbreakableWallFacingLeft]);
+
+                drawWall(batch, x, y);
+
+                tmpWall.set(Tiles[UnbreakableEdgeFacingRight]);
+
+                drawWall(batch, x, y);
+
+                return;
+            }
+            else if (!outsideBoundsHorisontallyUpper && tileMap[x + 1][y] == Open) {
+
+                tmpWall.set(Tiles[UnbreakableWallFacingRight]);
+            }
+            else if (!outsideBoundsHorisontallyLower && tileMap[x - 1][y] == Open) {
+
+                tmpWall.set(Tiles[UnbreakableWallFacingLeft]);
+            }
+        }
+
+        // Corners
+        if (!outsideBoundsHorisontallyUpper && !outsideBoundsVerticallyUpper && tileMap[x][y + 1] != Open && tileMap[x + 1][y] != Open && tileMap[x + 1][y + 1] == Open && (outsideBoundsVerticallyLower || tileMap[x][y - 1] != Open)) {
+
+            tmpWall.set(Tiles[UnbreakableCornerDownLeft]);
+
+            if (tileMap[x - 1][y] == Open) {
+
+                drawWall(batch, x,  y);
+
+                tmpWall.set(Tiles[UnbreakableEdgeFacingLeft]);
+
+                drawWall(batch, x, y);
+
+                return;
+            }
+        }
+
+        if (!outsideBoundsHorisontallyLower && !outsideBoundsVerticallyUpper && !outsideBoundsVerticallyLower && tileMap[x][y + 1] != Open && tileMap[x - 1][y] != Open && tileMap[x - 1][y + 1] == Open && tileMap[x][y - 1] != Open && (outsideBoundsHorisontallyUpper || tileMap[x + 1][y] != Open)) {
+
+            tmpWall.set(Tiles[UnbreakableCornerDownRight]);
+        }
+
+        if (!outsideBoundsHorisontallyUpper && !outsideBoundsVerticallyLower && tileMap[x][y - 1] != Open && tileMap[x + 1][y] != Open && tileMap[x + 1][y - 1] == Open && (x - 1 < 0 || tileMap[x - 1][y] != Open)) {
+
+            tmpWall.set(Tiles[UnbreakableCornerUpLeft]);
+
+            if (tileMap[x][y + 1] == Open) {
+
+                drawWall(batch, x,  y);
+
+                tmpWall.set(Tiles[UnbreakableEdgeFacingUp]);
+
+                drawWall(batch, x, y);
+
+                return;
+            }
+        }
+
+        if (!outsideBoundsHorisontallyLower && !outsideBoundsVerticallyLower && tileMap[x][y - 1] != Open && tileMap[x - 1][y] != Open && tileMap[x - 1][y - 1] == Open) {
+
+            tmpWall.set(Tiles[UnbreakableCornerUpRight]);
+
+            if (tileMap[x + 1][y] == Open || tileMap[x][y + 1] == Open) {
+
+                drawWall(batch, x, y);
+
+                if (tileMap[x + 1][y] == Open) {
+
+                    tmpWall.set(Tiles[UnbreakableEdgeFacingRight]);
+
+                    drawWall(batch, x, y);
+                }
+
+                if (tileMap[x][y + 1] == Open) {
+
+                    tmpWall.set(Tiles[UnbreakableEdgeFacingUp]);
+
+                    drawWall(batch, x, y);
+                }
+
+                return;
+            }
+        }
+
+        if (!outsideBoundsHorisontallyLower && !outsideBoundsHorisontallyUpper) {
+
+            if (!outsideBoundsVerticallyLower) {
+
+                if (!outsideBoundsVerticallyUpper) {
+
+                    if (    tileMap[x][y + 1] == Open &&
+                            tileMap[x + 1][y] == Open &&
+                            tileMap[x + 1][y + 1] == Open &&
+                            tileMap[x - 1][y] != Open &&
+                            tileMap[x][y - 1] != Open) {
+
+                        tmpWall.set(Tiles[UnbreakableWallFacingRightUp]);
+
+                    }
+
+                    if (    tileMap[x][y + 1] == Open &&
+                            tileMap[x - 1][y] == Open &&
+                            tileMap[x - 1][y + 1] == Open &&
+                            tileMap[x + 1][y] != Open &&
+                            tileMap[x][y - 1] != Open) {
+
+                        tmpWall.set(Tiles[UnbreakableWallFacingLeftUp]);
+
+                    }
+
+                    if (    tileMap[x][y - 1] == Open &&
+                            tileMap[x + 1][y] == Open &&
+                            tileMap[x + 1][y - 1] == Open &&
+                            tileMap[x][y + 1] != Open &&
+                            tileMap[x - 1][y] != Open) {
+
+                        tmpWall.set(Tiles[UnbreakableWallFacingRightDown]);
+
+                    }
+
+                    if (    tileMap[x][y - 1] == Open &&
+                            tileMap[x - 1][y] == Open &&
+                            tileMap[x - 1][y - 1] == Open &&
+                            tileMap[x + 1][y] != Open &&
+                            tileMap[x][y + 1] != Open) {
+
+                        tmpWall.set(Tiles[UnbreakableWallFacingLeftDown]);
+
+                    }
+
+                    if (    tileMap[x - 1][y    ] == Open &&
+                            tileMap[x + 1][y    ] == Open &&
+                            tileMap[x    ][y - 1] == Open &&
+                            tileMap[x    ][y + 1] == Open) {
+
+                        tmpWall.set(Tiles[UnbreakableWallFacingAllSides]);
+
+                        drawWall(batch, x, y);
+
+                        return;
+                    }
+                }
+
+                if (    tileMap[x - 1][y    ] == Open &&
+                        tileMap[x + 1][y    ] == Open &&
+                        tileMap[x    ][y - 1] == Open) {
+
+                    tmpWall.set(Tiles[UnbreakableWallFacingLeftDownRight]);
+                }
+            }
+
+            if (!outsideBoundsVerticallyUpper) {
+
+                if (    tileMap[x - 1][y    ] == Open &&
+                        tileMap[x + 1][y    ] == Open &&
+                        tileMap[x    ][y + 1] == Open) {
+
+                    tmpWall.set(Tiles[UnbreakableWallFacingLeftUpRight]);
+                }
+            }
+        }
+
+
+        if (!outsideBoundsVerticallyLower && !outsideBoundsVerticallyUpper) {
+
+            if (!outsideBoundsHorisontallyLower) {
+
+                if (!outsideBoundsHorisontallyUpper) {
+
+                    if (    tileMap[x - 1][y] != Open &&
+                            tileMap[x + 1][y] != Open &&
+                            tileMap[x][y + 1] == Open &&
+                            tileMap[x][y - 1] == Open) {
+
+                        tmpWall.set(Tiles[UnbreakableWallFacingUpDown]);
+                    }
+                }
+
+                if (    tileMap[x - 1][y] == Open &&
+                        tileMap[x][y + 1] == Open &&
+                        tileMap[x][y - 1] == Open) {
+
+                    tmpWall.set(Tiles[UnbreakableWallFacingDownLeftUp]);
+                }
+            }
+
+            if (!outsideBoundsHorisontallyUpper) {
+
+                if (    tileMap[x + 1][y] == Open &&
+                        tileMap[x][y + 1] == Open &&
+                        tileMap[x][y - 1] == Open) {
+
+                    tmpWall.set(Tiles[UnbreakableWallFacingDownRightUp]);
+
+                }
+            }
+
+            if (tmpWall.equals(Tiles[WallFilling])) {
+
+                tmpWall.set(Tiles[Filling]);
+            }
+
+            drawWall(batch, x, y);
+
+            if (!outsideBoundsHorisontallyUpper && tileMap[x + 1][y] != Open && tileMap[x][y - 1] != Open && tileMap[x + 1][y - 1] == Open) {
+
+                tmpWall.set(Tiles[UnbreakableEdgeFacingRightWall]);
+
+                drawWall(batch, x, y);
+            }
+        }
+    }
+
+    private void drawSpawnTile(int x, int y, SpriteBatch batch, boolean outsideBoundsHorisontallyUpper, boolean outsideBoundsHorisontallyLower, boolean outsideBoundsVerticallyUpper, boolean outsideBoundsVerticallyLower) {
+
+        tmpWall.set(Tiles[WallFilling]);
+
+        drawWall(batch, x, y);
+
+        // Up and down
+        if ((!outsideBoundsHorisontallyLower && tileMap[x - 1][y] != Open) && (!outsideBoundsHorisontallyUpper && tileMap[x + 1][y] != Open)) {
+
+            if (!outsideBoundsVerticallyLower && tileMap[x][y - 1] == Open) {
+
+                tmpWall.set(Tiles[SpawnFacingDown0 + (tileMap[x][y] - SpawnIntact)]);
+
+                drawWall(batch, x, y);
+            }
+
+            if (!outsideBoundsVerticallyUpper && tileMap[x][y + 1] == Open) {
+
+                tmpWall.set(Tiles[SpawnFacingUp0 + (tileMap[x][y] - SpawnIntact)]);
+
+                drawWall(batch, x, y);
+            }
+        }
+        // Left and right
+        else  {
+
+            if (!outsideBoundsHorisontallyUpper && tileMap[x + 1][y] == Open) {
+
+                tmpWall.set(Tiles[SpawnFacingRight0 + (tileMap[x][y] - SpawnIntact)]);
+
+                drawWall(batch, x, y);
+            }
+
+            if (!outsideBoundsHorisontallyLower && tileMap[x - 1][y] == Open) {
+
+                tmpWall.set(Tiles[SpawnFacingLeft0 + (tileMap[x][y] - SpawnIntact)]);
+
+                drawWall(batch, x, y);
             }
         }
     }
@@ -906,7 +1479,7 @@ public class Map {
 
         batch.draw(
 
-                Game.spriteSheet,
+                Game.SpriteSheet,
                 x * TileSizeInPixelsInWorldSpace,
                 y * TileSizeInPixelsInWorldSpace, TileSizeInPixelsInWorldSpace, TileSizeInPixelsInWorldSpace,
                 (int) (tmpWall.x * Game.SizeOfTileInPixelsInSpritesheet),
@@ -916,10 +1489,5 @@ public class Map {
                 false,
                 false
         );
-
-        if (get(x, y) == SolidSlightlyBroken) {
-
-
-        }
     }
 }

@@ -1,6 +1,5 @@
 package io.github.simengangstad.defendthecaves.components;
 
-import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Vector2;
@@ -23,7 +22,7 @@ public interface Drawable {
     boolean flip();
 
     /**
-     * Draws the drawable with the given sprite batch.
+     * Draws the drawable with the given sprite batch where position is the centre of the drawable.
      */
     default void draw(SpriteBatch batch, Vector2 position, Vector2 size) {
 
@@ -34,10 +33,10 @@ public interface Drawable {
 
         if (Game.DebubDraw) {
 
-            batch.draw(Game.debugDrawTexture, position.x, position.y, size.x, size.y);
+            batch.draw(Game.debugDrawTexture, position.x - size.x / 2.0f, position.y - size.y / 2.0f, size.x, size.y);
         }
 
-        batch.draw(getTextureRegion(), position.x, position.y, size.x, size.y);
+        batch.draw(getTextureRegion(), position.x - size.x / 2.0f, position.y - size.y / 2.0f, size.x, size.y);
 
         if (flip()) {
 

@@ -5,22 +5,24 @@ import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 import com.badlogic.gdx.math.MathUtils;
-import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector2;
 import io.github.simengangstad.defendthecaves.Container;
 import io.github.simengangstad.defendthecaves.Game;
 import io.github.simengangstad.defendthecaves.components.Drawable;
 import io.github.simengangstad.defendthecaves.components.GameObject;
 import io.github.simengangstad.defendthecaves.gui.KeyButton;
+import io.github.simengangstad.defendthecaves.gui.View;
+import io.github.simengangstad.defendthecaves.pathfinding.Coordinate;
 import io.github.simengangstad.defendthecaves.pathfinding.PathfindingGrid;
-import io.github.simengangstad.defendthecaves.scene.entities.Enemy;
-import io.github.simengangstad.defendthecaves.scene.entities.FallingStone;
-import io.github.simengangstad.defendthecaves.scene.entities.Player;
-import io.github.simengangstad.defendthecaves.scene.weapons.Shield;
+import io.github.simengangstad.defendthecaves.procedural.MapGenerator;
+import io.github.simengangstad.defendthecaves.scene.entities.*;
+import io.github.simengangstad.defendthecaves.scene.item.Chemical;
+import io.github.simengangstad.defendthecaves.scene.item.Key;
+import io.github.simengangstad.defendthecaves.scene.item.Potion;
+import io.github.simengangstad.defendthecaves.scene.tool.Cudgel;
+import io.github.simengangstad.defendthecaves.scene.tool.Shield;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
+import java.util.*;
 
 /**
  * @author simengangstad
@@ -33,6 +35,9 @@ public class Scene extends Container {
      */
     private Map map;
 
+    /**
+     * The pathfinding grid used for enemy AI.
+     */
     public PathfindingGrid pathfindingGrid;
 
     /**
@@ -41,35 +46,139 @@ public class Scene extends Container {
     public Player player;
 
     /**
-     * The barriers.
+     * The barriers; where the enemies spawn.
      */
-    private final Barrier[] barriers;
+    private Barrier[] barriers;
 
+    /**
+     * A list of the amount of enemies behind each barrier breaking the barrier down.
+     */
     private final HashMap<Barrier, ArrayList<Enemy>> enemiesAtHold = new HashMap<>();
 
+    /**
+     * A reference to the keys which open the locked rooms in the map.
+     */
+    private ArrayList<Key> keys = new ArrayList<>();
+
+    /**
+     * The container which displays the inventory of the player.
+     */
+    private Container inventoryFrame = new Container();
+
+    /**
+     * The container which displays the different interaction widgets and the labels for the scene.
+     */
+    private Container widgetFrame = new Container();
+
+    /**
+     * A button, this will be renamed later.
+     */
+    private KeyButton button;
+
+    /**
+     * The maximum amount one can zoom out of the map.
+     */
+    private final int MaxZoom = 60;
+
+    /**
+     * Tmp
+     */
     private final Vector2 tmp = new Vector2();
-
-    private Container frame = new Container();
-
-    private Matrix4 frameProjectionMatrix = new Matrix4();
 
     /**
      * Instantiates the scene with a player.
      */
     public Scene(Player player) {
 
-        map = new Map(40, 40, 15, 3, 9, 12342, player.getSize(), 6, 6);
+        this.player = player;
+
+        initialiseMap();
+        initialiseWidgetFrame();
+        initialiseInventoryFrame();
+
+        ShaderProgram shaderProgram = new ShaderProgram(Gdx.files.internal("assets/shaders/shader.vs"), Gdx.files.internal("assets/shaders/shader.fs"));
+
+        if (!shaderProgram.isCompiled()) {
+
+            System.err.println("Couldn't compile shader: " + shaderProgram.getLog());
+        }
+
+        batch.setShader(shaderProgram);
+    }
+
+    private void initialiseInventoryFrame() {
+
+        int width = 700, height = 400;
+
+        View inventoryView = new View(new Vector2(Gdx.graphics.getWidth() / 2 - width / 2, Gdx.graphics.getHeight() / 2 - height / 2), new Vector2(width, height));
+
+        width = 500;
+        height = 300;
+
+        player.inventory = new Inventory(
+
+                new Vector2(inventoryView.getSize().x / 2 - width / 2, inventoryView.getSize().y / 2 - height / 2),
+                new Vector2(width, height),
+                6,
+                4,
+                new TextureRegion(Game.SpriteSheet, 80, 160, 16, 16),
+                new TextureRegion(Game.SpriteSheet, 96, 160, 16, 16)
+        );
+
+        inventoryView.addSubview(player.inventory);
+        inventoryFrame.addGameObject(inventoryView);
+
+        player.inventory.placeItem(new Key(new Vector2(0.0f, 0.0f), new Coordinate()));
+    }
+
+    private void initialiseWidgetFrame() {
+
+        button = new KeyButton(new Vector2(), new Vector2(32, 32), new TextureRegion(Game.GUISheet, 0, 0, 16, 16), Input.Keys.G) {
+
+            @Override
+            public void buttonClicked() {
+
+            }
+
+            @Override
+            public void buttonPressed() {
+
+                if (closestsBarrier == null) return;
+
+                closestsBarrier.updateState(10 * Gdx.graphics.getDeltaTime());
+            }
+
+            @Override
+            public void buttonReleased() {
+
+            }
+        };
+
+        button.visible = false;
+
+        widgetFrame.addGameObject(button);
+    }
+
+    private void initialiseMap() {
+
+        map = new Map(40, 40, 15, 3, 7, 162, player.getSize(), 1, 3);
 
         pathfindingGrid = new PathfindingGrid(map.getWidth(), map.getHeight());
 
         updatePathfindingGrid();
 
-        this.player = player;
-
         player.host = this;
         player.setMap(map);
 
         addGameObject(player);
+
+        for (MapGenerator.Room room : map.getRooms()) {
+
+            if (room.isLocked()) {
+
+                keys.add(room.getKey());
+            }
+        }
 
         boolean spawnPositionFound = false;
 
@@ -85,11 +194,6 @@ public class Scene extends Container {
                         player.updateCameraPosition();
 
                         spawnPositionFound = true;
-
-                        break;
-                    }
-
-                    if (spawnPositionFound) {
 
                         break;
                     }
@@ -113,9 +217,9 @@ public class Scene extends Container {
             enemiesAtHold.put(barriers[i], new ArrayList<>());
         }
 
-        Spawner<Barrier> spawner = new Spawner(barriers);
+        Spawner<Barrier> spawner = new Spawner<>(barriers);
 
-        spawner.spawn(4, 4000, item -> {
+        spawner.spawn(2, 4000, item -> {
 
             Barrier barrier = (Barrier) item;
 
@@ -148,47 +252,35 @@ public class Scene extends Container {
 
             position.add(0.5f, 0.5f);
 
-            enemiesAtHold.get(barrier).add(new Enemy(position.cpy().scl(map.TileSizeInPixelsInWorldSpace), player.getPosition(), player.getSize(), 2));
+
+            HumanLikeEnemy orc = new HumanLikeEnemy(position.cpy().scl(Map.TileSizeInPixelsInWorldSpace), new Vector2(80, 80), player);
+
+            orc.attachTool(new Cudgel(() -> {}));
+
+            // TODO: Add different types of enemues
+            enemiesAtHold.get(barrier).add(orc);
         });
+/*
+        Snake snake = new Snake(player.getPosition().cpy().add(5 * Map.TileSizeInPixelsInWorldSpace, 0.0f), player, 3, new Vector2(160, 80));
 
-        //addGameObject(new Enemy(player.getPosition().cpy(), player.getPosition(), player.getSize(), 2));
+        addGameObject(snake);
+        */
+/*
+        HumanLikeEnemy humanLikeEnemy = new HumanLikeEnemy(player.getPosition().cpy(), new Vector2(80, 80), player);
 
+        humanLikeEnemy.attachTool(new Cudgel(() -> {}));
 
-        // FRAME
+        addGameObject(humanLikeEnemy);
+*/
+        Caterpillar caterpillar = new Caterpillar(player.getPosition().cpy(), player, gameObjects);
 
-        button = new KeyButton(new Vector2(), new Vector2(32, 32), new TextureRegion(Game.guiSheet, 0, 0, 16, 16), Input.Keys.G) {
+        addGameObject(caterpillar);
 
-            @Override
-            public void buttonClicked() {
+        Potion potion = new Potion(player.getPosition().cpy(), new Vector2(60, 60));
 
-            }
+        potion.addChemical(new Chemical(50, -50, -50));
 
-            @Override
-            public void buttonPressed() {
-
-                if (closestsBarrier == null) return;
-
-                closestsBarrier.updateState(10 * Gdx.graphics.getDeltaTime());
-            }
-
-            @Override
-            public void buttonReleased() {
-
-            }
-        };
-
-        button.visible = false;
-
-        frame.addGameObject(button);
-
-        ShaderProgram shaderProgram = new ShaderProgram(Gdx.files.internal("assets/shaders/shader.vs"), Gdx.files.internal("assets/shaders/shader.fs"));
-
-        if (!shaderProgram.isCompiled()) {
-
-            System.err.println("Couldn't compile shader: " + shaderProgram.getLog());
-        }
-
-        batch.setShader(shaderProgram);
+        addGameObject(potion);
     }
 
     private void updatePathfindingGrid() {
@@ -197,12 +289,10 @@ public class Scene extends Container {
 
             for (int y = 0; y < pathfindingGrid.height; y++) {
 
-                pathfindingGrid.set(x, y, map.isSolid(x, y) == true ? PathfindingGrid.State.Closed : PathfindingGrid.State.Open);
+                pathfindingGrid.set(x, y, map.isSolid(x, y) ? PathfindingGrid.State.Closed : PathfindingGrid.State.Open);
             }
         }
     }
-
-    KeyButton button;
 
     /**
      * Updates the viewport and the projection matrix of the player's camera.
@@ -213,7 +303,8 @@ public class Scene extends Container {
         player.camera.viewportHeight = Gdx.graphics.getHeight();
         player.camera.update();
 
-        frame.setProjectionMatrix(frameProjectionMatrix.setToOrtho(0.0f, Gdx.graphics.getWidth(), 0.0f, Gdx.graphics.getHeight(), -1.0f, 1.0f));
+        widgetFrame.setProjectionMatrix(widgetFrame.getProjectionMatrix().setToOrtho(0.0f, Gdx.graphics.getWidth(), 0.0f, Gdx.graphics.getHeight(), -1.0f, 1.0f));
+        inventoryFrame.setProjectionMatrix(inventoryFrame.getProjectionMatrix().setToOrtho(0.0f, Gdx.graphics.getWidth(), 0.0f, Gdx.graphics.getHeight(), -1.0f, 1.0f));
     }
 
     @Override
@@ -221,18 +312,18 @@ public class Scene extends Container {
 
         super.addGameObject(gameObject);
 
-        if (gameObject instanceof MovableEntity) {
+        if (gameObject instanceof Entity) {
 
-            MovableEntity movableEntity = (MovableEntity) gameObject;
+            Entity entity = (Entity) gameObject;
 
-            movableEntity.setMap(map);
+            entity.setMap(map);
         }
     }
 
     /**
      * Damages the entities inside the rect besides the excludables.
      */
-    public void damage(Weapon weapon, Vector2 attackDirection, float x, float y, float width, float height, Entity excludable) {
+    public void damage(int attackDamage, Vector2 attackDirection, float x, float y, float width, float height, Entity excludable) {
 
         for (GameObject gameObject : gameObjects) {
 
@@ -241,12 +332,18 @@ public class Scene extends Container {
 
                 continue;
             }
-
             if (gameObject instanceof Entity) {
+
+
+                // Enemies don't hurt each other.
+                if (gameObject instanceof Enemy && excludable instanceof Enemy) {
+
+                    return;
+                }
 
                 Entity entity = (Entity) gameObject;
 
-                if (entity == excludable) {
+                if (entity == excludable ) {
 
                     continue;
                 }
@@ -258,16 +355,13 @@ public class Scene extends Container {
                         break;
                     }
 
-                    entity.takeDamage(weapon.attackDamage);
+                    entity.takeDamage(attackDamage);
 
                     entity.paralyse();
 
-                    if (entity instanceof MovableEntity) {
+                    entity.applyForce(attackDirection.nor().scl(7.5f));
 
-                        ((MovableEntity) entity).applyForce(attackDirection.nor().scl(7.5f));
-                    }
-
-                    System.out.println("Damage applied to entity: " + entity);
+                    System.out.println("Damage applied to entity: " + entity + " - current health: " + entity.health);
 
                     break;
                 }
@@ -275,10 +369,20 @@ public class Scene extends Container {
         }
     }
 
+    /**
+     * Checks intersection between two rectangles with a centre and half size.
+     */
     public boolean intersect(float x1, float y1, float w1, float h1, float x2, float y2, float w2, float h2) {
 
-        return  (x1 <= x2 + w1) && (x1 + w2 >= x2) &&
-                (y1 <= y2 + h1) && (y1 + h2 >= y2);
+        if(Math.abs(x1 - x2) < w1 / 2.0f + w2 / 2.0f) {
+
+            if(Math.abs(y1 - y2) < h1 / 2.0f + h2 / 2.0f) {
+
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private void spawnFallingStones(Vector2 position) {
@@ -319,6 +423,19 @@ public class Scene extends Container {
                 new Vector2(Map.TileSizeInPixelsInWorldSpace, Map.TileSizeInPixelsInWorldSpace)));
     }
 
+    public float scaleFactor = 1.0f;
+
+    @Override
+    public boolean scrolled(int amount) {
+
+        scaleFactor += amount;
+
+        scaleFactor = Math.round(MathUtils.clamp(scaleFactor, 1.0f, MaxZoom));
+
+        player.camera.zoom = Math.max(scaleFactor / 4.0f, 1.0f);
+
+        return true;
+    }
 
     @Override
     /**
@@ -326,11 +443,25 @@ public class Scene extends Container {
      */
     public void tick() {
 
+        if (!buffer.isEmpty()) {
+
+            gameObjects.addAll(buffer);
+
+            buffer.clear();
+        }
+
+        if (!removeBuffer.isEmpty()) {
+
+            gameObjects.removeAll(removeBuffer);
+
+            removeBuffer.clear();
+        }
+
         enemiesAtHold.forEach((barrier, array) -> {
 
             if (barrier.getState() == 0) {
 
-                array.forEach(enemy -> addGameObject(enemy));
+                array.forEach((enemy -> addGameObject(enemy)));
 
                 array.clear();
             }
@@ -364,11 +495,11 @@ public class Scene extends Container {
 
         map.playerPosition = player.getPosition();
 
-        map.draw(batch);
+        map.draw(batch, scaleFactor);
 
-        Iterator<GameObject> iterator = gameObjects.iterator();
+        player.draw(batch, player.getPosition(), player.getSize());
 
-        while (iterator.hasNext()) {
+        for (Iterator<GameObject> iterator = gameObjects.iterator(); iterator.hasNext();) {
 
             GameObject gameObject = iterator.next();
 
@@ -382,13 +513,26 @@ public class Scene extends Container {
                 }
             }
 
+
             if (gameObject instanceof Entity) {
 
                 Entity entity = (Entity) gameObject;
 
-                if (entity.health < 0) {
+                if (entity.health == 0) {
 
+                    if (entity instanceof Player) {
+
+                        // TODO: Game over
+
+                        continue;
+                    }
+
+                    entity.die();
+
+                    // TODO: Temp, will be removed after die animation has been played.
                     iterator.remove();
+
+                    continue;
                 }
 
                 if (gameObject instanceof Player) {
@@ -398,8 +542,6 @@ public class Scene extends Container {
                     for (Barrier barrier : barriers) {
 
                         tmp.set(gameObject.getPosition().x - barrier.position.x * Map.TileSizeInPixelsInWorldSpace, gameObject.getPosition().y - barrier.position.y * Map.TileSizeInPixelsInWorldSpace);
-
-                        // System.out.println(barrier.getState());
 
                         if (tmp.len() / Map.TileSizeInPixelsInWorldSpace < distanceToBarrierInOrderToRebuild && barrier.getState() < barrier.TimeToDemolishBarrier) {
 
@@ -421,14 +563,10 @@ public class Scene extends Container {
             }
         }
 
-        player.draw(batch, player.getPosition(), player.getSize());
-
         batch.end();
 
-
-        // FRAME
-
-        frame.tick();
+        widgetFrame.tick();
+        inventoryFrame.tick();
     }
 
     private int distanceToBarrierInOrderToRebuild = 2;

@@ -26,21 +26,32 @@
         - [x] Player jump up when the axe has hit the ground.
     - [x] Make AI more random.
 - [x] Implement enemy AI.
-- [x] Add helper methods for lenth between things within the map.
+- [x] Add helper methods for length between things within the map.
 - [x] Change so that positions are from the centre of the game object.
 - [x] Rename TileSize reference to more appropiate variable names.
-- [x] Organise spritesheet.
+- [x] Organise sprite sheet.
 
 # 0004
 
-- [ ] Implement unbreakable solid tiles around the spawn points.
-- [ ] Make spawn points unbreakable.
-- [ ] Make enemies weapons go up and down as their corresponding animations elapse.
-
+- [x] Implement unbreakable solid tiles around the spawn points.
+- [x] Make spawn points unbreakable.
+- [x] Make enemies weapons go up and down as their corresponding animations elapse.
+- [x] Give map a more isometric feel.
+- [x] Implement zooming.
+- [x] Add art for breakable tiles.
+- [ ] Clean up code.
+- [ ] Make the map generate random loot and secret rooms (with corresponding keys and doors)
+- [x] Add unbreakable tiles which are distinguishable from the other tiles and fill the edges with this.
+- GUI system
+    - [x] Add a generic view
+    - [x] Add possibility to add subviews to views
+        - [ ] Buttons
+- [ ] Construct three new enemies
+- [x] After attack the axe swings back into place.
+- [x] Add more detailed shadows for the walls.
+- [ ] Some way of picking up loot (probably just attraction).
 
 # Etc
 
-- [ ] Add more detailed shadows for the walls.
+- [ ] Display health of enemies
 - [ ] Solve bug where the player sometimes ends up in rooms withuot entries.
-- [ ] After attack the axe swings back into place.
-

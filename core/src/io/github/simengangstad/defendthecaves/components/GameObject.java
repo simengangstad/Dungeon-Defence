@@ -49,4 +49,22 @@ public abstract class GameObject implements Disposable {
      * Updates the state of the game object.
      */
     public abstract void tick();
+
+
+    /**
+     * Checks intersection between this game object and another one.
+     */
+    public boolean intersects(GameObject other) {
+
+        if(Math.abs(position.x - other.position.x) < size.x / 2.0f + other.size.x / 2.0f) {
+
+            if(Math.abs(position.y - other.position.y) < size.y / 2.0f + other.size.y / 2.0f) {
+
+                return true;
+            }
+        }
+
+        return false;
+    }
+
 }
