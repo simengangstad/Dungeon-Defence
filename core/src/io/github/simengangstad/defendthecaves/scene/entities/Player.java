@@ -44,20 +44,26 @@ public class Player extends Entity {
 
     private boolean selectedSolid = false;
 
-    private final Vector2 tmpPosition = new Vector2();
+    private final Vector2 tmpPosition = new Vector2(), tmpDoorPosition = new Vector2();
 
     private boolean canOpen = false;
 
     private List<Object> tmpList = new ArrayList<>();
+
+    private Key tmpKey;
 
     private final KeyButton unlockButton = new KeyButton(new Vector2(0.0f, 0.0f), new Vector2(100.0f, 50.0f), Input.Keys.ENTER) {
 
         @Override
         public void buttonClicked() {
 
+            System.out.println("Can open: " + canOpen);
+
             if (canOpen) {
 
-                map.set((int) tmpPosition.x, (int) tmpPosition.y, Map.DoorUnlocked);
+                map.set((int) tmpDoorPosition.x, (int) tmpDoorPosition.y, Map.DoorUnlocked);
+
+                inventory.removeItem(tmpKey);
             }
         }
 
@@ -185,7 +191,7 @@ public class Player extends Entity {
 
                         unlockButton.visible = true;
 
-                        tmpPosition.set(room.getEntrance(0).x, room.getEntrance(0).y);
+                        tmpDoorPosition.set(room.getEntrance(0).x, room.getEntrance(0).y);
 
                         for (Object object : tmpList) {
 
@@ -194,6 +200,8 @@ public class Player extends Entity {
                             if (key.positionOfDoor.equals(room.getEntrance(0))) {
 
                                 canOpen = true;
+
+                                tmpKey = key;
                             }
                         }
                     }
@@ -322,7 +330,12 @@ public class Player extends Entity {
 
         inventory.superview.visible = displayingInventory;
 
-        unlockButton.draw(batch, getPosition(), unlockButton.getSize());
+        if (unlockButton.visible) {
+
+            unlockButton.tick();
+
+            unlockButton.draw(batch, getPosition(), unlockButton.getSize());
+        }
 
         batch.draw(mousePointerTextureRegion, tmpVec.x - (Map.TileSizeInPixelsInWorldSpace / 2.0f) / 2.0f, tmpVec.y - (Map.TileSizeInPixelsInWorldSpace / 2.0f) / 2.0f, (Map.TileSizeInPixelsInWorldSpace / 2.0f), (Map.TileSizeInPixelsInWorldSpace / 2.0f));
     }

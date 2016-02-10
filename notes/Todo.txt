@@ -47,16 +47,21 @@
 - [x] After attack the axe swings back into place.
 - [x] Add more detailed shadows for the walls.
 
-
 # 0005
 
 - [x] Some way of picking up loot (probably just attraction).
-
+- [x] Make the map generate random loot and secret rooms (with corresponding keys and doors)
 
 # 0006
 
-- [ ] Make the map generate random loot and secret rooms (with corresponding keys and doors)
+- [x] Make doors open once carrying key
 
+# 0007
+
+- [ ] Prevent items spawning in walls
+- [ ] Make door labels say enter when trying to unlock
+- [ ] Make labels shake if one doesn't have the key needed and display a label saying that one needs the key
+- [ ] Make mining of stone more time consuming and make it drop stones
 
 # Etc
 

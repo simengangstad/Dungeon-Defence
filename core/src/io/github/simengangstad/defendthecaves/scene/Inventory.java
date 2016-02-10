@@ -4,10 +4,12 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.utils.Array;
 import io.github.simengangstad.defendthecaves.gui.View;
 import io.github.simengangstad.defendthecaves.scene.item.Key;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -98,7 +100,6 @@ public class Inventory extends View {
         return keys > 0;
     }
 
-
     public int getAmountOfKeys() {
 
         return keys;
@@ -120,7 +121,7 @@ public class Inventory extends View {
                 size++;
             }
 
-            if (itemType == Key.class) {
+            if (item instanceof Key) {
 
                 keys++;
             }
@@ -182,7 +183,7 @@ public class Inventory extends View {
                         size++;
                     }
 
-                    if (itemType == Key.class) {
+                    if (item instanceof Key) {
 
                         keys++;
                     }
@@ -247,6 +248,37 @@ public class Inventory extends View {
                 if (getItemType(x, y) == type) {
 
                     list.addAll(getItemList(x, y));
+                }
+            }
+        }
+    }
+
+    /**
+     * Removes the given item from the inventory.
+     */
+    public void removeItem(Item item) {
+
+        for (int x = 0; x < items.length; x++) {
+
+            for (int y = 0; y < items[0].length; y++) {
+
+                if (getItemType(x, y) == item.getClass()) {
+
+                    ArrayList<Item> items = getItemList(x, y);
+
+                    Iterator iterator = items.iterator();
+
+                    while (iterator.hasNext()) {
+
+                        Item next = (Item) iterator.next();
+
+                        if (next.equals(item)) {
+
+                            iterator.remove();
+
+                            return;
+                        }
+                    }
                 }
             }
         }
@@ -358,7 +390,10 @@ public class Inventory extends View {
 
         if (currentItem != null) {
 
-            batch.draw(currentItem.getTextureRegion(), x - (size.x / columns) / 2 + (size.x / columns / 16) * 1, y - (size.y / rows) / 2 + (size.y / rows / 16) * 1, size.x / columns - (size.x / columns / 16) * 2, size.y / rows - (size.y / rows / 16) * 2);
+            tmp2.set(size.x / columns - (size.x / columns / 16) * 2, size.y / rows - (size.y / rows / 16) * 2);
+            tmp.set(position.x + x * (size.x / columns) + tmp2.x / 2.0f + (size.x / columns / 16) * 1, position.y + tmp2.y / 2.0f + y * (size.y / rows) + (size.y / rows / 16) * 1);
+
+            currentItem.draw(batch, tmp, tmp2);
         }
     }
 

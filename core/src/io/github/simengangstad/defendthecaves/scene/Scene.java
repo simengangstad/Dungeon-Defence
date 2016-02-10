@@ -126,6 +126,8 @@ public class Scene extends Container {
                 new TextureRegion(Game.SpriteSheet, 96, 160, 16, 16)
         );
 
+        player.inventory.placeItem(keys.get(keys.size() - 1));
+
         inventoryView.addSubview(player.inventory);
         inventoryFrame.addGameObject(inventoryView);
     }
@@ -348,7 +350,7 @@ public class Scene extends Container {
 
             if (!keys.isEmpty()) {
 
-                enemyToAdd.inventory.placeItem(keys.get(keys.size() - 1));
+                //enemyToAdd.inventory.placeItem(keys.get(keys.size() - 1));
             }
 
             enemiesAtHold.get(barrier).add(enemyToAdd);
