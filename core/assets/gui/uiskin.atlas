@@ -210,3 +210,10 @@ speech-bubble-extra
   orig: 8, 7
   offset: 0, 0
   index: -1
+progress
+  rotate: false
+  xy: 101, 2
+  size: 1, 8
+  orig: 1, 8
+  offset: 0, 0
+  index: -1

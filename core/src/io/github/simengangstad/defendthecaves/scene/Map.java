@@ -741,7 +741,7 @@ public class Map {
                     cellIsValid(posXFacingRight, posY) &&
                     collidableMap[posXFacingRight][posY] != Open) {
 
-                point.set(posXFacingRight, posY);
+                if (point != null) point.set(posXFacingRight, posY);
 
                 return true;
             }
@@ -750,7 +750,7 @@ public class Map {
                     cellIsValid(posXFacingLeft, posY) &&
                     collidableMap[posXFacingLeft][posY] != Open) {
 
-                point.set(posXFacingLeft, posY);
+                if (point != null) point.set(posXFacingLeft, posY);
 
                 return true;
             }
@@ -762,7 +762,7 @@ public class Map {
                     cellIsValid(posX, posYFacingUp) &&
                     collidableMap[posX][posYFacingUp] != Open) {
 
-                point.set(posX, posYFacingUp);
+                if (point != null) point.set(posX, posYFacingUp);
 
                 return true;
             }
@@ -771,7 +771,7 @@ public class Map {
                     cellIsValid(posX, posYFacingDown) &&
                     collidableMap[posX][posYFacingDown] != Open) {
 
-                point.set(posX, posYFacingDown);
+                if (point != null) point.set(posX, posYFacingDown);
 
                 return true;
             }

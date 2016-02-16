@@ -1,17 +1,11 @@
 package io.github.simengangstad.defendthecaves.scene;
 
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.graphics.g2d.PixmapPacker;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
-import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
-import com.badlogic.gdx.math.Vector;
 import com.badlogic.gdx.math.Vector2;
-import io.github.simengangstad.defendthecaves.Callback;
 import io.github.simengangstad.defendthecaves.Game;
-import io.github.simengangstad.defendthecaves.scene.entities.Player;
-import io.github.simengangstad.defendthecaves.scene.item.Potion;
-import jdk.nashorn.internal.codegen.CompilerConstants;
+import io.github.simengangstad.defendthecaves.scene.gui.Inventory;
 
 /**
  * Objects that can be placed in an {@link Inventory} and used by an {@link Entity}.
@@ -101,8 +95,6 @@ public abstract class Item extends Collidable {
         return timer;
     }
 
-    private Vector2 tmpVectorThatShallNotBeReused = new Vector2(0.0f, 0.0f);
-
     @Override
     public void tick() {
 
@@ -113,7 +105,7 @@ public abstract class Item extends Collidable {
             timer += Gdx.graphics.getDeltaTime();
         }
 
-        if (map.retrieveCollisionPoint(position, size, delta, tmpVectorThatShallNotBeReused)) {
+        if (map.retrieveCollisionPoint(position, size, delta, null)) {
 
             forceApplied.set(0.0f, 0.0f);
         }

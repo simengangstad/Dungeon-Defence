@@ -58,10 +58,14 @@
 	com.badlogic.gdx.scenes.scene2d.ui.Tree$TreeStyle: {
 		default: { minus: tree-minus, plus: tree-plus, selection: default-select-selection }
 	},
-	io.github.simengangstad.defendthecaves.scene.Inventory$InventoryStyle: {
+	io.github.simengangstad.defendthecaves.scene.gui.Inventory$InventoryStyle: {
 		default: { background: default-pane, slot: default-rect }
 	}
-	io.github.simengangstad.defendthecaves.scene.SpeechBubble$SpeechBubbleStyle: {
+	io.github.simengangstad.defendthecaves.scene.gui.SpeechBubble$SpeechBubbleStyle: {
 		default: { background: speech-bubble, extra: speech-bubble-extra, font: default-font, fontColor: white}
+	}
+	io.github.simengangstad.defendthecaves.scene.gui.HealthBar$HealthBarStyle: {
+
+		default: { background: speech-bubble, progress: progress}
 	}
 }

@@ -61,8 +61,12 @@
 - [x] Make entites have a speech bubble instance which one can display.
 - [x] Make mining of stone more time consuming and make it drop stones
 
+# 0009
+- [x] Display health of enemies
+
+
+
 # To be implemented
-- [ ] Display health of enemies
 - [ ] Display properties of items in inventory
 - [ ] Implement craft system
 - [ ] Implement a label besides items in the inventory which tells the amount (if stackable)

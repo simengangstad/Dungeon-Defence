@@ -7,9 +7,12 @@ import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
+import com.badlogic.gdx.scenes.scene2d.ui.Slider;
 import io.github.simengangstad.defendthecaves.Callback;
 import io.github.simengangstad.defendthecaves.Game;
-import io.github.simengangstad.defendthecaves.scene.entities.Player;
+import io.github.simengangstad.defendthecaves.scene.gui.HealthBar;
+import io.github.simengangstad.defendthecaves.scene.gui.Inventory;
+import io.github.simengangstad.defendthecaves.scene.gui.SpeechBubble;
 import io.github.simengangstad.defendthecaves.scene.item.Potion;
 import io.github.simengangstad.defendthecaves.scene.item.Shield;
 
@@ -164,6 +167,11 @@ public abstract class Entity extends Collidable {
     private float speechBubbleVisibilityDuration = 0.0f;
 
     /**
+     * The progress bar showing health.
+     */
+    private HealthBar healthBar = new HealthBar(MaxHealth);
+
+    /**
      * Initializes the movable entity with a position, size and the locaitons for the animations.
      */
     public Entity(Vector2 position, Vector2 size, Animation stationaryAnimation, Animation movingAnimation) {
@@ -185,6 +193,7 @@ public abstract class Entity extends Collidable {
     public void create() {
 
         host.stage.addActor(speechBubble);
+        host.stage.addActor(healthBar);
     }
 
     /**
@@ -301,6 +310,8 @@ public abstract class Entity extends Collidable {
     public void adjustHealth(int value) {
 
         health = MathUtils.clamp(health + value, 0, MaxHealth);
+
+        healthBar.value = health;
     }
 
     public void takeDamage(int damage) {
@@ -334,6 +345,8 @@ public abstract class Entity extends Collidable {
                 }
             }
         }
+
+        host.stage.getActors().removeValue(healthBar, true);
     }
 
     /**
@@ -360,17 +373,15 @@ public abstract class Entity extends Collidable {
 
         super.tick();
 
+        Vector3 vector = Game.vector3Pool.obtain();
+
+        vector.set(position.x, position.y, 0.0f);
+
+        ((Scene) host).player.camera.project(vector, 0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+
         if (speechBubble.isVisible()) {
 
-            Vector3 vector = Game.vector3Pool.obtain();
-
-            vector.set(position.x, position.y, 0.0f);
-
-            ((Scene) host).player.camera.project(vector, 0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
-
             speechBubble.setPosition(vector.x + Game.EntitySize / 2.0f, vector.y + Game.EntitySize / 2.0f);
-
-            Game.vector3Pool.free(vector);
 
             if (0.0f < speechBubbleVisibilityDuration) {
 
@@ -393,6 +404,10 @@ public abstract class Entity extends Collidable {
             }
         }
 
+
+        healthBar.setPosition(vector.x - healthBar.getWidth() / 2.0f, vector.y + Game.EntitySize / 2.0f + 5.0f);
+
+        Game.vector3Pool.free(vector);
 
         if (delta.x != 0.0f || delta.y != 0.0f) {
 

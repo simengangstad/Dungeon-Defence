@@ -1,4 +1,4 @@
-package io.github.simengangstad.defendthecaves.scene;
+package io.github.simengangstad.defendthecaves.scene.gui;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.g2d.Batch;
@@ -8,6 +8,8 @@ import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.WidgetGroup;
 import com.badlogic.gdx.scenes.scene2d.utils.Drawable;
 import io.github.simengangstad.defendthecaves.Game;
+import io.github.simengangstad.defendthecaves.scene.Item;
+import io.github.simengangstad.defendthecaves.scene.Weapon;
 import io.github.simengangstad.defendthecaves.scene.item.Key;
 import io.github.simengangstad.defendthecaves.scene.item.Shield;
 

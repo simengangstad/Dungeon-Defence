@@ -1,4 +1,4 @@
-package io.github.simengangstad.defendthecaves.scene;
+package io.github.simengangstad.defendthecaves.scene.gui;
 
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.Batch;

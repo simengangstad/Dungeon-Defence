@@ -67,7 +67,7 @@ public class Game extends ApplicationAdapter {
 
     private Scene scene;
 
-    public static boolean DebubDraw = true;
+    public static boolean DebubDraw = false;
 
     public static TextureRegion debugDrawTexture;
 
