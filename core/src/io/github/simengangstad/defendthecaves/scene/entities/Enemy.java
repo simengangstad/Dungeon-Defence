@@ -45,14 +45,14 @@ public abstract class Enemy extends Entity {
 
         super(position, size, stationaryAnimation, movingAnimation);
 
-        this.playerPositionReference = player.getPosition();
-        this.playerSizeReference = player.getSize();
+        this.playerPositionReference = player.position;
+        this.playerSizeReference = player.size;
 
         this.coverageRadius = coverageRadius;
 
         destination.set((int) (position.x / Map.TileSizeInPixelsInWorldSpace), (int) (position.y / Map.TileSizeInPixelsInWorldSpace));
 
-        lastPosition.set(getPosition());
+        lastPosition.set(position);
     }
 
     protected abstract void hurtPlayer(Vector2 direction);
@@ -87,7 +87,7 @@ public abstract class Enemy extends Entity {
 
         if (!isParalysed()) {
 
-            if (tmpVector.set(playerPositionReference.x - getPosition().x, playerPositionReference.y - getPosition().y).len() < coverageRadius * map.TileSizeInPixelsInWorldSpace) {
+            if (tmpVector.set(playerPositionReference.x - position.x, playerPositionReference.y - position.y).len() < coverageRadius * map.TileSizeInPixelsInWorldSpace) {
 
 
                 if (tmpVector.len() < playerSizeReference.x) {
@@ -101,15 +101,15 @@ public abstract class Enemy extends Entity {
                     noticedPlayer(tmpVector);
                 }
 
-                destination.set((int) (getPosition().x / Map.TileSizeInPixelsInWorldSpace), (int) (getPosition().y / Map.TileSizeInPixelsInWorldSpace));
+                destination.set((int) (position.x / Map.TileSizeInPixelsInWorldSpace), (int) (position.y / Map.TileSizeInPixelsInWorldSpace));
 
-                lastPosition.set(getPosition());
+                lastPosition.set(position);
             }
             else {
 
                 // Walk randomly
                 // Pick a position from its surroundings and go there over a set amount of seconds
-                if (!((int) (getPosition().x / Map.TileSizeInPixelsInWorldSpace) == destination.x && (int) (getPosition().y / Map.TileSizeInPixelsInWorldSpace) == destination.y)) {
+                if (!((int) (position.x / Map.TileSizeInPixelsInWorldSpace) == destination.x && (int) (position.y / Map.TileSizeInPixelsInWorldSpace) == destination.y)) {
 
                     // Get the next coordinate on the path, but this needs to change as the current position was the next coordinate
                     // on the path, therefore we store a last position which is a reference to the last coordinate on the path
@@ -123,7 +123,7 @@ public abstract class Enemy extends Entity {
                     // TOOD: Cheeky solution, but I who cares?
                     if (timePassedGoingInTheGivenDirection > 3.0f) {
 
-                        destination.set((int) (getPosition().x / Map.TileSizeInPixelsInWorldSpace), (int) (getPosition().y / Map.TileSizeInPixelsInWorldSpace));
+                        destination.set((int) (position.x / Map.TileSizeInPixelsInWorldSpace), (int) (position.y / Map.TileSizeInPixelsInWorldSpace));
                     }
 
                     timePassedGoingInTheGivenDirection += Gdx.graphics.getDeltaTime();
@@ -131,9 +131,9 @@ public abstract class Enemy extends Entity {
                     // If there's a next cooridnate
                     if (currentIndex + 1 < path.size()) {
 
-                        if ((int) (lastPosition.x / Map.TileSizeInPixelsInWorldSpace) != (int) ((getPosition().x - Map.TileSizeInPixelsInWorldSpace / 2.0f) / Map.TileSizeInPixelsInWorldSpace) || (int) (lastPosition.y / Map.TileSizeInPixelsInWorldSpace) != (int) ((getPosition().y + Map.TileSizeInPixelsInWorldSpace / 2.0f) / Map.TileSizeInPixelsInWorldSpace)) {
+                        if ((int) (lastPosition.x / Map.TileSizeInPixelsInWorldSpace) != (int) ((position.x - Map.TileSizeInPixelsInWorldSpace / 2.0f) / Map.TileSizeInPixelsInWorldSpace) || (int) (lastPosition.y / Map.TileSizeInPixelsInWorldSpace) != (int) ((position.y + Map.TileSizeInPixelsInWorldSpace / 2.0f) / Map.TileSizeInPixelsInWorldSpace)) {
 
-                            lastPosition.set(((int) ((getPosition().x - Map.TileSizeInPixelsInWorldSpace / 2.0f) / Map.TileSizeInPixelsInWorldSpace)) * Map.TileSizeInPixelsInWorldSpace, ((int) ((getPosition().y + Map.TileSizeInPixelsInWorldSpace / 2.0f) / Map.TileSizeInPixelsInWorldSpace)) * Map.TileSizeInPixelsInWorldSpace);
+                            lastPosition.set(((int) ((position.x - Map.TileSizeInPixelsInWorldSpace / 2.0f) / Map.TileSizeInPixelsInWorldSpace)) * Map.TileSizeInPixelsInWorldSpace, ((int) ((position.y + Map.TileSizeInPixelsInWorldSpace / 2.0f) / Map.TileSizeInPixelsInWorldSpace)) * Map.TileSizeInPixelsInWorldSpace);
 
                             currentIndex++;
 
@@ -157,8 +157,8 @@ public abstract class Enemy extends Entity {
 
                         int radius = 4;
 
-                        int x = (int) getPosition().x / Map.TileSizeInPixelsInWorldSpace;
-                        int y = (int) getPosition().y / Map.TileSizeInPixelsInWorldSpace;
+                        int x = (int) position.x / Map.TileSizeInPixelsInWorldSpace;
+                        int y = (int) position.y / Map.TileSizeInPixelsInWorldSpace;
 
                         int xs, ys;
 
@@ -183,7 +183,7 @@ public abstract class Enemy extends Entity {
                                     }
                                 }
 
-                                if (!((Scene) host).pathfindingGrid.performSearch((int) (getPosition().x / Map.TileSizeInPixelsInWorldSpace), (int) (getPosition().y / Map.TileSizeInPixelsInWorldSpace), (int) destination.x, (int) destination.y, cameFrom)) {
+                                if (!((Scene) host).pathfindingGrid.performSearch((int) (position.x / Map.TileSizeInPixelsInWorldSpace), (int) (position.y / Map.TileSizeInPixelsInWorldSpace), (int) destination.x, (int) destination.y, cameFrom)) {
 
                                     foundDestination = false;
 
@@ -202,6 +202,13 @@ public abstract class Enemy extends Entity {
                                     }
                                     else {
 
+                                        if (cameFrom[coordinate.x][coordinate.y].x == -1 && cameFrom[coordinate.x][coordinate.y].y == -1) {
+
+                                            System.err.println("Came from is null...");
+
+                                            break;
+                                        }
+
                                         coordinate = cameFrom[coordinate.x][coordinate.y];
                                     }
 
@@ -217,7 +224,7 @@ public abstract class Enemy extends Entity {
                                     path.add(coordinate);
                                 }
 
-                                lastPosition.set(getPosition());
+                                lastPosition.set(position);
                                 currentIndex = 0;
                             }
                         }
@@ -227,7 +234,7 @@ public abstract class Enemy extends Entity {
 
             if (followingPlayer) {
 
-                facingRight = playerPositionReference.x > getPosition().x;
+                facingRight = playerPositionReference.x > position.x;
             }
             else {
 
@@ -236,8 +243,6 @@ public abstract class Enemy extends Entity {
                     facingRight = 0.0f < delta.x;
                 }
             }
-
-            if (currentTool != null) currentTool.flip = facingRight;
         }
 
         super.tick();
@@ -246,18 +251,18 @@ public abstract class Enemy extends Entity {
 
         if (currentAnimation == stationaryAnimation) {
 
-            raiseTool = animationIndex == 1 || animationIndex == 2;
+            raiseItem = animationIndex == 1 || animationIndex == 2;
         }
         else if (currentAnimation == movingAnimation) {
 
-            raiseTool = animationIndex == 1 || animationIndex == 2 || animationIndex == 4;
+            raiseItem = animationIndex == 1 || animationIndex == 2 || animationIndex == 4;
         }
 
         if (forceApplied.x != 0.0f || forceApplied.y != 0.0f) {
 
-            destination.set((int) (getPosition().x / Map.TileSizeInPixelsInWorldSpace), (int) (getPosition().y / Map.TileSizeInPixelsInWorldSpace));
+            destination.set((int) (position.x / Map.TileSizeInPixelsInWorldSpace), (int) (position.y / Map.TileSizeInPixelsInWorldSpace));
 
-            lastPosition.set(getPosition());
+            lastPosition.set(position);
         }
     }
 }

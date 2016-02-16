@@ -2,19 +2,21 @@ package io.github.simengangstad.defendthecaves.scene.entities;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
+import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import io.github.simengangstad.defendthecaves.Game;
-import io.github.simengangstad.defendthecaves.gui.KeyButton;
 import io.github.simengangstad.defendthecaves.procedural.MapGenerator;
-import io.github.simengangstad.defendthecaves.scene.*;
-import io.github.simengangstad.defendthecaves.scene.item.Key;
-import io.github.simengangstad.defendthecaves.scene.tool.Axe;
-import io.github.simengangstad.defendthecaves.scene.tool.Shield;
+import io.github.simengangstad.defendthecaves.scene.Entity;
+import io.github.simengangstad.defendthecaves.scene.Map;
+import io.github.simengangstad.defendthecaves.scene.RotatableWeapon;
+import io.github.simengangstad.defendthecaves.scene.TextureUtil;
+import io.github.simengangstad.defendthecaves.scene.item.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,7 +25,7 @@ import java.util.List;
  * @author simengangstad
  * @since 10/11/15
  */
-public class Player extends Entity {
+public class Player extends Entity implements InputProcessor {
 
     /**
      * The camera of the player.
@@ -38,8 +40,6 @@ public class Player extends Entity {
 
     private final Vector2 tmpVec2 = new Vector2();
 
-    private Shield shield = new Shield();
-
     private boolean displayingInventory = false;
 
     private boolean selectedSolid = false;
@@ -52,31 +52,15 @@ public class Player extends Entity {
 
     private Key tmpKey;
 
-    private final KeyButton unlockButton = new KeyButton(new Vector2(0.0f, 0.0f), new Vector2(100.0f, 50.0f), Input.Keys.ENTER) {
+    private boolean displayingEnteringMessage = false;
 
-        @Override
-        public void buttonClicked() {
+    private float miningTimer = 0.0f;
 
-            System.out.println("Can open: " + canOpen);
+    private static final float FirstBreak = 0.0f, SecondBreak = 4.0f, ThirdBreak = 8.0f;
 
-            if (canOpen) {
+    private final Vector2 lastPositionMined = new Vector2().set(-1, -1);
 
-                map.set((int) tmpDoorPosition.x, (int) tmpDoorPosition.y, Map.DoorUnlocked);
-
-                inventory.removeItem(tmpKey);
-            }
-        }
-
-        @Override
-        public void buttonPressed() {
-
-        }
-
-        @Override
-        public void buttonReleased() {
-
-        }
-    };
+    private Potion potion = new Potion(new Vector2(0.0f, 0.0f));
 
     /**
      * Initializes the player with a camera.
@@ -88,56 +72,86 @@ public class Player extends Entity {
                 TextureUtil.getAnimation(Game.PlayerStationary, 16, 0.2f, Animation.PlayMode.NORMAL),
                 TextureUtil.getAnimation(Game.PlayerMoving, 16, 0.075f, Animation.PlayMode.NORMAL));
 
-
-        unlockButton.visible = true;
-
         this.camera = camera;
+    }
 
-        leapTextureRegion = new TextureRegion(Game.SpriteSheet, 96, 48, 16, 16);
+    @Override
+    public void create() {
 
-        Axe axe = new Axe(() -> {
+        super.create();
 
-            tmpVec2.set(tmpVec.x, tmpVec.y);
+        Axe axe = new Axe(() -> {});
 
-            if (selectedSolid) {
+        addItemAtLocation(4, 0, new Shield());
+        addItemAtLocation(5, 0, axe);
 
-                if (map.lengthBetweenCoordinates(getPosition(), tmpVec2) <= 1) {
+        host.addInputProcessor(this);
 
-                    int x = map.toTileCoordinate(tmpVec2.x);
-                    int y = map.toTileCoordinate(tmpVec2.y);
+        host.stage.addActor(inventory);
 
-                    if (map.get(x, y) == Map.SolidBroken) {
+        potion.setMap(map);
 
-                        map.set(x, y, Map.Open);
-                    }
-                    else {
+        //addItem(potion);
+    }
 
-                        map.set(x, y, map.get(x, y) + 1);
-                    }
-                }
-                else {
+    @Override
+    public boolean keyDown(int keycode) {
 
-                    tmpVec2.set(tmpVec.x - getPosition().x, tmpVec.y - getPosition().y).nor();
+        if (displayingEnteringMessage && keycode == Input.Keys.F) {
 
-                    int x = map.toTileCoordinate(getPosition().x + tmpVec2.x * Map.TileSizeInPixelsInWorldSpace);
-                    int y = map.toTileCoordinate(getPosition().y + tmpVec2.y * Map.TileSizeInPixelsInWorldSpace);
+            if (canOpen) {
 
-                    if (map.isSolid(x, y)) {
+                map.set((int) tmpDoorPosition.x, (int) tmpDoorPosition.y, Map.DoorUnlocked);
 
-                        if (map.get(x, y) == Map.SolidBroken) {
+                inventory.removeItem(tmpKey);
 
-                            map.set(x, y, Map.Open);
-                        }
-                        else {
+                canOpen = false;
 
-                            map.set(x, y, map.get(x, y) + 1);
-                        }
-                    }
-                }
+                return true;
             }
-        });
+            else {
 
-        attachTool(axe);
+                displayMessage("Dammit, I don't have the key...", 3.0f);
+            }
+        }
+
+        return false;
+    }
+
+    @Override
+    public boolean keyUp(int keycode) {
+        return false;
+    }
+
+    @Override
+    public boolean keyTyped(char character) {
+
+        return false;
+    }
+
+    @Override
+    public boolean touchDown(int screenX, int screenY, int pointer, int button) {
+        return false;
+    }
+
+    @Override
+    public boolean touchUp(int screenX, int screenY, int pointer, int button) {
+        return false;
+    }
+
+    @Override
+    public boolean touchDragged(int screenX, int screenY, int pointer) {
+        return false;
+    }
+
+    @Override
+    public boolean mouseMoved(int screenX, int screenY) {
+        return false;
+    }
+
+    @Override
+    public boolean scrolled(int amount) {
+        return false;
     }
 
     @Override
@@ -155,11 +169,6 @@ public class Player extends Entity {
     @Override
     public void tick() {
 
-        if (shield.parent == null) {
-
-            shield.parent = this;
-        }
-
         if (Gdx.input.isKeyJustPressed(Input.Keys.E)) {
 
             toggleInventory();
@@ -175,21 +184,23 @@ public class Player extends Entity {
             }
         }
 
+        inventory.setPosition(Gdx.graphics.getWidth() / 2.0f - inventory.getWidth() / 2.0f, Gdx.graphics.getHeight() / 2.0f - inventory.getHeight() / 2.0f);
+
+        boolean inRangeOfRoom = false;
+
         for (MapGenerator.Room room : map.getRooms()) {
 
-            boolean inRangeOfRoom = false;
+            if (room.isLocked() && map.get(room.getEntrance(0).x, room.getEntrance(0).y) != Map.DoorUnlocked) {
 
-            if (room.isLocked()) {
-
-                if (map.lengthBetweenTiles((int) (getPosition().x / Map.TileSizeInPixelsInWorldSpace), (int) (getPosition().y / Map.TileSizeInPixelsInWorldSpace), room.getEntrance(0).x, room.getEntrance(0).y) < 2) {
+                if (map.lengthBetweenTiles((int) (position.x / Map.TileSizeInPixelsInWorldSpace), (int) (position.y / Map.TileSizeInPixelsInWorldSpace), room.getEntrance(0).x, room.getEntrance(0).y) < 2) {
 
                     inRangeOfRoom = true;
 
-                    unlockButton.getPosition().set(getPosition().x - getSize().x / 2.0f, getPosition().y + getSize().y / 2.0f + unlockButton.getSize().y);
+                    displayMessage("Hmm... Maybe I can go inside here (press f).");
 
-                    if (!unlockButton.visible) {
+                    if (!displayingEnteringMessage) {
 
-                        unlockButton.visible = true;
+                        displayingEnteringMessage = true;
 
                         tmpDoorPosition.set(room.getEntrance(0).x, room.getEntrance(0).y);
 
@@ -206,26 +217,30 @@ public class Player extends Entity {
                         }
                     }
                 }
-            }
 
-            if (!inRangeOfRoom) {
-
-                unlockButton.visible = false;
-                canOpen = false;
+                break;
             }
+            else {
+
+                continue;
+            }
+        }
+
+        if (!inRangeOfRoom) {
+
+            displayingEnteringMessage = false;
+            canOpen = false;
+
+            hideMessage();
         }
 
         if (!displayingInventory) {
 
             delta.set(0.0f, 0.0f);
 
-            if (Gdx.input.isKeyPressed(Input.Keys.SHIFT_LEFT)) {
+            if (Gdx.input.isKeyJustPressed(Input.Keys.SHIFT_LEFT)) {
 
-                currentTool = shield;
-            }
-            else {
-
-                currentTool = tools.get(0);
+                shuffleItem();
             }
 
             if (Gdx.input.isKeyPressed(Input.Keys.W)) {
@@ -254,9 +269,77 @@ public class Player extends Entity {
 
                 tmpPosition.set(tmpVec.x, tmpVec.y);
 
-                tmpPosition.sub(getPosition());
+                tmpPosition.sub(position);
 
                 interact(tmpPosition);
+
+                tmpVec2.set(tmpVec.x, tmpVec.y);
+
+                int x, y;
+
+                if (map.lengthBetweenCoordinates(position, tmpVec2) <= 1) {
+
+                    x = map.toTileCoordinate(tmpVec2.x);
+                    y = map.toTileCoordinate(tmpVec2.y);
+
+                }
+                else {
+
+                    tmpVec2.set(tmpVec.x - position.x, tmpVec.y - position.y).nor();
+
+                    x = map.toTileCoordinate(position.x + tmpVec2.x * Map.TileSizeInPixelsInWorldSpace);
+                    y = map.toTileCoordinate(position.y + tmpVec2.y * Map.TileSizeInPixelsInWorldSpace);
+                }
+
+                if (map.isSolid(x, y) && currentItem instanceof Axe) {
+
+                    if ((lastPositionMined.x != x || lastPositionMined.y != y) && (lastPositionMined.x != -1 && lastPositionMined.y != -1)) {
+
+                        map.set((int) lastPositionMined.x, (int) lastPositionMined.y, Map.SolidIntact);
+                    }
+
+                    lastPositionMined.set(x, y);
+
+                    if (FirstBreak < miningTimer && miningTimer < SecondBreak) {
+
+                        map.set(x, y, Map.SolidSlightlyBroken);
+                    }
+                    else if (SecondBreak < miningTimer && miningTimer < ThirdBreak) {
+
+                        map.set(x, y, Map.SolidBroken);
+                    }
+                    else if (ThirdBreak < miningTimer) {
+
+                        map.set(x, y, Map.Open);
+
+                        lastPositionMined.set(-1, -1);
+
+                        miningTimer = 0.0f;
+
+                        for (int i = 0; i < MathUtils.random(2, 4); i++) {
+
+                            host.addGameObject(new Rock(new Vector2(x * Map.TileSizeInPixelsInWorldSpace + Map.TileSizeInPixelsInWorldSpace / 2.0f, y * Map.TileSizeInPixelsInWorldSpace + Map.TileSizeInPixelsInWorldSpace / 2.0f)));
+                        }
+                    }
+
+                    miningTimer += Gdx.graphics.getDeltaTime();
+                }
+                else {
+
+                    if (lastPositionMined.x != -1.0f && lastPositionMined.y != -1.0f) {
+
+                        map.set((int) lastPositionMined.x, (int) lastPositionMined.y, Map.SolidIntact);
+                    }
+                }
+            }
+            else {
+
+                if (lastPositionMined.x != -1.0f && lastPositionMined.y != -1.0f) {
+
+                    map.set((int) lastPositionMined.x, (int) lastPositionMined.y, Map.SolidIntact);
+                }
+
+                miningTimer = 0.0f;
             }
 
             // Left
@@ -278,41 +361,42 @@ public class Player extends Entity {
 
             if (currentAnimation == stationaryAnimation) {
 
-                raiseTool = animationIndex == 1 || animationIndex == 2;
+                raiseItem = animationIndex == 1 || animationIndex == 2;
             }
             else if (currentAnimation == movingAnimation) {
 
-                raiseTool = animationIndex == 1 || animationIndex == 2 || animationIndex == 4;
+                raiseItem = animationIndex == 1 || animationIndex == 2 || animationIndex == 4;
             }
-
-            currentTool.flip = facingRight;
 
             tmpVec.set(Gdx.input.getX(), Gdx.input.getY(), 0.0f);
 
             tmpVec.set(camera.unproject(tmpVec));
 
-            if (currentTool instanceof RotatableWeapon) {
+            if (currentItem instanceof RotatableWeapon) {
 
-                ((RotatableWeapon) currentTool).setRotation((int) (Math.atan((tmpVec.y - getPosition().y) / (tmpVec.x - getPosition().x)) * 180 / Math.PI));
+                ((RotatableWeapon) currentItem).setRotation((int) (Math.atan((tmpVec.y - position.y) / (tmpVec.x - position.x)) * 180 / Math.PI));
             }
         }
     }
 
     @Override
-    public void draw(SpriteBatch batch, Vector2 position, Vector2 size) {
+    public void draw(SpriteBatch batch) {
 
         tmpPosition.set(position);
 
-        if (raiseTool) {
+        if (currentItem != null) {
 
-            currentTool.offset.set(0.0f, (size.y / 16.0f));
+            if (raiseItem) {
+
+                currentItem.walkingOffset = (size.y / 16.0f);
+            }
+            else {
+
+                currentItem.walkingOffset = 0.0f;
+            }
         }
-        else {
 
-            currentTool.offset.set(0.0f, 0.0f);
-        }
-
-        super.draw(batch, position, size);
+        super.draw(batch);
 
         if (map.isSolid((int) (tmpVec.x / Map.TileSizeInPixelsInWorldSpace), (int) (tmpVec.y / Map.TileSizeInPixelsInWorldSpace))) {
 
@@ -328,23 +412,30 @@ public class Player extends Entity {
             selectedSolid = false;
         }
 
-        inventory.superview.visible = displayingInventory;
-
+        inventory.setVisible(displayingInventory);
+/*
         if (unlockButton.visible) {
 
             unlockButton.tick();
 
-            unlockButton.draw(batch, getPosition(), unlockButton.getSize());
+            unlockButton.draw(batch, position, unlockButton.getSize());
         }
+*/
+        potion.position.x = flip() ? position.x - Game.EntitySize : position.x + Game.EntitySize;
+        potion.position.y = position.y;
 
+        /*
+        potion.tick();
+        potion.draw(batch);
+*/
         batch.draw(mousePointerTextureRegion, tmpVec.x - (Map.TileSizeInPixelsInWorldSpace / 2.0f) / 2.0f, tmpVec.y - (Map.TileSizeInPixelsInWorldSpace / 2.0f) / 2.0f, (Map.TileSizeInPixelsInWorldSpace / 2.0f), (Map.TileSizeInPixelsInWorldSpace / 2.0f));
     }
 
     public void updateCameraPosition() {
 
-        camera.position.set(Math.round(getPosition().x), Math.round(getPosition().y), 0.0f);
+        camera.position.set(Math.round(position.x), Math.round(position.y), 0.0f);
         camera.update();
 
-        getPosition().set(camera.position.x, camera.position.y);
+        position.set(camera.position.x, camera.position.y);
     }
 }

@@ -1,15 +1,15 @@
 package io.github.simengangstad.defendthecaves;
 
+import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.InputMultiplexer;
 import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Matrix4;
+import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.utils.Disposable;
-import io.github.simengangstad.defendthecaves.components.Drawable;
 import io.github.simengangstad.defendthecaves.components.GameObject;
-import io.github.simengangstad.defendthecaves.scene.Scene;
 
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -24,6 +24,16 @@ public class Container implements Disposable, InputProcessor {
     protected SpriteBatch batch = new SpriteBatch();
 
     /**
+     * The input multiplexer dealing with the various inputs and delegating them.
+     */
+    protected InputMultiplexer inputMultiplexer = new InputMultiplexer();
+
+    /**
+     * Stage responsable for UI layout.
+     */
+    public Stage stage = new Stage();
+
+    /**
      * The game objects in the container.
      */
     protected List<GameObject> gameObjects = new ArrayList<>();
@@ -35,6 +45,22 @@ public class Container implements Disposable, InputProcessor {
     protected List<GameObject> buffer = new ArrayList<>(), removeBuffer = new ArrayList<>();
 
     /**
+     * Initializes the container.
+     */
+    public Container() {
+
+        Gdx.input.setInputProcessor(inputMultiplexer);
+
+        addInputProcessor(this);
+        addInputProcessor(stage);
+    }
+
+    public void addInputProcessor(InputProcessor inputProcessor) {
+
+        inputMultiplexer.addProcessor(inputProcessor);
+    }
+
+    /**
      * Adds a game object to the container.
      */
     public void addGameObject(GameObject gameObject) {
@@ -42,6 +68,7 @@ public class Container implements Disposable, InputProcessor {
         buffer.add(gameObject);
 
         gameObject.host = this;
+        gameObject.create();
     }
 
     public void removeGameObject(GameObject gameObject) {
@@ -57,6 +84,11 @@ public class Container implements Disposable, InputProcessor {
     public Matrix4 getProjectionMatrix() {
 
         return batch.getProjectionMatrix();
+    }
+
+    public void resize(int width, int height) {
+
+        stage.getViewport().update(width, height, true);
     }
 
     @Override
@@ -121,19 +153,20 @@ public class Container implements Disposable, InputProcessor {
 
             gameObject.tick();
 
-            if (gameObject instanceof Drawable) {
-
-                ((Drawable) gameObject).draw(batch, gameObject.getPosition(), gameObject.getSize());
-            }
+            gameObject.draw(batch);
         });
 
         batch.end();
+
+        stage.act();
+        stage.draw();
     }
 
     @Override
     public void dispose() {
 
         batch.dispose();
+        stage.dispose();
 
         gameObjects.forEach((gameObject -> gameObject.dispose()));
     }

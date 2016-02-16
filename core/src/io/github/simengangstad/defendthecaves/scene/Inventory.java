@@ -1,25 +1,28 @@
 package io.github.simengangstad.defendthecaves.scene;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Vector2;
-import com.badlogic.gdx.utils.Array;
-import io.github.simengangstad.defendthecaves.gui.View;
+import com.badlogic.gdx.scenes.scene2d.ui.Table;
+import com.badlogic.gdx.scenes.scene2d.ui.WidgetGroup;
+import com.badlogic.gdx.scenes.scene2d.utils.Drawable;
+import io.github.simengangstad.defendthecaves.Game;
 import io.github.simengangstad.defendthecaves.scene.item.Key;
+import io.github.simengangstad.defendthecaves.scene.item.Shield;
 
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
 /**
- * The inventory of entites and other objects. Consits of {@link Item} and extends {@link View} so
+ * The inventory of entites and other objects. Consits of {@link Item} and extends {@link WidgetGroup} so
  * the inventory can be presented to the user.
  *
  * @author simengangstad
  * @since 17/01/16
  */
-public class Inventory extends View {
+public class Inventory extends Table {
 
     /**
      * The dimension of the inventory.
@@ -37,11 +40,6 @@ public class Inventory extends View {
     private int size = 0;
 
     /**
-     * The cell and overlay texture regions.
-     */
-    public TextureRegion cellTextureRegion, overlayTextureRegion;
-
-    /**
      * The item which the user is currently intercting with.
      */
     private Item currentItem = null;
@@ -56,14 +54,17 @@ public class Inventory extends View {
      */
     private int keys = 0;
 
-    private final Vector2 tmp = new Vector2(), tmp2 = new Vector2();
+    /**
+     * The grafical style of the inventory; its background and slots..
+     */
+    private InventoryStyle style;
 
     /**
      * Initialises the inventory with a origin and a size used for drawing the inventory.
      */
-    public Inventory(Vector2 origin, Vector2 size, int columns, int rows, TextureRegion cellTextureRegion, TextureRegion overlayTextureRegion) {
+    public Inventory(Vector2 origin, Vector2 size, int columns, int rows) {
 
-       super(origin, size, null);
+        if (origin != null && size != null) super.setBounds(origin.x, origin.y, size.x, size.y);
 
         this.columns = columns;
         this.rows = rows;
@@ -78,8 +79,18 @@ public class Inventory extends View {
             }
         }
 
-        this.cellTextureRegion = cellTextureRegion;
-        this.overlayTextureRegion = overlayTextureRegion;
+        setStyle(Game.UISkin.get(InventoryStyle.class));
+    }
+
+    public void setStyle (InventoryStyle style) {
+
+        if (style == null) throw new IllegalArgumentException("style cannot be null.");
+
+        this.style = style;
+
+        Drawable background = style.background;
+
+        setBackground(background);
     }
 
     /**
@@ -105,11 +116,11 @@ public class Inventory extends View {
         return keys;
     }
 
-    public boolean placeItem(Item item, int x, int y) {
+    public boolean placeItem(int x, int y, Item item) {
 
         if (!isValidPosition(x, y)) {
 
-            System.err.println("Inventory: Not a valid position to place item at: (" + x + ", " + y + ").");
+            System.err.println("Inventory: Not a valid position to place item at: (" + x + ", " + y + "). Must place within the boundary: (" + (columns - 1) + ", " + (rows - 1) + ").");
         }
 
         Class itemType = getItemType(x, y);
@@ -325,27 +336,43 @@ public class Inventory extends View {
     }
 
     @Override
-    public void draw(SpriteBatch batch, Vector2 position, Vector2 size) {
+    public void draw(Batch batch, float parentAlpha) {
 
-        if (!visible) return;
-
-        if (cellTextureRegion == null) {
-
-            return;
-        }
+        super.draw(batch, parentAlpha);
 
         for (int x = 0; x < columns; x++) {
 
             for (int y = 0; y < rows; y++) {
 
-                batch.draw(cellTextureRegion, position.x + x * (size.x / columns), position.y + y * (size.y / rows), size.x / columns, size.y / rows);
+                style.slot.draw(batch, getX() + x * (getWidth() / columns), getY() + y * (getHeight() / rows), getWidth() / columns, getHeight() / rows);
 
                 if (!getItemList(x, y).isEmpty()) {
 
-                    tmp2.set(size.x / columns - (size.x / columns / 16) * 2, size.y / rows - (size.y / rows / 16) * 2);
-                    tmp.set(position.x + x * (size.x / columns) + tmp2.x / 2.0f + (size.x / columns / 16) * 1, position.y + tmp2.y / 2.0f + y * (size.y / rows) + (size.y / rows / 16) * 1);
+                    float width = getWidth() / columns - (getWidth() / columns / style.slot.getMinWidth()) * 2;
+                    float height = getHeight() / rows - (getHeight() / rows / style.slot.getMinHeight()) * 2;
 
-                    getItemList(x, y).get(0).draw(batch, tmp, tmp2);
+                    int scale = 1;
+                    int offsetScale = 0;
+
+                    Item item = getItemList(x, y).get(0);
+
+                    // TODO: Make suitable icons for the weapons in the inventory
+                    if (item instanceof Weapon || item instanceof Shield) {
+
+                        width -= (getWidth() / columns / style.slot.getMinWidth()) * 2;
+                        height -= (getHeight() / rows / style.slot.getMinHeight()) * 2;
+
+                        scale = 1;
+                        offsetScale = 0;
+                    }
+
+                    item.draw(
+                            (SpriteBatch) batch,
+                            getX() + x * (getWidth() / columns) + (getWidth() / columns / style.slot.getMinWidth()) * 1 + (getWidth() / columns / style.slot.getMinWidth()) * offsetScale - offsetScale * (width) / 2.0f,
+                            getY() + y * (getHeight() / rows) + (getHeight() / columns / style.slot.getMinHeight()) * 1 + (getHeight() / columns / style.slot.getMinHeight()) * offsetScale - offsetScale * (height) / 2.0f,
+                            width * scale,
+                            height * scale
+                    );
                 }
             }
         }
@@ -353,18 +380,20 @@ public class Inventory extends View {
         int x = Gdx.input.getX();
         int y = Math.abs(Gdx.input.getY() - (Gdx.graphics.getHeight() - 1));
 
-        int column = (int) ((x - position.x) / (size.x / columns));
-        int row = (int) ((y - position.y) / (size.y / rows));
+        int column = (int) ((x - getX()) / (getWidth() / columns));
+        int row = (int) ((y - getY()) / (getHeight() / rows));
 
-        if (position.x <= x && x < position.x + size.x && position.y <= y && y < position.y + size.y) {
+        if (getX() <= x && x < getX() + getWidth() && getY() <= y && y < getY() + getHeight()) {
 
+
+/*
             batch.draw(
                     overlayTextureRegion,
-                    position.x + column * (size.x / columns) + (size.x / columns / 16) * 1,
-                    position.y + row * (size.y / rows) + (size.y / rows / 16) * 1,
-                    size.x / columns - (size.x / columns / 16) * 2,
-                    size.y / rows - (size.y / rows / 16) * 2);
-
+                    getX() + column * (getWidth() / columns) + (getWidth() / columns / 16) * 1,
+                    getY() + row * (getHeight() / rows) + (getHeight() / rows / 16) * 1,
+                    getWidth() / columns - (getWidth() / columns / 16) * 2,
+                    getHeight() / rows - (getHeight() / rows / 16) * 2);
+*/
             if (currentItem == null && Gdx.input.isButtonPressed(0) && !getItemList(column, row).isEmpty()) {
 
                 currentItem = obtainItem(column, row, 1).get(0);
@@ -378,11 +407,11 @@ public class Inventory extends View {
 
             if (isValidPosition(column, row) && ((currentItem.stackable && getItemType(column, row) == currentItem.getClass()) || getItemType(column, row) == null)) {
 
-                placeItem(currentItem, column, row);
+                placeItem(column, row, currentItem);
             }
             else {
 
-                placeItem(currentItem, lastColumn, lastRow);
+                placeItem(lastColumn, lastRow, currentItem);
             }
 
             currentItem = null;
@@ -390,16 +419,41 @@ public class Inventory extends View {
 
         if (currentItem != null) {
 
-            tmp2.set(size.x / columns - (size.x / columns / 16) * 2, size.y / rows - (size.y / rows / 16) * 2);
-            tmp.set(position.x + x * (size.x / columns) + tmp2.x / 2.0f + (size.x / columns / 16) * 1, position.y + tmp2.y / 2.0f + y * (size.y / rows) + (size.y / rows / 16) * 1);
+            float width = getWidth() / columns - (getWidth() / columns / 20) * 2;
+            float height = getHeight() / rows - (getHeight() / rows / 20) * 2;
 
-            currentItem.draw(batch, tmp, tmp2);
+            int scale = 1;
+
+            if (currentItem instanceof Weapon || currentItem instanceof Shield) {
+
+                width -= (getWidth() / columns / 20) * 2;
+                height -= (getHeight() / rows / 20) * 2;
+
+                scale = 2;
+            }
+
+            currentItem.draw(
+                    (SpriteBatch) batch,
+                    x + (getWidth() / columns / 20) * 1 - (width / 2.0f) * scale,
+                    y + (getHeight() / rows / 20) * 1 - (height / 2.0f) * scale,
+                    width * scale,
+                    height * scale
+            );
         }
     }
 
-    @Override
-    public void tick() {
+    public static class InventoryStyle {
 
-        if (!visible) return;
+        public Drawable background, slot;
+
+        public InventoryStyle() {
+
+        }
+
+        public InventoryStyle(Drawable background, Drawable slot) {
+
+            this.background = background;
+            this.slot = slot;
+        }
     }
 }

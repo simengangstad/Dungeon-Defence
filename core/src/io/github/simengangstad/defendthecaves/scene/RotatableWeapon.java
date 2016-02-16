@@ -1,9 +1,12 @@
 package io.github.simengangstad.defendthecaves.scene;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Vector2;
 import io.github.simengangstad.defendthecaves.Callback;
+
+import java.util.Arrays;
 
 /**
  * @author simengangstad
@@ -21,9 +24,6 @@ public abstract class RotatableWeapon extends Weapon {
      */
     protected int rotation = 0;
 
-
-    private boolean initialised = false;
-
     /**
      * The different texture regions for the given rotations.
      */
@@ -39,47 +39,35 @@ public abstract class RotatableWeapon extends Weapon {
      */
     private int lastMouseXPosition, lastMouseYPosition;
 
-
-    // Attacking
-
-    protected boolean attackTextureRegionIsFlipped = false;
-
+    /**
+     * The index of the texture region before the attack took place. Used for setting the
+     * {@link RotatableWeapon#currentWeaponTextureRegion} back to the texture region
+     * that initially was.
+     */
     private int weaponIndexBeforeAttacking = 0;
 
-    public RotatableWeapon(int attackDamage, float attackDuration, Callback interactionCallback, int minRotation, int maxRotation) {
+    /**
+     * Initializes the rotatable weapon.
+     */
+    public RotatableWeapon(int attackDamage, float attackDuration, Callback interactionCallback, int minRotation, int maxRotation, TextureRegion[] weaponTextureRegions, TextureRegion[] attackTextureRegions) {
 
-        super(attackDamage, attackDuration, interactionCallback);
+        super(attackDamage, attackDuration, null, interactionCallback);
 
         this.maxRotation = maxRotation;
         this.minRotation = minRotation;
-    }
-
-    protected void setTextures(TextureRegion[] weaponTextureRegions, TextureRegion[] attackTextureRegions) {
 
         this.weaponTextureRegions = weaponTextureRegions;
         this.attackTextureRegions = attackTextureRegions;
 
         currentWeaponTextureRegion = weaponTextureRegions[0];
-
-        initialised = true;
     }
 
+    /**
+     * Sets the rotation of the rotatable weapon.
+     */
     public void setRotation(int rotation) {
 
         this.rotation = rotation;
-    }
-
-    @Override
-    public void interact(Vector2 location) {
-
-        super.interact(location);
-
-        // Check that we only apply logic one time per attack duration by checking
-        // that we just set the state time.
-        if (getStateTime() == interactionDuration) {
-
-            attackTextureRegionIsFlipped = flip();
-        }
     }
 
     @Override
@@ -87,13 +75,16 @@ public abstract class RotatableWeapon extends Weapon {
 
         super.tick();
 
-        if (!initialised) return;
+        if (weaponTextureRegions == null) {
 
-        if (lastMouseXPosition != Gdx.input.getX() || lastMouseYPosition != Gdx.input.getY() && !isInteracting()) {
+            throw new RuntimeException("Texture regions not set");
+        }
+
+        if (lastMouseXPosition != Gdx.input.getX() || lastMouseYPosition != Gdx.input.getY() && !isAttacking()) {
 
             int angle = rotation;
 
-            if (flip) {
+            if (!flip()) {
 
                 angle = -angle;
             }
@@ -126,9 +117,9 @@ public abstract class RotatableWeapon extends Weapon {
             lastMouseXPosition = Gdx.input.getX();
             lastMouseYPosition = Gdx.input.getY();
         }
-        else if (isInteracting()) {
+        else if (isAttacking()) {
 
-            int index = (int) Math.abs(getStateTime() / (interactionDuration / attackTextureRegions.length) - attackTextureRegions.length);
+            int index = (int) Math.abs(getTimeLeftOfAttack() / (attackDuration / attackTextureRegions.length) - attackTextureRegions.length);
 
             currentWeaponTextureRegion = attackTextureRegions[index];
         }

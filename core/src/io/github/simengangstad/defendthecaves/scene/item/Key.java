@@ -16,8 +16,13 @@ public class Key extends Item {
 
     public Key(Vector2 position, Coordinate positionOfDoor) {
 
-        super(position, new Vector2(30.0f, 30.0f), new TextureRegion(Game.SpriteSheet, 0, 208, 16, 16), false);
+        super(position, new Vector2(Game.EntitySize, Game.EntitySize / 2.0f), new TextureRegion(Game.SpriteSheet, 0, 208, 16, 16), false);
 
         this.positionOfDoor = positionOfDoor;
+    }
+
+    @Override
+    public void interact(Vector2 direciton) {
+
     }
 }

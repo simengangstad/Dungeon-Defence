@@ -6,6 +6,7 @@ import com.badlogic.gdx.math.Vector2;
 import io.github.simengangstad.defendthecaves.Game;
 import io.github.simengangstad.defendthecaves.scene.RotatableWeapon;
 import io.github.simengangstad.defendthecaves.scene.TextureUtil;
+import io.github.simengangstad.defendthecaves.scene.item.Cudgel;
 
 /**
  * @author simengangstad
@@ -24,6 +25,14 @@ public class HumanLikeEnemy extends Enemy {
     }
 
     @Override
+    public void create() {
+
+        super.create();
+
+        addItemAtLocation(4, 0, new Cudgel(() -> {}));
+    }
+
+    @Override
     protected void hurtPlayer(Vector2 tmpVector) {
 
         interact(tmpVector);
@@ -33,22 +42,25 @@ public class HumanLikeEnemy extends Enemy {
     protected void noticedPlayer(Vector2 direction) {}
 
     @Override
-    public void draw(SpriteBatch batch, Vector2 position, Vector2 size) {
+    public void draw(SpriteBatch batch) {
 
-        if (raiseTool) {
+        if (currentItem != null) {
 
-            currentTool.offset.set(0.0f, (size.y / 16.0f));
-        }
-        else {
+            if (raiseItem) {
 
-            currentTool.offset.set(0.0f, 0.0f);
-        }
+                currentItem.walkingOffset = size.y / 16.0f;
+            }
+            else {
 
-        if (currentTool instanceof RotatableWeapon) {
-
-            ((RotatableWeapon) currentTool).setRotation((int) (Math.atan((playerPositionReference.y - getPosition().y) / (playerPositionReference.x - getPosition().x)) * 180 / Math.PI));
+                currentItem.walkingOffset = 0.0f;
+            }
         }
 
-        super.draw(batch, position, size);
+        if (currentItem instanceof RotatableWeapon) {
+
+            ((RotatableWeapon) currentItem).setRotation((int) (Math.atan((playerPositionReference.y - position.y) / (playerPositionReference.x - position.x)) * 180 / Math.PI));
+        }
+
+        super.draw(batch);
     }
 }

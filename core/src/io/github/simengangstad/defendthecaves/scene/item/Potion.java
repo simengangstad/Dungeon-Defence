@@ -22,9 +22,14 @@ public class Potion extends Item {
 
     private int stability = 0, toxicity = 0, flammability = 0;
 
-    public Potion(Vector2 position, Vector2 size) {
+    public Potion(Vector2 position) {
 
-        super(position, size, new TextureRegion(Game.SpriteSheet, 32, 208, 16, 16), false);
+        super(position, new Vector2(Game.PotionSize, Game.PotionSize), new TextureRegion(Game.SpriteSheet, 32, 208, 16, 16), false);
+    }
+
+    @Override
+    public void interact(Vector2 direciton) {
+
     }
 
     public void addChemical(Chemical... chemicals) {
@@ -60,7 +65,19 @@ public class Potion extends Item {
     }
 
     @Override
-    public void draw(SpriteBatch batch, Vector2 position, Vector2 size) {
+    public void draw(SpriteBatch batch, float centreX, float centreY, float width, float height) {
+
+        batch.setColor(Math.abs(getToxicity() + Chemical.UpperBoundary - 100) / 100f, Math.abs(getStability() + Chemical.UpperBoundary - 100) / 100f, (getFlammability() + Chemical.UpperBoundary) / 100f, 1.0f);
+
+        batch.draw(fill, centreX, centreY, width, height);
+
+        batch.setColor(Color.WHITE);
+
+        super.draw(batch, centreX, centreY, width, height);
+    }
+
+    @Override
+    public void draw(SpriteBatch batch) {
 
         batch.setColor(Math.abs(getToxicity() + Chemical.UpperBoundary - 100) / 100f, Math.abs(getStability() + Chemical.UpperBoundary - 100) / 100f, (getFlammability() + Chemical.UpperBoundary) / 100f, 1.0f);
 
@@ -68,7 +85,7 @@ public class Potion extends Item {
 
         batch.setColor(Color.WHITE);
 
-        super.draw(batch, position, size);
+        super.draw(batch);
     }
 
     @Override

@@ -41,6 +41,13 @@ public class Caterpillar extends Enemy {
     }
 
     @Override
+    public void create() {
+
+        super.create();
+
+    }
+
+    @Override
     public boolean flip() {
 
         return tmp.x > 0;
@@ -67,7 +74,7 @@ public class Caterpillar extends Enemy {
 
             requestAnimation(AttackAnimation, () -> {
 
-                Projectile projectile = new Projectile(getPosition().cpy(), new Vector2(80, 80), tmp.cpy(), projectingAnimation, impactAnimation, map, gameObjectList, Enemy.class);
+                Projectile projectile = new Projectile(position.cpy(), new Vector2(80, 80), tmp.cpy(), projectingAnimation, impactAnimation, map, gameObjectList, Enemy.class);
 
                 projectile.impactCallback = (object) -> {
 
@@ -84,7 +91,7 @@ public class Caterpillar extends Enemy {
 
                         entity.paralyse();
 
-                        entity.applyForce(direction.nor().scl(7.5f));
+                        entity.applyForce(direction.nor(), false, 0.0f);
 
                         System.out.println("Damage applied to entity: " + entity + " - current health: " + entity.health);
                     }

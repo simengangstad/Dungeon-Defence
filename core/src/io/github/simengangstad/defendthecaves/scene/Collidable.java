@@ -2,7 +2,6 @@ package io.github.simengangstad.defendthecaves.scene;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.math.Vector2;
-import io.github.simengangstad.defendthecaves.components.Drawable;
 import io.github.simengangstad.defendthecaves.components.GameObject;
 
 /**
@@ -11,7 +10,7 @@ import io.github.simengangstad.defendthecaves.components.GameObject;
  * @author simengangstad
  * @since 09/02/16
  */
-public abstract class Collidable extends GameObject implements Drawable {
+public abstract class Collidable extends GameObject {
 
     /**
      * The map the entity is located in.
@@ -29,24 +28,33 @@ public abstract class Collidable extends GameObject implements Drawable {
     protected final Vector2 forceApplied = new Vector2();
 
     /**
-     * What way the force is applied in.
+     * The forces acting on the collidable regardless of force applied.
+     * The body is in equilibrium with 0 velocity at default state.
      */
-    private boolean forcePositiveX = false, forcePositiveY = false;
+    private static final float Drag = 10.0f, Weight = -10.0f;
 
-    public Collidable(Vector2 position, Vector2 size) {
+    private boolean weightActing = false;
 
-        super(position, size);
-    }
+    private float duration = 0.0f;
 
     /**
-     * Applies a vector force to the collidable which gets decreased by a
+     * If the force along the axes are positive or negative.
      */
-    public void applyForce(Vector2 force) {
+    private boolean horisontalPositive = false, verticalPositive = false;
+
+    /**
+     * Applies a vector force to the collidable which gets decreased by a drag force.
+     */
+    public void applyForce(Vector2 force, boolean weightActing, float duration) {
 
         forceApplied.set(force);
 
-        forcePositiveX = 0 < forceApplied.x;
-        forcePositiveY = 0 < forceApplied.y;
+        horisontalPositive = 0 < forceApplied.x;
+        verticalPositive = 0 < forceApplied.y;
+
+        this.weightActing = weightActing;
+
+        this.duration = duration;
     }
 
     /**
@@ -65,15 +73,71 @@ public abstract class Collidable extends GameObject implements Drawable {
             throw new RuntimeException("Need an assigned map in order to resolve collisions.");
         }
 
-        if (forceApplied.x != 0.0f || forceApplied.y != 0.0f) {
+        if (forceApplied.x != 0.0f) {
 
-            float delta = Gdx.graphics.getDeltaTime() * forceApplied.len();
+            float dragPerFrame = Gdx.graphics.getDeltaTime() * Drag;
 
-            this.delta.add(forceApplied.x * delta, forceApplied.y * delta);
+            forceApplied.x += (horisontalPositive ? -dragPerFrame : dragPerFrame);
 
-            forceApplied.add(delta * (forcePositiveX == false ? 1 : -1), delta * (forcePositiveY == false ? 1 : -1));
+            if (horisontalPositive) {
 
-            forceApplied.set(forcePositiveX == true ? Math.max(0, forceApplied.x) : Math.min(0, forceApplied.x), forcePositiveY == true ? Math.max(0, forceApplied.y) : Math.min(0, forceApplied.y));
+                if (forceApplied.x < 0.0f) {
+
+                    forceApplied.x = 0.0f;
+                }
+            }
+            else {
+
+                if (0.0f < forceApplied.x) {
+
+                    forceApplied.x = 0.0f;
+                }
+            }
         }
+
+        if (weightActing) {
+
+            if (0.0f < duration) {
+
+                duration -= Gdx.graphics.getDeltaTime();
+
+                float weightPerFrame = Gdx.graphics.getDeltaTime() * Weight;
+
+                forceApplied.y += weightPerFrame;
+            }
+            else {
+
+                forceApplied.y = 0.0f;
+            }
+        }
+        else {
+
+            if (forceApplied.y != 0.0f) {
+
+                float dragPerFrame = Gdx.graphics.getDeltaTime() * Drag;
+
+                if (verticalPositive) {
+
+                    forceApplied.y -= dragPerFrame;
+
+                    if (forceApplied.y < 0.0f) {
+
+                        forceApplied.y = 0.0f;
+                    }
+                }
+                else {
+
+                    forceApplied.y += dragPerFrame;
+
+                    if (0.0f < forceApplied.y) {
+
+                        forceApplied.y = 0.0f;
+                    }
+                }
+            }
+        }
+
+
+        delta.add(forceApplied.x, forceApplied.y);
     }
 }

@@ -5,7 +5,16 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.math.Vector3;
+import com.badlogic.gdx.scenes.scene2d.InputEvent;
+import com.badlogic.gdx.scenes.scene2d.Stage;
+import com.badlogic.gdx.scenes.scene2d.ui.Skin;
+import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
+import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
+import com.badlogic.gdx.utils.Pool;
 import io.github.simengangstad.defendthecaves.scene.Scene;
 import io.github.simengangstad.defendthecaves.scene.entities.Player;
 
@@ -28,9 +37,28 @@ public class Game extends ApplicationAdapter {
     public static Texture CaterpillarMoving;
     public static Texture CaterpillarAttacking;
 
-    public static final int PotionSize = 60;
     public static final int EntitySize = 80;
+    public static final int PotionSize = (EntitySize / 2);
 
+    public static Skin UISkin;
+
+    public static Pool<Vector2> vector2Pool = new Pool<Vector2>() {
+
+        @Override
+        protected Vector2 newObject() {
+
+            return new Vector2();
+        }
+    };
+
+    public static Pool<Vector3> vector3Pool = new Pool<Vector3>() {
+
+        @Override
+        protected Vector3 newObject() {
+
+            return new Vector3();
+        }
+    };
 
     /**
      * The tile size of the movable entity sprites in the sprite sheet.
@@ -39,7 +67,7 @@ public class Game extends ApplicationAdapter {
 
     private Scene scene;
 
-    public static boolean DebubDraw = false;
+    public static boolean DebubDraw = true;
 
     public static TextureRegion debugDrawTexture;
 
@@ -63,14 +91,14 @@ public class Game extends ApplicationAdapter {
         CaterpillarMoving = new Texture("assets/animations/CaterpillarMoving.png");
         CaterpillarAttacking = new Texture("assets/animations/CaterpillarAttacking.png");
 
-
         debugDrawTexture = new TextureRegion(SpriteSheet, 48, 80, 16, 16);
+
+        UISkin = new Skin(Gdx.files.internal("assets/gui/uiskin.json"));
 
         Player player = new Player(new OrthographicCamera(Gdx.graphics.getWidth(), Gdx.graphics.getHeight()));
 
         scene = new Scene(player);
 
-        Gdx.input.setInputProcessor(scene);
         //Gdx.input.setCursorCatched(true);
         //Gdx.input.setCursorPosition(Gdx.graphics.getWidth() / 2, Gdx.graphics.getHeight() / 2);
     }
@@ -78,7 +106,7 @@ public class Game extends ApplicationAdapter {
     @Override
     public void resize(int width, int height) {
 
-        scene.updateMatrices();
+        scene.resize(width, height);
     }
 
     @Override

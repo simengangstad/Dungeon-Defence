@@ -2,10 +2,12 @@ package io.github.simengangstad.defendthecaves.scene;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.maps.tiled.TiledMapTileLayer;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector;
 import com.badlogic.gdx.math.Vector2;
 import io.github.simengangstad.defendthecaves.Game;
+import io.github.simengangstad.defendthecaves.pathfinding.Coordinate;
 import io.github.simengangstad.defendthecaves.procedural.MapGenerator;
 
 import java.sql.SQLSyntaxErrorException;
@@ -330,7 +332,8 @@ public class Map {
                             SpawnSlightlyBroken = 11,
                             SpawnBroken = 12,
                             Door = MapGenerator.Door,
-                            DoorUnlocked = MapGenerator.Door + 1;
+                            DoorUnlocked = MapGenerator.Door + 1,
+                            DummyTile = 1001;
 
     /**
      * The renderable tile map.
@@ -479,6 +482,47 @@ public class Map {
 
             amountOfTries--;
         }
+
+        for (MapGenerator.Room room : getRooms()) {
+
+            if (room.isLocked()) {
+
+                Coordinate coordinateOfDoor = room.getEntrance(0);
+
+                int x = 0, y = 0;
+
+                // Wall is horisontal
+                if (isSolid(coordinateOfDoor.x - 1, coordinateOfDoor.y) && isSolid(coordinateOfDoor.x + 1, coordinateOfDoor.y)) {
+
+                    x = coordinateOfDoor.x;
+
+                    if (room.centreY < coordinateOfDoor.y) {
+
+                        y = coordinateOfDoor.y - 1;
+                    }
+                    else {
+
+                        y = coordinateOfDoor.y + 1;
+                    }
+                }
+                // Wall is vertical
+                else {
+
+                    y = coordinateOfDoor.y;
+
+                    if (room.centreX < coordinateOfDoor.x) {
+
+                        x = coordinateOfDoor.x - 1;
+                    }
+                    else {
+
+                        x = coordinateOfDoor.x + 1;
+                    }
+                }
+
+                set(x, y, DummyTile);
+            }
+        }
     }
 
     public MapGenerator.Room[] getRooms() {
@@ -533,7 +577,7 @@ public class Map {
 
                     int value = tileMap[(int) Math.ceil(xs / Subdivision)][(int) Math.ceil(ys / Subdivision)];
 
-                    if (value == DoorUnlocked) {
+                    if (value == DoorUnlocked || value == DummyTile) {
 
                         value = Open;
                     }
@@ -627,7 +671,7 @@ public class Map {
             return false;
         }
 
-        return tileMap[x][y] >= SolidIntact && tileMap[x][y] != DoorUnlocked;
+        return tileMap[x][y] >= SolidIntact && tileMap[x][y] != DoorUnlocked && tileMap[x][y] != DummyTile;
     }
 
     /**
@@ -670,6 +714,72 @@ public class Map {
     public int getHeight() {
 
         return tileMap[0].length;
+    }
+
+    /**
+     * Without speed and delta time division.
+     */
+    public boolean retrieveCollisionPoint(Vector2 position, Vector2 size, Vector2 direction, Vector2 point) {
+
+        tmpDelta.set(direction);
+        tmpTargetPosition.set(position).add(tmpDelta);
+
+        // Check facing right
+
+        int posX = (int) (tmpTargetPosition.x / CellSize);
+        int posY = (int) (tmpTargetPosition.y / CellSize);
+
+        int posXFacingRight = (int) ((tmpTargetPosition.x + size.x / 2.0f - CellSize) / CellSize);
+        int posXFacingLeft = (int) ((tmpTargetPosition.x - size.x / 2.0f + CellSize) / CellSize);
+        int posYFacingUp = (int) ((tmpTargetPosition.y + size.y / 2.0f - CellSize) / CellSize);
+        int posYFacingDown = (int) ((tmpTargetPosition.y - size.y / 2.0f + CellSize) / CellSize);
+
+        if (Math.abs(direction.x) > Math.abs(direction.y)) {
+
+            if (isValidTile((int) (tmpTargetPosition.x / TileSizeInPixelsInWorldSpace) - 1, (int) (tmpTargetPosition.y / TileSizeInPixelsInWorldSpace)) &&
+                    !isSolid((int) (tmpTargetPosition.x / TileSizeInPixelsInWorldSpace) - 1, (int) (tmpTargetPosition.y / TileSizeInPixelsInWorldSpace)) &&
+                    cellIsValid(posXFacingRight, posY) &&
+                    collidableMap[posXFacingRight][posY] != Open) {
+
+                point.set(posXFacingRight, posY);
+
+                return true;
+            }
+            else if (isValidTile((int) (tmpTargetPosition.x / TileSizeInPixelsInWorldSpace) + 1, (int) (tmpTargetPosition.y / TileSizeInPixelsInWorldSpace)) &&
+                    !isSolid((int) (tmpTargetPosition.x / TileSizeInPixelsInWorldSpace) + 1, (int) (tmpTargetPosition.y / TileSizeInPixelsInWorldSpace)) &&
+                    cellIsValid(posXFacingLeft, posY) &&
+                    collidableMap[posXFacingLeft][posY] != Open) {
+
+                point.set(posXFacingLeft, posY);
+
+                return true;
+            }
+        }
+        else {
+
+            if (isValidTile((int) (tmpTargetPosition.x / TileSizeInPixelsInWorldSpace), (int) (tmpTargetPosition.y / TileSizeInPixelsInWorldSpace) + 1) &&
+                    !isSolid((int) (tmpTargetPosition.x / TileSizeInPixelsInWorldSpace), (int) (tmpTargetPosition.y / TileSizeInPixelsInWorldSpace) + 1) &&
+                    cellIsValid(posX, posYFacingUp) &&
+                    collidableMap[posX][posYFacingUp] != Open) {
+
+                point.set(posX, posYFacingUp);
+
+                return true;
+            }
+            else if (isValidTile((int) (tmpTargetPosition.x / TileSizeInPixelsInWorldSpace), (int) (tmpTargetPosition.y / TileSizeInPixelsInWorldSpace) - 1) &&
+                    !isSolid((int) (tmpTargetPosition.x / TileSizeInPixelsInWorldSpace), (int) (tmpTargetPosition.y / TileSizeInPixelsInWorldSpace) - 1) &&
+                    cellIsValid(posX, posYFacingDown) &&
+                    collidableMap[posX][posYFacingDown] != Open) {
+
+                point.set(posX, posYFacingDown);
+
+                return true;
+            }
+        }
+
+        position.set(tmpTargetPosition);
+
+        return false;
     }
 
     public boolean retrieveCollisionPoint(Vector2 position, Vector2 direction, float speed, Vector2 point) {
@@ -817,6 +927,7 @@ public class Map {
 
                 switch (tileMap[x][y]) {
 
+                    case DummyTile:
                     case Open:
 
                         drawOpenTile(x, y, batch);
@@ -847,14 +958,48 @@ public class Map {
 
                     case Door:
 
-                        batch.draw(Game.SpriteSheet, x * TileSizeInPixelsInWorldSpace, y * TileSizeInPixelsInWorldSpace, TileSizeInPixelsInWorldSpace, TileSizeInPixelsInWorldSpace, 0, 320, Game.SizeOfTileInPixelsInSpritesheet, Game.SizeOfTileInPixelsInSpritesheet, false, false);
+                        drawOpenTile(x, y, batch);
+
+                        if (get(x, y + 1) == DummyTile) {
+
+                            batch.draw(Game.SpriteSheet, x * TileSizeInPixelsInWorldSpace, y * TileSizeInPixelsInWorldSpace, TileSizeInPixelsInWorldSpace, TileSizeInPixelsInWorldSpace, 0, 320, Game.SizeOfTileInPixelsInSpritesheet, Game.SizeOfTileInPixelsInSpritesheet, false, false);
+                        }
+                        else if (get(x, y - 1) == DummyTile) {
+
+                            batch.draw(Game.SpriteSheet, x * TileSizeInPixelsInWorldSpace, y * TileSizeInPixelsInWorldSpace, TileSizeInPixelsInWorldSpace, TileSizeInPixelsInWorldSpace, 16, 320, Game.SizeOfTileInPixelsInSpritesheet, Game.SizeOfTileInPixelsInSpritesheet, false, false);
+                        }
+                        else if (get(x + 1, y) == DummyTile) {
+
+                            batch.draw(Game.SpriteSheet, x * TileSizeInPixelsInWorldSpace, y * TileSizeInPixelsInWorldSpace, TileSizeInPixelsInWorldSpace, TileSizeInPixelsInWorldSpace, 32, 320, Game.SizeOfTileInPixelsInSpritesheet, Game.SizeOfTileInPixelsInSpritesheet, false, false);
+                        }
+                        else if (get(x - 1, y) == DummyTile) {
+
+                            batch.draw(Game.SpriteSheet, x * TileSizeInPixelsInWorldSpace, y * TileSizeInPixelsInWorldSpace, TileSizeInPixelsInWorldSpace, TileSizeInPixelsInWorldSpace, 48, 320, Game.SizeOfTileInPixelsInSpritesheet, Game.SizeOfTileInPixelsInSpritesheet, false, false);
+                        }
+
 
                         break;
 
                     case DoorUnlocked:
 
                         drawOpenTile(x, y, batch);
-                        batch.draw(Game.SpriteSheet, x * TileSizeInPixelsInWorldSpace, y * TileSizeInPixelsInWorldSpace, TileSizeInPixelsInWorldSpace, TileSizeInPixelsInWorldSpace, 16, 320, Game.SizeOfTileInPixelsInSpritesheet, Game.SizeOfTileInPixelsInSpritesheet, false, false);
+
+                        if (get(x, y + 1) == DummyTile) {
+
+                            batch.draw(Game.SpriteSheet, x * TileSizeInPixelsInWorldSpace, y * TileSizeInPixelsInWorldSpace, TileSizeInPixelsInWorldSpace, TileSizeInPixelsInWorldSpace, 0, 336, Game.SizeOfTileInPixelsInSpritesheet, Game.SizeOfTileInPixelsInSpritesheet, false, false);
+                        }
+                        else if (get(x, y - 1) == DummyTile) {
+
+                            batch.draw(Game.SpriteSheet, x * TileSizeInPixelsInWorldSpace, y * TileSizeInPixelsInWorldSpace, TileSizeInPixelsInWorldSpace, TileSizeInPixelsInWorldSpace, 16, 336, Game.SizeOfTileInPixelsInSpritesheet, Game.SizeOfTileInPixelsInSpritesheet, false, false);
+                        }
+                        else if (get(x + 1, y) == DummyTile) {
+
+                            batch.draw(Game.SpriteSheet, x * TileSizeInPixelsInWorldSpace, y * TileSizeInPixelsInWorldSpace, TileSizeInPixelsInWorldSpace, TileSizeInPixelsInWorldSpace, 32, 336, Game.SizeOfTileInPixelsInSpritesheet, Game.SizeOfTileInPixelsInSpritesheet, false, false);
+                        }
+                        else if (get(x - 1, y) == DummyTile) {
+
+                            batch.draw(Game.SpriteSheet, x * TileSizeInPixelsInWorldSpace, y * TileSizeInPixelsInWorldSpace, TileSizeInPixelsInWorldSpace, TileSizeInPixelsInWorldSpace, 48, 336, Game.SizeOfTileInPixelsInSpritesheet, Game.SizeOfTileInPixelsInSpritesheet, false, false);
+                        }
 
                         break;
                 }

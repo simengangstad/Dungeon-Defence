@@ -28,18 +28,24 @@ public class Snake extends Enemy {
     }
 
     @Override
+    public void create() {
+
+        super.create();
+    }
+
+    @Override
     protected void hurtPlayer(Vector2 tmpVector) {
 
-        requestAnimation(BiteAnimation, () -> ((Scene) host).damage(attackDamage, tmpVector, getPosition().x + (!flip() ? getSize().x / 2.0f : -getSize().x / 2.0f), getPosition().y, getSize().x, getSize().y, Snake.this));
+        requestAnimation(BiteAnimation, () -> ((Scene) host).damage(attackDamage, tmpVector, position.x + (!flip() ? size.x / 2.0f : -size.x / 2.0f), position.y, size.x, size.y, Snake.this));
     }
 
     @Override
     protected void noticedPlayer(Vector2 direction) {}
 
     @Override
-    public void draw(SpriteBatch batch, Vector2 position, Vector2 size) {
+    public void draw(SpriteBatch batch) {
 
-        super.draw(batch, position, size);
+        super.draw(batch);
 
         if (Game.DebubDraw) {
 

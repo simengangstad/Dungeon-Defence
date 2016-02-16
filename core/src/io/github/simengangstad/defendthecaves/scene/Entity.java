@@ -6,12 +6,12 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.math.Vector3;
 import io.github.simengangstad.defendthecaves.Callback;
 import io.github.simengangstad.defendthecaves.Game;
-import io.github.simengangstad.defendthecaves.components.Drawable;
-import io.github.simengangstad.defendthecaves.components.GameObject;
+import io.github.simengangstad.defendthecaves.scene.entities.Player;
 import io.github.simengangstad.defendthecaves.scene.item.Potion;
-import jdk.nashorn.internal.codegen.CompilerConstants;
+import io.github.simengangstad.defendthecaves.scene.item.Shield;
 
 import java.util.ArrayList;
 
@@ -23,53 +23,85 @@ import java.util.ArrayList;
  */
 public abstract class Entity extends Collidable {
 
+    /**
+     * The inventory of the entity.
+     */
+    protected Inventory inventory = new Inventory(new Vector2(0.0f, 0.0f), new Vector2(600.0f, 400.0f), 6, 4);
+
+    /**
+     * Reference to the item the entity is currently holding.
+     */
+    private int currentItemPointer = 0;
+
+    /**
+     * The current item.
+     */
+    protected Item currentItem = null;
+
+    /**
+     * The maximum health an entity can have.
+     */
     public static final int MaxHealth = 100;
 
-    // Inventory
-
-    public Inventory inventory = null;
-
-
-    // Weapons
-
-    protected final ArrayList<Tool> tools = new ArrayList<>();
-
-    protected Tool currentTool = null;
-
-    private float IntervalBetweenInteractions = 0.25f;
-
-    private float timeLeftBeforeBeginAbleToInteract = 0.0f;
-
-    protected boolean raiseTool = false;
-
-
-    // Properties
-
+    /**
+     * The current health of the item.
+     */
     public int health = MaxHealth;
 
+    /**
+     * Pixels/second.
+     */
+    public int speed = 300;
 
-    // Taking damage
+    /**
+     * The interval between the interactions of item. This can be the attack of a weapon or throwing a stone.
+     */
+    private float IntervalBetweenInteractions = 0.25f;
 
+    /**
+     * This is the time left before the entity can interact again.
+     */
+    private float timeLeftBeforeBeginAbleToInteract = 0.0f;
+
+    /**
+     * If the entity shall raise the item because of the running (going up and down).
+     */
+    protected boolean raiseItem = false;
+
+    /**
+     * The time damage affects the entity.
+     */
     private final float DamageTime = 0.4f;
 
+    /**
+     * The time left of taking damage.
+     */
     private float timeLeftOfTakingDamage = 0.0f;
 
-
-    // Paralysis which happens after the entity has taken damage
-
+    /**
+     * The time paralysis affects the entity.
+     */
     private float TimeParalyzed = 0.5f;
 
+    /**
+     * The time left of paralysis.
+     */
     private float timeLeftOfParalysis = 0;
 
-
-    // Variables relating the flicker overlay once taken damage.
-
+    /**
+     * The uniform location of the flickering variable.
+     */
     private static int uniformLocation = -1;
 
+    /**
+     * The amount of flickers the entity experiences once taken damage.
+     */
     private final int AmountOfFlickers = 3;
 
+    /**
+     * The time betweeen flickers.
+     */
     private final float FlickersInterval = DamageTime / (AmountOfFlickers * 2);
-
 
     /**
      * The animation when the movable entity is standing still.
@@ -107,7 +139,7 @@ public abstract class Entity extends Collidable {
     protected TextureRegion currentTextureRegion;
 
     /**
-     * The state time.
+     * The state time for animation.
      */
     protected float stateTime = 0.0f;
 
@@ -116,65 +148,128 @@ public abstract class Entity extends Collidable {
      */
     private TextureRegion shadow = new TextureRegion(Game.SpriteSheet, 0, 80, Game.SizeOfTileInPixelsInSpritesheet, Game.SizeOfTileInPixelsInSpritesheet);
 
-    public int speed = 300;
-
-    // Leap
-
-    private float LeapDuation = 0.3f, timeLeftOfLeap = 0.0f;
-
-    protected TextureRegion leapTextureRegion;
-
-
-    private Vector2 tmpVector = new Vector2();
-
-
+    /**
+     * The callback that gets fired after a requested animation has finished. See {@link Entity#requestAnimation(Animation, Callback)}
+     */
     private Callback requestedAnimationCallback;
 
+    /**
+     * Speech bubble that is used for the entity to say messages.
+     */
+    private SpeechBubble speechBubble = new SpeechBubble();
+
+    /**
+     * The time the speech bubble is visible for.
+     */
+    private float speechBubbleVisibilityDuration = 0.0f;
 
     /**
      * Initializes the movable entity with a position, size and the locaitons for the animations.
      */
     public Entity(Vector2 position, Vector2 size, Animation stationaryAnimation, Animation movingAnimation) {
 
-        super(position, size);
+        this.position.set(position);
+        this.size.set(size);
 
         this.stationaryAnimation = stationaryAnimation;
         this.movingAnimation = movingAnimation;
 
         currentTextureRegion = stationaryAnimation.getKeyFrame(stateTime, true);
         currentAnimation = stationaryAnimation;
+
+        speechBubble.setWidth(200.0f);
+        speechBubble.setVisible(false);
     }
 
-    public void leap() {
+    @Override
+    public void create() {
 
-        if (timeLeftOfLeap == 0.0f) {
+        host.stage.addActor(speechBubble);
+    }
 
-            timeLeftOfLeap = LeapDuation;
+    /**
+     * Displays a speech bubble with the given text for the given duration.
+     */
+    public void displayMessage(String message, float duration) {
+
+        displayMessage(message);
+
+        speechBubbleVisibilityDuration = duration;
+    }
+
+    /**
+     * Displays a speech bubble with the given text until commanded not to
+     */
+    public void displayMessage(String message) {
+
+        if (speechBubbleVisibilityDuration != 0.0f) {
+
+            return;
+        }
+
+        speechBubble.setText(message);
+        speechBubble.setVisible(true);
+    }
+
+    /**
+     * Hides the speech bubble.
+     */
+    public void hideMessage() {
+
+        speechBubble.setVisible(false);
+    }
+
+    /**
+     * Adds an item to the inventory.
+     */
+    public void addItem(Item item) {
+
+        inventory.placeItem(item);
+
+        item.parent = this;
+        item.map = map;
+
+        item.create();
+    }
+
+    /**
+     * Adds an item at the given location inside the inventory.
+     */
+    public void addItemAtLocation(int x, int y, Item item) {
+
+        inventory.placeItem(x, y, item);
+
+        item.parent = this;
+        item.map = map;
+
+        item.create();
+
+        if (x == (inventory.columns - 2) + currentItemPointer && y == 0) {
+
+            currentItem = item;
         }
     }
 
     /**
-     * Shuffles the tool so that the next tool in the tool list becomes the current one.
+     * Obtains the item at the given location.
      */
-    public void shuffleTool() {
+    public Item obtainItem(int x, int y) {
 
-        currentTool = tools.get((tools.indexOf(currentTool) + 1) % tools.size());
+        Item item = inventory.obtainItem(x, y, 1).get(0);
+
+        item.parent = null;
+
+        return item;
     }
 
-    public void attachTool(Tool tool) {
+    /**
+     * Shuffles the item in hand.
+     */
+    public void shuffleItem() {
 
-        tools.add(tool);
+        currentItemPointer = (currentItemPointer + 1) % 2;
 
-        tool.parent = this;
-
-        currentTool = tool;
-    }
-
-    public void detachTool(Tool tool) {
-
-        tools.remove(tool);
-
-        tool.parent = null;
+        System.out.println("Set current pointer for current item to: " + ((inventory.columns - 2) + currentItemPointer));
     }
 
     public void interact(Vector2 interactionDirection) {
@@ -183,7 +278,7 @@ public abstract class Entity extends Collidable {
 
             timeLeftBeforeBeginAbleToInteract = IntervalBetweenInteractions;
 
-            currentTool.interact(interactionDirection);
+            if (currentItem != null) currentItem.interact(interactionDirection);
         }
     }
 
@@ -229,13 +324,11 @@ public abstract class Entity extends Collidable {
 
                 for (Item item : inventory.obtainItem(x, y, inventory.getItemList(x, y).size())) {
 
-                    item.getPosition().set(getPosition());
+                    item.position.set(position);
 
-                    force.set(MathUtils.random(-1, 1), MathUtils.random(-1, 1));
+                    force.set(MathUtils.random(-1, 1), 1.0f);
 
-                    force.scl(Map.TileSizeInPixelsInWorldSpace);
-
-                    item.applyForce(force);
+                    item.applyForce(force, true, 0.5f);
 
                     host.addGameObject(item);
                 }
@@ -267,6 +360,40 @@ public abstract class Entity extends Collidable {
 
         super.tick();
 
+        if (speechBubble.isVisible()) {
+
+            Vector3 vector = Game.vector3Pool.obtain();
+
+            vector.set(position.x, position.y, 0.0f);
+
+            ((Scene) host).player.camera.project(vector, 0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+
+            speechBubble.setPosition(vector.x + Game.EntitySize / 2.0f, vector.y + Game.EntitySize / 2.0f);
+
+            Game.vector3Pool.free(vector);
+
+            if (0.0f < speechBubbleVisibilityDuration) {
+
+                speechBubbleVisibilityDuration -= Gdx.graphics.getDeltaTime();
+
+                if (speechBubbleVisibilityDuration < 1.0f) {
+
+                    speechBubble.setColor(1.0f, 1.0f, 1.0f, Math.max(0.0f, speechBubbleVisibilityDuration));
+                }
+            }
+            else if (speechBubbleVisibilityDuration < 0.0f) {
+
+                speechBubble.setVisible(false);
+
+                speechBubbleVisibilityDuration = 0.0f;
+            }
+            else {
+
+                speechBubble.setColor(1.0f, 1.0f, 1.0f, 1.0f);
+            }
+        }
+
+
         if (delta.x != 0.0f || delta.y != 0.0f) {
 
             if (currentAnimation != movingAnimation) {
@@ -294,7 +421,7 @@ public abstract class Entity extends Collidable {
                 goingBackwards = false;
             }
 
-            if (map.resolveCollision(getPosition(), delta, speed)) {
+            if (map.resolveCollision(position, delta, speed)) {
 
                 collides();
             }
@@ -341,20 +468,7 @@ public abstract class Entity extends Collidable {
             }
         }
 
-        if (timeLeftOfLeap == 0.0f) {
-
-            currentTextureRegion = currentAnimation.getKeyFrame(stateTime, true);
-        }
-        else if (0.0f < timeLeftOfLeap) {
-
-            timeLeftOfLeap -= Gdx.graphics.getDeltaTime();
-
-            currentTextureRegion = leapTextureRegion;
-        }
-        else {
-
-            timeLeftOfLeap = 0.0f;
-        }
+        currentTextureRegion = currentAnimation.getKeyFrame(stateTime, true);
 
         delta.set(0.0f, 0.0f);
 
@@ -376,7 +490,14 @@ public abstract class Entity extends Collidable {
             timeLeftBeforeBeginAbleToInteract = 0.0f;
         }
 
-        if (currentTool != null) currentTool.tick();
+        ArrayList<Item> list = inventory.getItemList((inventory.columns - 2) + currentItemPointer, 0);
+
+        if (0 < list.size()) {
+
+            currentItem = list.get(list.size() - 1);
+
+            currentItem.tick();
+        }
     }
 
     /**
@@ -384,20 +505,17 @@ public abstract class Entity extends Collidable {
      */
     protected abstract void collides();
 
-    @Override
     public boolean flip() {
 
         return !facingRight;
     }
 
-    @Override
     public TextureRegion getTextureRegion() {
 
         return currentTextureRegion;
     }
 
-    @Override
-    public void draw(SpriteBatch batch, Vector2 position, Vector2 size) {
+    public void draw(SpriteBatch batch) {
 
         // Set the uniform location of the white overlay if not previous set.
         if (uniformLocation == -1) uniformLocation = batch.getShader().getUniformLocation("u_flash");
@@ -426,9 +544,20 @@ public abstract class Entity extends Collidable {
 
         batch.draw(getTextureRegion(), position.x - size.x / 2.0f, position.y - size.y / 2.0f, size.x, size.y);
 
-        tmpVector.set(position.x - size.x / 2.0f, position.y - size.y / 2.0f);
+        if (currentItem != null) {
 
-        if (currentTool != null) currentTool.draw(batch, tmpVector, size);
+            if (currentItem instanceof Weapon || currentItem instanceof Shield) {
+
+                currentItem.position.set(position.x - size.x / 2.0f, position.y - size.y / 2.0f);
+            }
+            else {
+
+                currentItem.position.set(position.x, position.y);
+            }
+
+
+            currentItem.draw(batch);
+        }
 
         // We reset so that the overlay is only applied to this entity.
         if (0.0f < timeLeftOfTakingDamage && (int) (timeLeftOfTakingDamage / FlickersInterval) % 2 == 1) {

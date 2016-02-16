@@ -1,8 +1,7 @@
-package io.github.simengangstad.defendthecaves.scene.tool;
+package io.github.simengangstad.defendthecaves.scene.item;
 
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
-import com.badlogic.gdx.math.Vector2;
 import io.github.simengangstad.defendthecaves.Callback;
 import io.github.simengangstad.defendthecaves.Game;
 import io.github.simengangstad.defendthecaves.scene.RotatableWeapon;
@@ -13,11 +12,9 @@ import io.github.simengangstad.defendthecaves.scene.RotatableWeapon;
  */
 public class Cudgel extends RotatableWeapon {
 
-    public Cudgel(Callback interactionCallback) {
+    private static TextureRegion[] textureRegions = new TextureRegion[5], attackTextureRegions = new TextureRegion[11];
 
-        super(10, 0.35f, interactionCallback, -45, 45);
-
-        TextureRegion[] textureRegions = new TextureRegion[5];
+    static {
 
         int index = 0;
 
@@ -28,8 +25,6 @@ public class Cudgel extends RotatableWeapon {
             index++;
         }
 
-        TextureRegion[] attackTextureRegions = new TextureRegion[11];
-
         index = 0;
 
         for (int x = 160; x < 160 + 32 * attackTextureRegions.length; x += 32) {
@@ -38,21 +33,22 @@ public class Cudgel extends RotatableWeapon {
 
             index++;
         }
+    }
 
-        setTextures(textureRegions, attackTextureRegions);
+    public Cudgel(Callback interactionCallback) {
 
-        size.set(120, 100);
+        super(10, 0.35f, interactionCallback, -45, 45, textureRegions, attackTextureRegions);
+
+        size.set(Game.EntitySize, Game.EntitySize);
     }
 
     @Override
-    public void draw(SpriteBatch batch, Vector2 position, Vector2 size) {
-
-        super.draw(batch, position, size);
+    public void draw(SpriteBatch batch) {
 
         float xDelta;
         float yDelta = -size.y / 2.0f - (size.y / 16) * 2;
 
-        if (flip) {
+        if (!flip()) {
 
             getTextureRegion().flip(true, false);
 
@@ -63,9 +59,9 @@ public class Cudgel extends RotatableWeapon {
             xDelta = -size.x / 2.0f + (size.x / 16) * 6;
         }
 
-        batch.draw(getTextureRegion(), position.x + xDelta + offset.x, position.y + yDelta + offset.y, size.x * 2, size.y * 2);
+        batch.draw(getTextureRegion(), position.x + xDelta, position.y + yDelta + walkingOffset, size.x * 2, size.y * 2);
 
-        if (flip) {
+        if (!flip()) {
 
             getTextureRegion().flip(true, false);
         }

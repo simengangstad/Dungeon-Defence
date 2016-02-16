@@ -5,10 +5,9 @@ import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Vector2;
 import io.github.simengangstad.defendthecaves.Callback;
-import io.github.simengangstad.defendthecaves.components.Drawable;
 import io.github.simengangstad.defendthecaves.components.GameObject;
 import io.github.simengangstad.defendthecaves.scene.entities.Player;
-import io.github.simengangstad.defendthecaves.scene.tool.Shield;
+import io.github.simengangstad.defendthecaves.scene.item.Shield;
 
 import java.util.List;
 
@@ -16,7 +15,7 @@ import java.util.List;
  * @author simengangstad
  * @since 30/01/16
  */
-public class Projectile extends GameObject implements Drawable {
+public class Projectile extends GameObject {
 
     private final Animation projectingAnimation, impactAnimation;
 
@@ -42,7 +41,8 @@ public class Projectile extends GameObject implements Drawable {
 
     public Projectile(Vector2 position, Vector2 size, Vector2 velocity, Animation projectingAnimation, Animation impactAnimation, Map map, List<GameObject> gameObjectList, Class avoidable) {
 
-        super(position, size);
+        this.position.set(position);
+        this.size.set(size);
 
         this.velocity = velocity;
 
@@ -61,6 +61,11 @@ public class Projectile extends GameObject implements Drawable {
     }
 
     @Override
+    public void create() {
+
+    }
+
+    @Override
     public TextureRegion getTextureRegion() {
 
         return currentTextureRegion;
@@ -73,7 +78,7 @@ public class Projectile extends GameObject implements Drawable {
         if (velocity.x != 0.0f || velocity.y != 0.0f) {
 
             // Check the collision of the projectile against the map
-            if (map.retrieveCollisionPoint(getPosition(), tmp, 1000, tmpCollisionPoint)) {
+            if (map.retrieveCollisionPoint(position, tmp, 1000, tmpCollisionPoint)) {
 
                 if (!colliding) {
 
@@ -103,7 +108,7 @@ public class Projectile extends GameObject implements Drawable {
                                 velocity.set(0.0f, 0.0f);
                             }
 
-                            if (gameObject instanceof Player && ((Player) gameObject).currentTool instanceof Shield && ((Player) gameObject).currentTool.flip() != flip) {
+                            if (gameObject instanceof Player && ((Player) gameObject).currentItem instanceof Shield && ((Player) gameObject).currentItem.flip() != flip) {
 
                                 return;
                             }

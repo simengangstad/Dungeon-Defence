@@ -21,3 +21,4 @@
 
 - [ ] Display properties of entities
 - [ ] Add different types of loot
+- [ ] Implement craft system

@@ -1,25 +1,16 @@
 package io.github.simengangstad.defendthecaves.scene;
 
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.Input;
-import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
 import io.github.simengangstad.defendthecaves.Container;
 import io.github.simengangstad.defendthecaves.Game;
-import io.github.simengangstad.defendthecaves.components.Drawable;
 import io.github.simengangstad.defendthecaves.components.GameObject;
-import io.github.simengangstad.defendthecaves.gui.KeyButton;
-import io.github.simengangstad.defendthecaves.gui.View;
 import io.github.simengangstad.defendthecaves.pathfinding.PathfindingGrid;
 import io.github.simengangstad.defendthecaves.procedural.MapGenerator;
 import io.github.simengangstad.defendthecaves.scene.entities.*;
-import io.github.simengangstad.defendthecaves.scene.item.Chemical;
-import io.github.simengangstad.defendthecaves.scene.item.Key;
-import io.github.simengangstad.defendthecaves.scene.item.Potion;
-import io.github.simengangstad.defendthecaves.scene.tool.Cudgel;
-import io.github.simengangstad.defendthecaves.scene.tool.Shield;
+import io.github.simengangstad.defendthecaves.scene.item.*;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -62,19 +53,9 @@ public class Scene extends Container {
     private ArrayList<Key> keys = new ArrayList<>();
 
     /**
-     * The container which displays the inventory of the player.
-     */
-    private Container inventoryFrame = new Container();
-
-    /**
-     * The container which displays the different interaction widgets and the labels for the scene.
-     */
-    private Container widgetFrame = new Container();
-
-    /**
      * A button, this will be renamed later.
      */
-    private KeyButton button;
+    //private KeyButton button;
 
     /**
      * The maximum amount one can zoom out of the map.
@@ -91,11 +72,15 @@ public class Scene extends Container {
      */
     public Scene(Player player) {
 
+        super();
+
+        // TODO: Why must we do this here as well???
+        Gdx.input.setInputProcessor(inputMultiplexer);
+
         this.player = player;
 
         initialiseMap();
-        initialiseWidgetFrame();
-        initialiseInventoryFrame();
+        //initialiseWidgetFrame();
 
         ShaderProgram shaderProgram = new ShaderProgram(Gdx.files.internal("assets/shaders/shader.vs"), Gdx.files.internal("assets/shaders/shader.fs"));
 
@@ -107,31 +92,7 @@ public class Scene extends Container {
         batch.setShader(shaderProgram);
     }
 
-    private void initialiseInventoryFrame() {
-
-        int width = 700, height = 400;
-
-        View inventoryView = new View(new Vector2(Gdx.graphics.getWidth() / 2 - width / 2, Gdx.graphics.getHeight() / 2 - height / 2), new Vector2(width, height));
-
-        width = 500;
-        height = 300;
-
-        player.inventory = new Inventory(
-
-                new Vector2(inventoryView.getSize().x / 2 - width / 2, inventoryView.getSize().y / 2 - height / 2),
-                new Vector2(width, height),
-                6,
-                4,
-                new TextureRegion(Game.SpriteSheet, 80, 160, 16, 16),
-                new TextureRegion(Game.SpriteSheet, 96, 160, 16, 16)
-        );
-
-        player.inventory.placeItem(keys.get(keys.size() - 1));
-
-        inventoryView.addSubview(player.inventory);
-        inventoryFrame.addGameObject(inventoryView);
-    }
-
+    /*
     private void initialiseWidgetFrame() {
 
         button = new KeyButton(new Vector2(), new Vector2(32, 32), new TextureRegion(Game.GUISheet, 0, 0, 16, 16), Input.Keys.G) {
@@ -158,7 +119,7 @@ public class Scene extends Container {
         button.visible = false;
 
         widgetFrame.addGameObject(button);
-    }
+    }*/
 
     /**
      * Adds random loot to a room. The total amount of added loot will be
@@ -177,9 +138,9 @@ public class Scene extends Container {
 
             Vector2 position = new Vector2(
 
-                    MathUtils.random(room.centreX - (room.width - 2) / 2 + 0.5f, room.centreX + (room.width - 2) / 2 - 0.5f),
-                    MathUtils.random(room.centreY - (room.height - 2) / 2 + 0.5f, room.centreY + (room.height - 2) / 2 - 0.5f)
-            );
+                    MathUtils.random((float) (room.centreX - Math.floor((room.width - 2) / 2.0f) + 0.5f), (float) (room.centreX + Math.ceil((room.width - 2) / 2.0f) - 0.5f)),
+                    MathUtils.random((float) (room.centreY - Math.floor((room.height - 2) / 2.0f) + 0.5f), (float) (room.centreY + Math.ceil((room.height - 2) / 2.0f) - 0.5f))
+            ).scl(Map.TileSizeInPixelsInWorldSpace);
 
             if (i < requiredItems.length) {
 
@@ -187,10 +148,7 @@ public class Scene extends Container {
             }
             else {
 
-                Potion potion = new Potion(position,
-
-                        new Vector2(Game.PotionSize, Game.PotionSize)
-                );
+                Potion potion = new Potion(position);
 
                 for (int j = 0; j < MathUtils.random(1, 5); j++) {
 
@@ -200,10 +158,9 @@ public class Scene extends Container {
                 itemToAdd = potion;
             }
 
-            System.out.println("Placing random loot (" + itemToAdd + ") at position: " + position + " inside room: " + room);
+            System.out.println("Placing random loot (" + itemToAdd + ") at position: " + "(" + (position.x / Map.TileSizeInPixelsInWorldSpace) + ", " + (position.y / Map.TileSizeInPixelsInWorldSpace) + ")" + " inside room: " + room);
 
-            position.scl(Map.TileSizeInPixelsInWorldSpace);
-
+            itemToAdd.position.set(position);
             itemToAdd.setMap(map);
 
             addGameObject(itemToAdd);
@@ -214,14 +171,11 @@ public class Scene extends Container {
 
     private void initialiseMap() {
 
-        map = new Map(25, 25, 5, 3, 15, 162, player.getSize(), 1, 3);
+        map = new Map(30, 30, 7, 5, 11, 453123123, player.size, 1, 3);
 
         pathfindingGrid = new PathfindingGrid(map.getWidth(), map.getHeight());
 
         updatePathfindingGrid();
-
-        player.host = this;
-        player.setMap(map);
 
         addGameObject(player);
 
@@ -239,24 +193,30 @@ public class Scene extends Container {
 
         while (!spawnPositionFound) {
 
-            for (int x = 0; x < map.getWidth(); x++) {
+            for (MapGenerator.Room room : map.getRooms()) {
 
-                for (int y = 0; y < map.getHeight(); y++) {
+                if (!room.isLocked()) {
 
-                    if (!map.isSolid(x, y) && MathUtils.random(100) < 50) {
+                    for (int x = room.centreX - ((room.width - 2) / 2); x < room.centreX + ((room.width - 2) / 2); x++) {
 
-                        player.getPosition().set(x * map.TileSizeInPixelsInWorldSpace + player.getSize().x / 2.0f, y * map.TileSizeInPixelsInWorldSpace + player.getSize().y / 2.0f);
-                        player.updateCameraPosition();
+                        for (int y = room.centreY - ((room.height - 2) / 2); y < room.centreY + ((room.height - 2) / 2); y++) {
 
-                        spawnPositionFound = true;
+                            if (!map.isSolid(x, y) && MathUtils.random(100) < 50) {
 
-                        break;
+                                player.position.set(x * map.TileSizeInPixelsInWorldSpace + player.size.x / 2.0f, y * map.TileSizeInPixelsInWorldSpace + player.size.y / 2.0f);
+                                player.updateCameraPosition();
+
+                                spawnPositionFound = true;
+
+                                break;
+                            }
+                        }
+
+                        if (spawnPositionFound) {
+
+                            break;
+                        }
                     }
-                }
-
-                if (spawnPositionFound) {
-
-                    break;
                 }
             }
         }
@@ -317,7 +277,6 @@ public class Scene extends Container {
 
                     enemyToAdd = new HumanLikeEnemy(positionOfEnemy, new Vector2(Game.EntitySize, Game.EntitySize), 6, player);
 
-                    enemyToAdd.attachTool(new Cudgel(() -> {}));
 
                     break;
 
@@ -334,23 +293,18 @@ public class Scene extends Container {
                     break;
             }
 
-            enemyToAdd.inventory = new Inventory(null, null, 6, 4, null, null);
-
-            Potion potion = new Potion(position,
-
-                    new Vector2(Game.PotionSize, Game.PotionSize)
-            );
+            Potion potion = new Potion(position);
 
             for (int j = 0; j < MathUtils.random(1, 5); j++) {
 
                 potion.addChemical(new Chemical());
             }
 
-            enemyToAdd.inventory.placeItem(potion);
+            enemyToAdd.addItem(potion);
 
             if (!keys.isEmpty()) {
 
-                //enemyToAdd.inventory.placeItem(keys.get(keys.size() - 1));
+                enemyToAdd.addItem(keys.get(keys.size() - 1));
             }
 
             enemiesAtHold.get(barrier).add(enemyToAdd);
@@ -368,23 +322,18 @@ public class Scene extends Container {
         }
     }
 
-    /**
-     * Updates the viewport and the projection matrix of the player's camera.
-     */
-    public void updateMatrices() {
+    @Override
+    public void resize(int width, int height) {
+
+        super.resize(width, height);
 
         player.camera.viewportWidth = Gdx.graphics.getWidth();
         player.camera.viewportHeight = Gdx.graphics.getHeight();
         player.camera.update();
-
-        widgetFrame.setProjectionMatrix(widgetFrame.getProjectionMatrix().setToOrtho(0.0f, Gdx.graphics.getWidth(), 0.0f, Gdx.graphics.getHeight(), -1.0f, 1.0f));
-        inventoryFrame.setProjectionMatrix(inventoryFrame.getProjectionMatrix().setToOrtho(0.0f, Gdx.graphics.getWidth(), 0.0f, Gdx.graphics.getHeight(), -1.0f, 1.0f));
     }
 
     @Override
     public void addGameObject(GameObject gameObject) {
-
-        super.addGameObject(gameObject);
 
         if (gameObject instanceof Collidable) {
 
@@ -394,7 +343,10 @@ public class Scene extends Container {
         if (gameObject instanceof Item) {
 
             ((Item) gameObject).toggleTimer();
+            ((Item) gameObject).setMap(map);
         }
+
+        super.addGameObject(gameObject);
     }
 
     @Override
@@ -436,9 +388,9 @@ public class Scene extends Container {
                     continue;
                 }
 
-                if (intersect(x, y, width, height, entity.getPosition().x, entity.getPosition().y, entity.getSize().x, entity.getSize().y)) {
+                if (intersect(x, y, width, height, entity.position.x, entity.position.y, entity.size.x, entity.size.y)) {
 
-                    if (entity.currentTool instanceof Shield && entity.flip() != excludable.flip()) {
+                    if (entity.currentItem instanceof Shield && entity.flip() != excludable.flip()) {
 
                         break;
                     }
@@ -447,7 +399,7 @@ public class Scene extends Container {
 
                     entity.paralyse();
 
-                    entity.applyForce(attackDirection.nor().scl(7.5f));
+                    entity.applyForce(attackDirection.nor().scl(3.0f), false, 0.0f);
 
                     System.out.println("Damage applied to entity: " + entity + " - current health: " + entity.health);
 
@@ -581,11 +533,11 @@ public class Scene extends Container {
 
         batch.begin();
 
-        map.playerPosition = player.getPosition();
+        map.playerPosition = player.position;
 
         map.draw(batch, scaleFactor);
 
-        player.draw(batch, player.getPosition(), player.getSize());
+        player.draw(batch);
 
         for (Iterator<GameObject> iterator = gameObjects.iterator(); iterator.hasNext();) {
 
@@ -593,12 +545,9 @@ public class Scene extends Container {
 
             gameObject.tick();
 
-            if (gameObject instanceof Drawable) {
+            if (!(gameObject instanceof Player)) {
 
-                if (!(gameObject instanceof Player)) {
-
-                    ((Drawable) gameObject).draw(batch, gameObject.getPosition(), gameObject.getSize());
-                }
+                gameObject.draw(batch);
             }
 
             if (gameObject instanceof Entity) {
@@ -628,14 +577,14 @@ public class Scene extends Container {
 
                     for (Barrier barrier : barriers) {
 
-                        tmp.set(gameObject.getPosition().x - barrier.position.x * Map.TileSizeInPixelsInWorldSpace, gameObject.getPosition().y - barrier.position.y * Map.TileSizeInPixelsInWorldSpace);
+                        tmp.set(gameObject.position.x - barrier.position.x * Map.TileSizeInPixelsInWorldSpace, gameObject.position.y - barrier.position.y * Map.TileSizeInPixelsInWorldSpace);
 
                         if (tmp.len() / Map.TileSizeInPixelsInWorldSpace < distanceToBarrierInOrderToRebuild && barrier.getState() < barrier.TimeToDemolishBarrier) {
 
                             closeToBarrier = true;
 
                             closestsBarrier = barrier;
-                            button.visible = true;
+                            //button.visible = true;
 
                             break;
                         }
@@ -644,7 +593,7 @@ public class Scene extends Container {
                     if (!closeToBarrier) {
 
                         closestsBarrier = null;
-                        button.visible = false;
+                        //button.visible = false;
                     }
                 }
             }
@@ -658,13 +607,13 @@ public class Scene extends Container {
 
                         Entity entity = ((Entity) gameObjectToCheckAgainst);
 
-                        float length = map.lengthBetweenCoordinates(item.getPosition(), entity.getPosition());
+                        float length = map.lengthBetweenCoordinates(item.position, entity.position);
 
                         if (length < 0.5) {
 
                             item.forceApplied.set(0.0f, 0.0f);
 
-                            //System.out.println("Item timer: " + item.getTimer());
+                            System.out.println("Item timer: " + item.getTimer());
 
                             if (item.getTimer() > 0.75f) {
 
@@ -680,9 +629,16 @@ public class Scene extends Container {
 
                             if (entity.inventory.sufficientPlaceForItem(item) && item.forceApplied.x == 0.0f && item.forceApplied.y == 0.0f) {
 
-                                System.out.println("Applying force to item: " + item);
+                                System.out.println("Item (" + item + ") in range of entity (" + entity + "), applying force.");
 
-                                item.applyForce(entity.getPosition().cpy().sub(item.getPosition()).scl(2.0f));
+                                Vector2 vector = Game.vector2Pool.obtain();
+
+                                vector.set(entity.position).sub(item.position);
+                                vector.scl(0.05f);
+
+                                item.applyForce(vector, false, 0.0f);
+
+                                Game.vector2Pool.free(vector);
                             }
                         }
                     }
@@ -692,8 +648,11 @@ public class Scene extends Container {
 
         batch.end();
 
+        stage.act();
+        stage.draw();
+/*
         widgetFrame.tick();
-        inventoryFrame.tick();
+        inventoryFrame.tick();*/
     }
 
     private int distanceToBarrierInOrderToRebuild = 2;

@@ -1,6 +1,5 @@
 package io.github.simengangstad.defendthecaves.desktop;
 
-import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.backends.lwjgl.LwjglApplication;
 import com.badlogic.gdx.backends.lwjgl.LwjglApplicationConfiguration;
 import io.github.simengangstad.defendthecaves.Game;
