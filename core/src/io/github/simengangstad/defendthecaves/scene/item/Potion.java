@@ -42,6 +42,8 @@ public class Potion extends Item {
 
             this.chemicals.add(chemical);
         }
+
+        information = "Potion bottle with funky liquid\nStability: " + stability + "\nToxicity: " + toxicity + "\nFlammability: " + flammability;
     }
 
     private int clampValue(int value) {

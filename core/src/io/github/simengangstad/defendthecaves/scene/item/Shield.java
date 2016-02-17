@@ -17,6 +17,8 @@ public class Shield extends Item {
     public Shield() {
 
         super(new Vector2(), new Vector2(Game.EntitySize, Game.EntitySize), textureRegion, false);
+
+        information = "Arr, yeah, this'll protect me";
     }
 
     @Override

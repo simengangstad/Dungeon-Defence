@@ -23,7 +23,7 @@ public class SpeechBubble extends Table {
         setStyle(Game.UISkin.get(SpeechBubbleStyle.class));
     }
 
-    public void setText(String text) {
+    public void setText(CharSequence text) {
 
         label.setText(text);
 
@@ -32,6 +32,11 @@ public class SpeechBubble extends Table {
 
     @Override
     public void draw(Batch batch, float parentAlpha) {
+
+        if (!isVisible()) {
+
+            return;
+        }
 
         label.setX(getX() + (getWidth() / style.background.getMinWidth()) * 1);
         label.setWidth(getWidth() - (getWidth() / style.background.getMinWidth()) * 1 * 2);

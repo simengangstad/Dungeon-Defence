@@ -41,6 +41,8 @@ public class Axe extends RotatableWeapon {
         super(50, 0.225f, interactionCallback, -45, 45, textureRegions, attackTextureRegions);
 
         size.set(Game.EntitySize, Game.EntitySize);
+
+        information = "A dwarf's deerest friend\nAttack damage: " + attackDamage;
     }
 
     @Override

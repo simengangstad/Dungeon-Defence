@@ -7,7 +7,6 @@ import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
-import com.badlogic.gdx.scenes.scene2d.ui.Slider;
 import io.github.simengangstad.defendthecaves.Callback;
 import io.github.simengangstad.defendthecaves.Game;
 import io.github.simengangstad.defendthecaves.scene.gui.HealthBar;
@@ -29,7 +28,7 @@ public abstract class Entity extends Collidable {
     /**
      * The inventory of the entity.
      */
-    protected Inventory inventory = new Inventory(new Vector2(0.0f, 0.0f), new Vector2(600.0f, 400.0f), 6, 4);
+    protected Inventory inventory = new Inventory(new Vector2(0.0f, 0.0f), new Vector2(300.0f, 400.0f), 3, 4);
 
     /**
      * Reference to the item the entity is currently holding.

@@ -40,6 +40,8 @@ public class Cudgel extends RotatableWeapon {
         super(10, 0.35f, interactionCallback, -45, 45, textureRegions, attackTextureRegions);
 
         size.set(Game.EntitySize, Game.EntitySize);
+
+        information = "Filth's weapon\nAttack damage: " + attackDamage;
     }
 
     @Override

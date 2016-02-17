@@ -29,7 +29,7 @@ public class Inventory extends Table {
     /**
      * The dimension of the inventory.
      */
-    public final int columns, rows;
+    public int columns, rows;
 
     /**
      * The items in the inventory.
@@ -44,12 +44,12 @@ public class Inventory extends Table {
     /**
      * The item which the user is currently intercting with.
      */
-    private Item currentItem = null;
+    protected Item currentItem = null;
 
     /**
      * Reference to the position the {@link Inventory#currentItem} was placed at.
      */
-    private int lastColumn = 0, lastRow = 0;
+    protected int lastColumn = 0, lastRow = 0;
 
     /**
      * The keys in the inventory.
@@ -59,7 +59,7 @@ public class Inventory extends Table {
     /**
      * The grafical style of the inventory; its background and slots..
      */
-    private InventoryStyle style;
+    protected InventoryStyle style;
 
     /**
      * Initialises the inventory with a origin and a size used for drawing the inventory.
@@ -82,6 +82,11 @@ public class Inventory extends Table {
         }
 
         setStyle(Game.UISkin.get(InventoryStyle.class));
+    }
+
+    public InventoryStyle getStyle() {
+
+        return style;
     }
 
     public void setStyle (InventoryStyle style) {
@@ -313,6 +318,8 @@ public class Inventory extends Table {
             return null;
         }
 
+        System.out.println("Before: " + items[x][y].size());
+
         ArrayList<Item> newItems = new ArrayList<>();
 
         if (items[x][y].size() <= amount) {
@@ -333,6 +340,8 @@ public class Inventory extends Table {
 
             keys--;
         }
+
+        System.out.println("After: " + items[x][y].size());
 
         return newItems;
     }

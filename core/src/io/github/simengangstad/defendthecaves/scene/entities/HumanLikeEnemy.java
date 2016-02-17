@@ -29,7 +29,7 @@ public class HumanLikeEnemy extends Enemy {
 
         super.create();
 
-        addItemAtLocation(4, 0, new Cudgel(() -> {}));
+        addItemAtLocation(1, 0, new Cudgel(() -> {}));
     }
 
     @Override

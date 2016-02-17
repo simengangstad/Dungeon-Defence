@@ -19,6 +19,8 @@ public class Key extends Item {
         super(position, new Vector2(Game.EntitySize, Game.EntitySize / 2.0f), new TextureRegion(Game.SpriteSheet, 0, 208, 16, 16), false);
 
         this.positionOfDoor = positionOfDoor;
+
+        information = "The key to glory " + this.hashCode();
     }
 
     @Override

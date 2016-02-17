@@ -16,6 +16,7 @@ import io.github.simengangstad.defendthecaves.scene.Entity;
 import io.github.simengangstad.defendthecaves.scene.Map;
 import io.github.simengangstad.defendthecaves.scene.RotatableWeapon;
 import io.github.simengangstad.defendthecaves.scene.TextureUtil;
+import io.github.simengangstad.defendthecaves.scene.gui.CraftingInventory;
 import io.github.simengangstad.defendthecaves.scene.item.*;
 
 import java.util.ArrayList;
@@ -60,8 +61,6 @@ public class Player extends Entity implements InputProcessor {
 
     private final Vector2 lastPositionMined = new Vector2().set(-1, -1);
 
-    private Potion potion = new Potion(new Vector2(0.0f, 0.0f));
-
     /**
      * Initializes the player with a camera.
      */
@@ -80,18 +79,17 @@ public class Player extends Entity implements InputProcessor {
 
         super.create();
 
+        inventory = new CraftingInventory(10);
+        inventory.setSize(650, 400);
+
         Axe axe = new Axe(() -> {});
 
-        addItemAtLocation(4, 0, new Shield());
-        addItemAtLocation(5, 0, axe);
+        addItemAtLocation(1, 0, new Shield());
+        addItemAtLocation(2, 0, axe);
 
         host.addInputProcessor(this);
 
         host.stage.addActor(inventory);
-
-        potion.setMap(map);
-
-        //addItem(potion);
     }
 
     @Override
@@ -291,7 +289,7 @@ public class Player extends Entity implements InputProcessor {
                     y = map.toTileCoordinate(position.y + tmpVec2.y * Map.TileSizeInPixelsInWorldSpace);
                 }
 
-                if (map.isSolid(x, y) && currentItem instanceof Axe) {
+                if (map.isSolid(x, y) && currentItem instanceof Axe && selectedSolid) {
 
                     if ((lastPositionMined.x != x || lastPositionMined.y != y) && (lastPositionMined.x != -1 && lastPositionMined.y != -1)) {
 
@@ -420,13 +418,6 @@ public class Player extends Entity implements InputProcessor {
 
             unlockButton.draw(batch, position, unlockButton.getSize());
         }
-*/
-        potion.position.x = flip() ? position.x - Game.EntitySize : position.x + Game.EntitySize;
-        potion.position.y = position.y;
-
-        /*
-        potion.tick();
-        potion.draw(batch);
 */
         batch.draw(mousePointerTextureRegion, tmpVec.x - (Map.TileSizeInPixelsInWorldSpace / 2.0f) / 2.0f, tmpVec.y - (Map.TileSizeInPixelsInWorldSpace / 2.0f) / 2.0f, (Map.TileSizeInPixelsInWorldSpace / 2.0f), (Map.TileSizeInPixelsInWorldSpace / 2.0f));
     }

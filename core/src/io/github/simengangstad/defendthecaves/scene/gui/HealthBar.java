@@ -25,7 +25,7 @@ public class HealthBar extends Table {
 
         this.max = max;
 
-        super.setSize(100.0f, 20.0f);
+        super.setSize(100.0f, 10.0f);
     }
 
     public void setStyle(HealthBarStyle style) {

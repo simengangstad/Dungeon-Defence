@@ -30,6 +30,8 @@ public class Rock extends Item {
         super(position, new Vector2(), textureRegions[MathUtils.random(textureRegions.length - 1)], true);
 
         this.size.set(80.0f, 80.0f);
+
+        information = "Plain ol' rocky";
     }
 
     @Override

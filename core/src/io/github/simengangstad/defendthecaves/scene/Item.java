@@ -21,6 +21,11 @@ public abstract class Item extends Collidable {
     protected Entity parent;
 
     /**
+     * The position of the item in an inventory.
+     */
+    public Vector2 inventoryPosition = new Vector2();
+
+    /**
      * The offset in y-direction of the item as the {@link Item#parent} is running whilst holding the item.
      */
     public float walkingOffset = 0.0f;
@@ -46,6 +51,11 @@ public abstract class Item extends Collidable {
     private float timer = 0;
 
     /**
+     * The information about the item.
+     */
+    protected String information = "";
+
+    /**
      * Initializes the item.
      */
     public Item(Vector2 position, Vector2 size, TextureRegion textureRegion, boolean stackable) {
@@ -68,6 +78,11 @@ public abstract class Item extends Collidable {
     public Entity getParent() {
 
         return parent;
+    }
+
+    public String getInformation() {
+
+        return information;
     }
 
     /**

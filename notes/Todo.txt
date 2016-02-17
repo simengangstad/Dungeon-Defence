@@ -64,10 +64,11 @@
 # 0009
 - [x] Display health of enemies
 
+# 0010
+- [x] Display properties of items in inventory
+- [x] Implement a label besides items in the inventory which tells the amount (if stackable)
 
 
 # To be implemented
-- [ ] Display properties of items in inventory
 - [ ] Implement craft system
-- [ ] Implement a label besides items in the inventory which tells the amount (if stackable)
 - [ ] Solve bug where the player sometimes ends up in rooms withuot entries.
