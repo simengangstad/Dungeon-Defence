@@ -161,7 +161,7 @@ public class Scene extends Container {
             System.out.println("Placing random loot (" + itemToAdd + ") at position: " + "(" + (position.x / Map.TileSizeInPixelsInWorldSpace) + ", " + (position.y / Map.TileSizeInPixelsInWorldSpace) + ")" + " inside room: " + room);
 
             itemToAdd.position.set(position);
-            itemToAdd.setMap(map);
+            itemToAdd.map = map;
 
             addGameObject(itemToAdd);
         }
@@ -337,13 +337,13 @@ public class Scene extends Container {
 
         if (gameObject instanceof Collidable) {
 
-            ((Collidable) gameObject).setMap(map);
+            ((Collidable) gameObject).map = map;
         }
 
         if (gameObject instanceof Item) {
 
             ((Item) gameObject).toggleTimer();
-            ((Item) gameObject).setMap(map);
+            ((Item) gameObject).map = map;
         }
 
         super.addGameObject(gameObject);

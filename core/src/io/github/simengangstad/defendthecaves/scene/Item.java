@@ -18,7 +18,7 @@ public abstract class Item extends Collidable {
     /**
      * The entity holding the item.
      */
-    protected Entity parent;
+    public Entity parent;
 
     /**
      * The position of the item in an inventory.

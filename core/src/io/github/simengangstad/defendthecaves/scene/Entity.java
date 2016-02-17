@@ -186,6 +186,8 @@ public abstract class Entity extends Collidable {
 
         speechBubble.setWidth(200.0f);
         speechBubble.setVisible(false);
+
+        inventory.host = this;
     }
 
     @Override

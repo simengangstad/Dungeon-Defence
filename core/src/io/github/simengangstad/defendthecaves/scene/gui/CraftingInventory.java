@@ -9,6 +9,7 @@ import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.utils.StringBuilder;
 import io.github.simengangstad.defendthecaves.Game;
+import io.github.simengangstad.defendthecaves.scene.CraftingSystem;
 import io.github.simengangstad.defendthecaves.scene.Item;
 import io.github.simengangstad.defendthecaves.scene.Weapon;
 import io.github.simengangstad.defendthecaves.scene.item.Shield;
@@ -43,6 +44,8 @@ public class CraftingInventory extends Inventory {
     private Label[][] labels;
 
     private SpeechBubble speechBubble = new SpeechBubble();
+
+    private boolean currentItemWasCrafted = false;
 
     public CraftingInventory(int widthOfGap) {
 
@@ -114,6 +117,11 @@ public class CraftingInventory extends Inventory {
         float posYResult = getY() + getHeight() - slotSize - offset;
 
         style.slot.draw(batch, posXResult, posYResult, slotSize, slotSize);
+
+        if (result != null) {
+
+            result.draw((SpriteBatch) batch, posXResult, posYResult, slotSize, slotSize);
+        }
 
 
         // Inventory
@@ -189,11 +197,12 @@ public class CraftingInventory extends Inventory {
                     currentItem = obtainItem(column, row, 1).get(0);
 
                     cameFromCraftingArea = false;
+                    currentItemWasCrafted = false;
+
+                    lastColumn = column;
+                    lastRow = row;
                 }
             }
-
-            lastColumn = column;
-            lastRow = row;
         }
         else if (posXCraftingArea <= x && x < posXCraftingArea + sizeXCraftingArea && posYCraftingArea <= y && y < posYCraftingArea + sizeYCraftingArea) {
 
@@ -221,18 +230,40 @@ public class CraftingInventory extends Inventory {
                         lastPosition.set(tmpCraftingVector.x, tmpCraftingVector.y);
 
                         cameFromCraftingArea = true;
+                        currentItemWasCrafted = false;
 
                         iterator.remove();
+
+                        computeResultFromCrafting();
 
                         break;
                     }
                 }
             }
         }
+        else if (posXResult <= x && x < posXResult + slotSize && posYResult <= y && y < posYResult + slotSize) {
+
+            if (Gdx.input.isButtonPressed(0) && currentItem == null) {
+
+                currentItem = result;
+
+                result = null;
+
+                currentItemWasCrafted = true;
+
+                items.clear();
+            }
+        }
 
         if (currentItem != null && !Gdx.input.isButtonPressed(0)) {
 
             if (isValidPosition(column, row) && ((currentItem.stackable && getItemType(column, row) == currentItem.getClass()) || getItemType(column, row) == null)) {
+
+                if (currentItemWasCrafted) {
+
+                    currentItem.parent = host;
+                    currentItem.map = host.map;
+                }
 
                 placeItem(column, row, currentItem);
             }
@@ -241,6 +272,8 @@ public class CraftingInventory extends Inventory {
                 currentItem.inventoryPosition.set(x, y);
 
                 items.add(currentItem);
+
+                computeResultFromCrafting();
             }
             else {
 
@@ -249,6 +282,9 @@ public class CraftingInventory extends Inventory {
                     currentItem.inventoryPosition.set(lastPosition);
 
                     items.add(currentItem);
+
+                    computeResultFromCrafting();
+
                 }
                 else {
 
@@ -261,30 +297,24 @@ public class CraftingInventory extends Inventory {
 
         if (currentItem != null) {
 
-            float width = sizeXInventory / columns - (sizeXInventory / columns / 20) * 2;
-            float height = sizeYInventory / rows - (sizeYInventory / rows / 20) * 2;
-
-            int scale = 1;
-
-            if (currentItem instanceof Weapon || currentItem instanceof Shield) {
-
-                width -= (sizeXInventory / columns / 20) * 2;
-                height -= (sizeYInventory / rows / 20) * 2;
-
-                scale = 2;
-            }
+            float scale = 1.25f;
 
             currentItem.draw(
                     (SpriteBatch) batch,
-                    x + (sizeXInventory / columns / 20) * 1 - (width / 2.0f) * scale,
-                    y + (sizeYInventory / rows / 20) * 1 - (height / 2.0f) * scale,
-                    width * scale,
-                    height * scale
+                    x - slotSize * scale / 2.0f,
+                    y - slotSize * scale / 2.0f,
+                    slotSize * scale,
+                    slotSize * scale
             );
         }
 
         // Speech bubble
         speechBubble.setPosition(x, y);
         speechBubble.draw(batch, parentAlpha);
+    }
+
+    private void computeResultFromCrafting() {
+
+        result = CraftingSystem.obtainItemFromGivenItems(items);
     }
 }

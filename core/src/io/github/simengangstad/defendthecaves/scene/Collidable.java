@@ -15,7 +15,7 @@ public abstract class Collidable extends GameObject {
     /**
      * The map the entity is located in.
      */
-    protected Map map;
+    public Map map;
 
     /**
      * The movement of the entity during the frames.
@@ -55,14 +55,6 @@ public abstract class Collidable extends GameObject {
         this.weightActing = weightActing;
 
         this.duration = duration;
-    }
-
-    /**
-     * Sets the map the movable entity resolves its collision against.
-     */
-    public void setMap(Map map) {
-
-        this.map = map;
     }
 
     @Override

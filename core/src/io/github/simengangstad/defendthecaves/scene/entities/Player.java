@@ -81,11 +81,14 @@ public class Player extends Entity implements InputProcessor {
 
         inventory = new CraftingInventory(10);
         inventory.setSize(650, 400);
+        inventory.host = this;
 
         Axe axe = new Axe(() -> {});
 
         addItemAtLocation(1, 0, new Shield());
         addItemAtLocation(2, 0, axe);
+
+        addItem(new Shield());
 
         host.addInputProcessor(this);
 

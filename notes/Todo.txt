@@ -68,7 +68,12 @@
 - [x] Display properties of items in inventory
 - [x] Implement a label besides items in the inventory which tells the amount (if stackable)
 
+# 0011
+- [x] Implement craft system
+
+# 0012
+
+- [ ]
 
 # To be implemented
-- [ ] Implement craft system
 - [ ] Solve bug where the player sometimes ends up in rooms withuot entries.

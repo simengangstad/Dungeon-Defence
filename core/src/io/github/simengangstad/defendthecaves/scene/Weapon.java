@@ -103,6 +103,11 @@ public abstract class Weapon extends Item {
             return isFlippedDuringAttack;
         }
 
+        if (parent == null) {
+
+            return false;
+        }
+
         return parent.flip();
     }
 

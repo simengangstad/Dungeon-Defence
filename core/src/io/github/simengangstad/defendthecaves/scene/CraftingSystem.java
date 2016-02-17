@@ -1,7 +1,12 @@
 package io.github.simengangstad.defendthecaves.scene;
 
+import io.github.simengangstad.defendthecaves.scene.item.Axe;
 import io.github.simengangstad.defendthecaves.scene.item.Cudgel;
-import io.github.simengangstad.defendthecaves.scene.item.Rock;
+import io.github.simengangstad.defendthecaves.scene.item.Potion;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
 
 /**
  * @author simengangstad
@@ -9,31 +14,80 @@ import io.github.simengangstad.defendthecaves.scene.item.Rock;
  */
 public class CraftingSystem {
 
-    private static class Craftable {
+    private abstract static class Recipe {
 
-        public Class id;
-        public boolean added;
+        private final HashMap<Class, Boolean> ingredients = new HashMap<>();
 
-        public Craftable(Class id, boolean added) {
+        public Recipe(Class[] items) {
 
-            this.id = id;
-            this.added = added;
+            for (Class item : items) {
+
+                ingredients.put(item, false);
+            }
+        }
+
+        public abstract Item result();
+
+        public void setForClass(Class item, Boolean value) {
+
+            ingredients.put(item, value);
+        }
+
+        public void clear() {
+
+            ingredients.forEach((item, value) -> {
+
+                value = false;
+            });
+        }
+
+        public boolean isFulfilled() {
+
+            Iterator<Boolean> iterator = ingredients.values().iterator();
+
+            while (iterator.hasNext()) {
+
+                if (iterator.next() == false) {
+
+                    return false;
+                }
+            }
+
+            return true;
         }
     }
 
-    private static final Craftable[] test = new Craftable[] {
+    private static Recipe recipe = new Recipe(new Class[] {
 
-            new Craftable(Cudgel.class, false),
-            new Craftable(Rock.class, false)
+            Potion.class,
+            Axe.class
+    }) {
+
+        @Override
+        public Item result() {
+
+
+            return new Cudgel(() -> {});
+        }
     };
 
-    public static Item obtainItemFromGivenItems(Item... items) {
+    public static Item obtainItemFromGivenItems(ArrayList<Item> items) {
 
-        if (items.length == 2) {
+        if (items.size() == 2) {
 
+            recipe.clear();
 
+            for (Item item : items) {
 
-            for ()
+                recipe.setForClass(item.getClass(), true);
+            }
+
+            if (recipe.isFulfilled()) {
+
+                return recipe.result();
+            }
         }
+
+        return null;
     }
 }
