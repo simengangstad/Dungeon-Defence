@@ -5,7 +5,8 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Vector2;
 import io.github.simengangstad.defendthecaves.Game;
-import io.github.simengangstad.defendthecaves.scene.gui.Inventory;
+import io.github.simengangstad.defendthecaves.GameObject;
+import io.github.simengangstad.defendthecaves.scene.crafting.Inventory;
 
 /**
  * Objects that can be placed in an {@link Inventory} and used by an {@link Entity}.
@@ -14,6 +15,26 @@ import io.github.simengangstad.defendthecaves.scene.gui.Inventory;
  * @since 17/01/16
  */
 public abstract class Item extends Collidable {
+
+    /**
+     * The speed at which the item is thrown.
+     */
+    public static final int ThrowingScalar = 20;
+
+    /**
+     * If the item is in the action of a throw.
+     */
+    private boolean thrown = false;
+
+    /**
+     * The entity which threw the item.
+     */
+    public Entity thrownFrom = null;
+
+    /**
+     * The damage applied when the item hits an entity.
+     */
+    private static final int ThrowDamage = 10;
 
     /**
      * The entity holding the item.
@@ -73,6 +94,32 @@ public abstract class Item extends Collidable {
     public void create() {}
 
     /**
+     * Gets called when the collidable collides with an entity.
+     */
+    protected void collides(Entity entity) {
+
+        forceApplied.set(0.0f, 0.0f);
+
+        Vector2 force = Game.vector2Pool.obtain();
+
+        force.set(0.0f, 0.0f);
+
+        applyForce(force, true, 1.5f);
+
+        Game.vector2Pool.free(force);
+
+        thrown = false;
+        thrownFrom = null;
+
+        entity.takeDamage(ThrowDamage);
+    }
+
+    public boolean isThrown() {
+
+        return thrown;
+    }
+
+    /**
      * @return The parent holding the item.
      */
     public Entity getParent() {
@@ -92,6 +139,23 @@ public abstract class Item extends Collidable {
      *                  point of focus.
      */
     public abstract void interact(Vector2 direciton);
+
+    /**
+     * Removes the item from the parent entity and throws it in the given direction.
+     */
+    public void throwItem(Vector2 direction) {
+
+        thrownFrom = parent;
+
+        parent.host.addGameObject(this);
+        parent.removeItem(this);
+
+        direction.nor();
+
+        this.applyForce(direction.scl(ThrowingScalar), false, 0.0f);
+
+        thrown = true;
+    }
 
     public void toggleTimer() {
 
@@ -123,6 +187,8 @@ public abstract class Item extends Collidable {
         if (map.retrieveCollisionPoint(position, size, delta, null)) {
 
             forceApplied.set(0.0f, 0.0f);
+
+            thrown = false;
         }
 
         delta.set(0.0f, 0.0f);
@@ -133,12 +199,12 @@ public abstract class Item extends Collidable {
      * respecitve memebers of the item in consideration. Used in particular for
      * drawing the item within an {@link Inventory}.
      *
-     * Use {@link io.github.simengangstad.defendthecaves.components.GameObject#draw(SpriteBatch)}
+     * Use {@link GameObject#draw(SpriteBatch)}
      * for general purpose drawing.
      */
-    public void draw(SpriteBatch batch, float x, float y, float width, float height) {
+    public void draw(SpriteBatch batch, float x, float y, float width, float height, boolean flipAutomatically) {
 
-        if (flip()) {
+        if (flip() && flipAutomatically) {
 
             getTextureRegion().flip(true, false);
         }
@@ -150,7 +216,7 @@ public abstract class Item extends Collidable {
 
         batch.draw(getTextureRegion(), x, y, width, height);
 
-        if (flip()) {
+        if (flip() && flipAutomatically) {
 
             getTextureRegion().flip(true, false);
         }

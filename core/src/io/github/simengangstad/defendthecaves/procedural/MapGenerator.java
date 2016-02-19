@@ -4,7 +4,7 @@ import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
 import io.github.simengangstad.defendthecaves.pathfinding.Coordinate;
 import io.github.simengangstad.defendthecaves.pathfinding.PathfindingGrid;
-import io.github.simengangstad.defendthecaves.scene.item.Key;
+import io.github.simengangstad.defendthecaves.scene.items.Key;
 
 import java.util.*;
 

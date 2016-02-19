@@ -4,9 +4,9 @@ import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Vector2;
 import io.github.simengangstad.defendthecaves.Game;
-import io.github.simengangstad.defendthecaves.scene.RotatableWeapon;
+import io.github.simengangstad.defendthecaves.scene.items.RotatableWeapon;
 import io.github.simengangstad.defendthecaves.scene.TextureUtil;
-import io.github.simengangstad.defendthecaves.scene.item.Cudgel;
+import io.github.simengangstad.defendthecaves.scene.items.Cudgel;
 
 /**
  * @author simengangstad

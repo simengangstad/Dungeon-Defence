@@ -1,18 +1,13 @@
-package io.github.simengangstad.defendthecaves.scene.gui;
+package io.github.simengangstad.defendthecaves.scene.crafting;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
-import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
-import com.badlogic.gdx.utils.StringBuilder;
 import io.github.simengangstad.defendthecaves.Game;
-import io.github.simengangstad.defendthecaves.scene.CraftingSystem;
 import io.github.simengangstad.defendthecaves.scene.Item;
-import io.github.simengangstad.defendthecaves.scene.Weapon;
-import io.github.simengangstad.defendthecaves.scene.item.Shield;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -41,10 +36,6 @@ public class CraftingInventory extends Inventory {
 
     private Label label = new Label("Places left: 8", Game.UISkin);
 
-    private Label[][] labels;
-
-    private SpeechBubble speechBubble = new SpeechBubble();
-
     private boolean currentItemWasCrafted = false;
 
     public CraftingInventory(int widthOfGap) {
@@ -52,18 +43,6 @@ public class CraftingInventory extends Inventory {
         super(new Vector2(), new Vector2(), 4, 5);
 
         this.widthOfGap = widthOfGap;
-
-        labels = new Label[columns][rows];
-
-        for (int x = 0; x < labels.length; x++) {
-
-            for (int y = 0; y < labels[0].length; y++) {
-
-                labels[x][y] = new Label("", Game.UISkin);
-            }
-        }
-
-        speechBubble.setWidth(160.0f);
     }
 
     private boolean isInsideCraftingArea(float x, float y) {
@@ -76,7 +55,6 @@ public class CraftingInventory extends Inventory {
         return item.inventoryPosition.x - width / 2.0f <= x && x < item.inventoryPosition.x + width / 2.0f && item.inventoryPosition.y - height / 2.0f <= y && y < item.inventoryPosition.y + height / 2.0f;
     }
 
-    private StringBuilder stringBuilder = new StringBuilder();
 
     @Override
     public void draw(Batch batch, float parentAlpha) {
@@ -102,7 +80,8 @@ public class CraftingInventory extends Inventory {
                     item.inventoryPosition.x - slotSize / 2.0f,
                     item.inventoryPosition.y - slotSize / 2.0f,
                     slotSize,
-                    slotSize
+                    slotSize,
+                    false
             );
         }
 
@@ -120,7 +99,7 @@ public class CraftingInventory extends Inventory {
 
         if (result != null) {
 
-            result.draw((SpriteBatch) batch, posXResult, posYResult, slotSize, slotSize);
+            result.draw((SpriteBatch) batch, posXResult, posYResult, slotSize, slotSize, false);
         }
 
 
@@ -151,10 +130,11 @@ public class CraftingInventory extends Inventory {
                             posXInventory + x * slotSize + (slotSize / style.slot.getMinWidth()),
                             posYInventory + y * slotSize + (slotSize / style.slot.getMinHeight()),
                             width,
-                            height
+                            height,
+                            false
                     );
 
-                    labels[x][y].setPosition(posXInventory + x * slotSize + slotSize - 15.0f, posYInventory + y * slotSize + 10.0f);
+                    labels[x][y].setPosition(posXInventory + x * slotSize + slotSize - labels[x][y].getPrefWidth() - 3.0f, posYInventory + y * slotSize + 10.0f);
                     labels[x][y].setVisible(true);
 
                     stringBuilder.setLength(0);
@@ -257,7 +237,7 @@ public class CraftingInventory extends Inventory {
 
         if (currentItem != null && !Gdx.input.isButtonPressed(0)) {
 
-            if (isValidPosition(column, row) && ((currentItem.stackable && getItemType(column, row) == currentItem.getClass()) || getItemType(column, row) == null)) {
+            if (isValidPosition(column, row) && ((currentItem.stackable && getItemType(column, row) == currentItem.getClass() && getItemList(column, row).size() < MaxAmountOfItemsInSlot) || getItemType(column, row) == null)) {
 
                 if (currentItemWasCrafted) {
 
@@ -304,7 +284,8 @@ public class CraftingInventory extends Inventory {
                     x - slotSize * scale / 2.0f,
                     y - slotSize * scale / 2.0f,
                     slotSize * scale,
-                    slotSize * scale
+                    slotSize * scale,
+                    false
             );
         }
 

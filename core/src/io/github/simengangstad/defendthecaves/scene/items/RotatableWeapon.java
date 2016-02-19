@@ -1,12 +1,8 @@
-package io.github.simengangstad.defendthecaves.scene;
+package io.github.simengangstad.defendthecaves.scene.items;
 
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
-import com.badlogic.gdx.math.Vector2;
 import io.github.simengangstad.defendthecaves.Callback;
-
-import java.util.Arrays;
 
 /**
  * @author simengangstad

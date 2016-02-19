@@ -1,7 +1,6 @@
-package io.github.simengangstad.defendthecaves.scene.item;
+package io.github.simengangstad.defendthecaves.scene.items;
 
 import com.badlogic.gdx.math.MathUtils;
-import com.sun.javafx.jmx.HighlightRegion;
 
 /**
  * @author simengangstad

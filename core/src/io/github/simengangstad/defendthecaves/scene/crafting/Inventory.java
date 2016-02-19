@@ -1,18 +1,21 @@
-package io.github.simengangstad.defendthecaves.scene.gui;
+package io.github.simengangstad.defendthecaves.scene.crafting;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.WidgetGroup;
 import com.badlogic.gdx.scenes.scene2d.utils.Drawable;
+import com.badlogic.gdx.utils.StringBuilder;
 import io.github.simengangstad.defendthecaves.Game;
 import io.github.simengangstad.defendthecaves.scene.Entity;
 import io.github.simengangstad.defendthecaves.scene.Item;
-import io.github.simengangstad.defendthecaves.scene.Weapon;
-import io.github.simengangstad.defendthecaves.scene.item.Key;
-import io.github.simengangstad.defendthecaves.scene.item.Shield;
+import io.github.simengangstad.defendthecaves.scene.gui.SpeechBubble;
+import io.github.simengangstad.defendthecaves.scene.items.Weapon;
+import io.github.simengangstad.defendthecaves.scene.items.Key;
+import io.github.simengangstad.defendthecaves.scene.items.Shield;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -43,6 +46,11 @@ public class Inventory extends Table {
     private final ArrayList<Item>[][] items;
 
     /**
+     * The maximum amount of items that can be stacked together in one slot.
+     */
+    protected final int MaxAmountOfItemsInSlot = 16;
+
+    /**
      * The amount of item lists in the inventory.
      */
     private int size = 0;
@@ -61,6 +69,21 @@ public class Inventory extends Table {
      * The keys in the inventory.
      */
     private int keys = 0;
+
+    /**
+     * Labels showing the amount of items within each slot.
+     */
+    protected Label[][] labels;
+
+    /**
+     * Used for the labels.
+     */
+    protected StringBuilder stringBuilder = new StringBuilder();
+
+    /**
+     * A label showing {@link Item#getInformation()} about the items.
+     */
+    protected SpeechBubble speechBubble = new SpeechBubble();
 
     /**
      * The grafical style of the inventory; its background and slots..
@@ -86,6 +109,18 @@ public class Inventory extends Table {
                 items[x][y] = new ArrayList<>();
             }
         }
+
+        labels = new Label[columns][rows];
+
+        for (int x = 0; x < labels.length; x++) {
+
+            for (int y = 0; y < labels[0].length; y++) {
+
+                labels[x][y] = new Label("", Game.UISkin);
+            }
+        }
+
+        speechBubble.setWidth(160.0f);
 
         setStyle(Game.UISkin.get(InventoryStyle.class));
     }
@@ -138,7 +173,7 @@ public class Inventory extends Table {
 
         Class itemType = getItemType(x, y);
 
-        if ((item.stackable && itemType == item.getClass()) || itemType == null) {
+        if (((item.stackable && itemType == item.getClass()) && getItemList(x, y).size() < MaxAmountOfItemsInSlot) || itemType == null) {
 
             if (itemType == null) {
 
@@ -175,7 +210,7 @@ public class Inventory extends Table {
 
                 Class itemType = getItemType(x, y);
 
-                if ((item.stackable && itemType == item.getClass()) || itemType == null) {
+                if (((item.stackable && itemType == item.getClass()) && getItemList(x, y).size() < MaxAmountOfItemsInSlot) || itemType == null) {
 
                     return true;
                 }
@@ -200,7 +235,7 @@ public class Inventory extends Table {
 
                 Class itemType = getItemType(x, y);
 
-                if ((item.stackable && itemType == item.getClass()) || itemType == null) {
+                if (((item.stackable && itemType == item.getClass()) && getItemList(x, y).size() < MaxAmountOfItemsInSlot) || itemType == null) {
 
                     if (itemType == null) {
 
@@ -324,8 +359,6 @@ public class Inventory extends Table {
             return null;
         }
 
-        System.out.println("Before: " + items[x][y].size());
-
         ArrayList<Item> newItems = new ArrayList<>();
 
         if (items[x][y].size() <= amount) {
@@ -347,8 +380,6 @@ public class Inventory extends Table {
             keys--;
         }
 
-        System.out.println("After: " + items[x][y].size());
-
         return newItems;
     }
 
@@ -363,33 +394,32 @@ public class Inventory extends Table {
 
                 style.slot.draw(batch, getX() + x * (getWidth() / columns), getY() + y * (getHeight() / rows), getWidth() / columns, getHeight() / rows);
 
+                labels[x][y].setVisible(false);
+
                 if (!getItemList(x, y).isEmpty()) {
 
                     float width = getWidth() / columns - (getWidth() / columns / style.slot.getMinWidth()) * 2;
                     float height = getHeight() / rows - (getHeight() / rows / style.slot.getMinHeight()) * 2;
 
-                    int scale = 1;
-                    int offsetScale = 0;
-
                     Item item = getItemList(x, y).get(0);
-
-                    // TODO: Make suitable icons for the weapons in the inventory
-                    if (item instanceof Weapon || item instanceof Shield) {
-
-                        width -= (getWidth() / columns / style.slot.getMinWidth()) * 2;
-                        height -= (getHeight() / rows / style.slot.getMinHeight()) * 2;
-
-                        scale = 1;
-                        offsetScale = 0;
-                    }
 
                     item.draw(
                             (SpriteBatch) batch,
-                            getX() + x * (getWidth() / columns) + (getWidth() / columns / style.slot.getMinWidth()) * 1 + (getWidth() / columns / style.slot.getMinWidth()) * offsetScale - offsetScale * (width) / 2.0f,
-                            getY() + y * (getHeight() / rows) + (getHeight() / columns / style.slot.getMinHeight()) * 1 + (getHeight() / columns / style.slot.getMinHeight()) * offsetScale - offsetScale * (height) / 2.0f,
-                            width * scale,
-                            height * scale
+                            getX() + x * (getWidth() / columns) + (getWidth() / columns / style.slot.getMinWidth()),
+                            getY() + y * (getHeight() / rows) + (getHeight() / columns / style.slot.getMinHeight()),
+                            width,
+                            height,
+                            false
                     );
+
+                    labels[x][y].setPosition(getX() + x * width + width - 15.0f, getY() + y * height + 10.0f);
+                    labels[x][y].setVisible(true);
+
+                    stringBuilder.setLength(0);
+                    stringBuilder.append(getItemList(x, y).size());
+                    labels[x][y].setText(stringBuilder);
+
+                    labels[x][y].draw(batch, parentAlpha);
                 }
             }
         }
@@ -411,18 +441,28 @@ public class Inventory extends Table {
                     getWidth() / columns - (getWidth() / columns / 16) * 2,
                     getHeight() / rows - (getHeight() / rows / 16) * 2);
 */
-            if (currentItem == null && Gdx.input.isButtonPressed(0) && !getItemList(column, row).isEmpty()) {
+            if (!getItemList(column, row).isEmpty()) {
 
-                currentItem = obtainItem(column, row, 1).get(0);
+                speechBubble.setVisible(true);
+
+                stringBuilder.setLength(0);
+                stringBuilder.append(getItemList(column, row).get(0).getInformation());
+
+                speechBubble.setText(stringBuilder);
+
+                if (currentItem == null && Gdx.input.isButtonPressed(0)) {
+
+                    currentItem = obtainItem(column, row, 1).get(0);
+
+                    lastColumn = column;
+                    lastRow = row;
+                }
             }
-
-            lastColumn = column;
-            lastRow = row;
         }
 
         if (currentItem != null && !Gdx.input.isButtonPressed(0)) {
 
-            if (isValidPosition(column, row) && ((currentItem.stackable && getItemType(column, row) == currentItem.getClass()) || getItemType(column, row) == null)) {
+            if (isValidPosition(column, row) && ((currentItem.stackable && getItemType(column, row) == currentItem.getClass() && getItemList(column, row).size() < MaxAmountOfItemsInSlot) || getItemType(column, row) == null)) {
 
                 placeItem(column, row, currentItem);
             }
@@ -454,9 +494,14 @@ public class Inventory extends Table {
                     x + (getWidth() / columns / 20) * 1 - (width / 2.0f) * scale,
                     y + (getHeight() / rows / 20) * 1 - (height / 2.0f) * scale,
                     width * scale,
-                    height * scale
+                    height * scale,
+                    false
             );
         }
+
+        // Speech bubble
+        speechBubble.setPosition(x, y);
+        speechBubble.draw(batch, parentAlpha);
     }
 
     public static class InventoryStyle {

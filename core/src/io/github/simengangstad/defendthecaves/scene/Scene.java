@@ -6,11 +6,11 @@ import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
 import io.github.simengangstad.defendthecaves.Container;
 import io.github.simengangstad.defendthecaves.Game;
-import io.github.simengangstad.defendthecaves.components.GameObject;
+import io.github.simengangstad.defendthecaves.GameObject;
 import io.github.simengangstad.defendthecaves.pathfinding.PathfindingGrid;
 import io.github.simengangstad.defendthecaves.procedural.MapGenerator;
 import io.github.simengangstad.defendthecaves.scene.entities.*;
-import io.github.simengangstad.defendthecaves.scene.item.*;
+import io.github.simengangstad.defendthecaves.scene.items.*;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -53,11 +53,6 @@ public class Scene extends Container {
     private ArrayList<Key> keys = new ArrayList<>();
 
     /**
-     * A button, this will be renamed later.
-     */
-    //private KeyButton button;
-
-    /**
      * The maximum amount one can zoom out of the map.
      */
     private final int MaxZoom = 60;
@@ -80,7 +75,6 @@ public class Scene extends Container {
         this.player = player;
 
         initialiseMap();
-        //initialiseWidgetFrame();
 
         ShaderProgram shaderProgram = new ShaderProgram(Gdx.files.internal("assets/shaders/shader.vs"), Gdx.files.internal("assets/shaders/shader.fs"));
 
@@ -265,8 +259,6 @@ public class Scene extends Container {
                 }
             }
 
-            //position.add(0.5f, 0.5f);
-
             Vector2 positionOfEnemy = position.cpy().scl(Map.TileSizeInPixelsInWorldSpace);
 
             Enemy enemyToAdd = null;
@@ -425,44 +417,6 @@ public class Scene extends Container {
         return false;
     }
 
-    private void spawnFallingStones(Vector2 position) {
-
-        boolean horisontal = map.isSolid((int) position.x - 1, (int) position.y) && map.isSolid((int) position.x + 1, (int) position.y);
-
-        Vector2 dstPosition = new Vector2(position);
-
-        int yDelta = 0;
-        int xDelta = 0;
-
-        if (horisontal) {
-
-            if (map.isSolid((int) position.x, (int) position.y + 1)) {
-
-                yDelta = 1;
-            }
-            else {
-
-                yDelta = -1;
-            }
-        }
-        else {
-
-            if (map.isSolid((int) position.x + 1, (int) position.y)) {
-
-                xDelta = -1;
-            }
-            else {
-
-                xDelta = 1;
-            }
-        }
-
-        addGameObject(new FallingStone(
-                new Vector2(position.x * Map.TileSizeInPixelsInWorldSpace - (Map.TileSizeInPixelsInWorldSpace / Game.SizeOfTileInPixelsInSpritesheet) * 6 + MathUtils.random(Map.TileSizeInPixelsInWorldSpace - 5 * (Map.TileSizeInPixelsInWorldSpace / Game.SizeOfTileInPixelsInSpritesheet)), position.y * Map.TileSizeInPixelsInWorldSpace - (Map.TileSizeInPixelsInWorldSpace / Game.SizeOfTileInPixelsInSpritesheet) * 6 + MathUtils.random(Map.TileSizeInPixelsInWorldSpace - (Map.TileSizeInPixelsInWorldSpace / Game.SizeOfTileInPixelsInSpritesheet) * 5)),
-                dstPosition.set(dstPosition.x * Map.TileSizeInPixelsInWorldSpace + xDelta * (MathUtils.random(Map.TileSizeInPixelsInWorldSpace - 5) + 5), dstPosition.y * Map.TileSizeInPixelsInWorldSpace + yDelta * (MathUtils.random(Map.TileSizeInPixelsInWorldSpace - 5) + 5)),
-                new Vector2(Map.TileSizeInPixelsInWorldSpace, Map.TileSizeInPixelsInWorldSpace)));
-    }
-
     public float scaleFactor = 1.0f;
 
     @Override
@@ -517,14 +471,10 @@ public class Scene extends Container {
             else if ((1.0f/3.0f < barrier.getState() / barrier.TimeToDemolishBarrier && barrier.getState() / barrier.TimeToDemolishBarrier < 2.0f/3.0f) && map.get((int) barrier.position.x, (int) barrier.position.y) != Map.SpawnSlightlyBroken) {
 
                 map.set((int) barrier.position.x, (int) barrier.position.y, Map.SpawnSlightlyBroken);
-
-                //spawnFallingStones(barrier.position);
             }
             else if ((barrier.getState() / barrier.TimeToDemolishBarrier) < 1.0f/3.0f && map.get((int) barrier.position.x, (int) barrier.position.y) != Map.SpawnBroken) {
 
                 map.set((int) barrier.position.x, (int) barrier.position.y, Map.SpawnBroken);
-
-                //spawnFallingStones(barrier.position);
             }
 
         });
@@ -607,38 +557,55 @@ public class Scene extends Container {
 
                         Entity entity = ((Entity) gameObjectToCheckAgainst);
 
-                        float length = map.lengthBetweenCoordinates(item.position, entity.position);
+                        if (item.isThrown()) {
 
-                        if (length < 0.5) {
+                            if (entity == item.thrownFrom) {
 
-                            item.forceApplied.set(0.0f, 0.0f);
+                                continue;
+                            }
 
-                            System.out.println("Item timer: " + item.getTimer());
+                            if (entity.intersects(item)) {
+
+                                item.collides(entity);
+                            }
+                        }
+                        else {
+
+                            float length = map.lengthBetweenCoordinates(item.position, entity.position);
 
                             if (item.getTimer() > 0.75f) {
 
-                                if (entity.inventory.placeItem(item)) {
+                                if (length < 0.5) {
 
-                                    System.out.println("Entity (" + entity + ") picked up item: " + item);
+                                    item.forceApplied.set(0.0f, 0.0f);
 
-                                    removeGameObject(item);
+                                    System.out.println("Item timer: " + item.getTimer());
+
+                                    if (entity.inventory.sufficientPlaceForItem(item)) {
+
+                                        entity.addItem(item);
+
+                                        System.out.println("Entity (" + entity + ") picked up item: " + item);
+
+                                        removeGameObject(item);
+                                    }
                                 }
-                            }
-                        }
-                        else if (length < 2) {
+                                else if (length < 2) {
 
-                            if (entity.inventory.sufficientPlaceForItem(item) && item.forceApplied.x == 0.0f && item.forceApplied.y == 0.0f) {
+                                    if (entity.inventory.sufficientPlaceForItem(item) && item.forceApplied.x == 0.0f && item.forceApplied.y == 0.0f) {
 
-                                System.out.println("Item (" + item + ") in range of entity (" + entity + "), applying force.");
+                                        System.out.println("Item (" + item + ") in range of entity (" + entity + "), applying force.");
 
-                                Vector2 vector = Game.vector2Pool.obtain();
+                                        Vector2 vector = Game.vector2Pool.obtain();
 
-                                vector.set(entity.position).sub(item.position);
-                                vector.scl(0.05f);
+                                        vector.set(entity.position).sub(item.position);
+                                        vector.scl(0.05f);
 
-                                item.applyForce(vector, false, 0.0f);
+                                        item.applyForce(vector, false, 0.0f);
 
-                                Game.vector2Pool.free(vector);
+                                        Game.vector2Pool.free(vector);
+                                    }
+                                }
                             }
                         }
                     }
@@ -650,9 +617,6 @@ public class Scene extends Container {
 
         stage.act();
         stage.draw();
-/*
-        widgetFrame.tick();
-        inventoryFrame.tick();*/
     }
 
     private int distanceToBarrierInOrderToRebuild = 2;

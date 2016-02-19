@@ -1,4 +1,4 @@
-package io.github.simengangstad.defendthecaves.scene;
+package io.github.simengangstad.defendthecaves.scene.items;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
@@ -7,6 +7,8 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import io.github.simengangstad.defendthecaves.Callback;
 import io.github.simengangstad.defendthecaves.Game;
+import io.github.simengangstad.defendthecaves.scene.Item;
+import io.github.simengangstad.defendthecaves.scene.Scene;
 
 /**
  * @author simengangstad

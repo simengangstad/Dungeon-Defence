@@ -38,7 +38,7 @@ public class Game extends ApplicationAdapter {
     public static Texture CaterpillarAttacking;
 
     public static final int EntitySize = 80;
-    public static final int PotionSize = (EntitySize / 2);
+    public static final int ItemSize = (EntitySize / 2);
 
     public static Skin UISkin;
 

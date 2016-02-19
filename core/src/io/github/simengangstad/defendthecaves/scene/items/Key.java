@@ -1,4 +1,4 @@
-package io.github.simengangstad.defendthecaves.scene.item;
+package io.github.simengangstad.defendthecaves.scene.items;
 
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Vector2;

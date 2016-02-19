@@ -10,10 +10,11 @@ import com.badlogic.gdx.math.Vector3;
 import io.github.simengangstad.defendthecaves.Callback;
 import io.github.simengangstad.defendthecaves.Game;
 import io.github.simengangstad.defendthecaves.scene.gui.HealthBar;
-import io.github.simengangstad.defendthecaves.scene.gui.Inventory;
+import io.github.simengangstad.defendthecaves.scene.crafting.Inventory;
 import io.github.simengangstad.defendthecaves.scene.gui.SpeechBubble;
-import io.github.simengangstad.defendthecaves.scene.item.Potion;
-import io.github.simengangstad.defendthecaves.scene.item.Shield;
+import io.github.simengangstad.defendthecaves.scene.items.Potion;
+import io.github.simengangstad.defendthecaves.scene.items.Shield;
+import io.github.simengangstad.defendthecaves.scene.items.Weapon;
 
 import java.util.ArrayList;
 
@@ -273,6 +274,16 @@ public abstract class Entity extends Collidable {
     }
 
     /**
+     * Removes the item and dereferences the entity as the parent entity of the item.
+     */
+    public void removeItem(Item item) {
+
+        inventory.removeItem(item);
+
+        item.parent = null;
+    }
+
+    /**
      * Shuffles the item in hand.
      */
     public void shuffleItem() {
@@ -513,6 +524,10 @@ public abstract class Entity extends Collidable {
             currentItem = list.get(list.size() - 1);
 
             currentItem.tick();
+        }
+        else {
+
+            currentItem = null;
         }
     }
 

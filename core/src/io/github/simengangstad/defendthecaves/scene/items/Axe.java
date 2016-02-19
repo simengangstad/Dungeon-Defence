@@ -1,16 +1,15 @@
-package io.github.simengangstad.defendthecaves.scene.item;
+package io.github.simengangstad.defendthecaves.scene.items;
 
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import io.github.simengangstad.defendthecaves.Callback;
 import io.github.simengangstad.defendthecaves.Game;
-import io.github.simengangstad.defendthecaves.scene.RotatableWeapon;
 
 /**
  * @author simengangstad
- * @since 29/01/16
+ * @since 28/11/15
  */
-public class Cudgel extends RotatableWeapon {
+public class Axe extends RotatableWeapon {
 
     private static TextureRegion[] textureRegions = new TextureRegion[5], attackTextureRegions = new TextureRegion[11];
 
@@ -20,7 +19,7 @@ public class Cudgel extends RotatableWeapon {
 
         for (int x = 0; x < 32 * textureRegions.length; x += 32) {
 
-            textureRegions[index] =  new TextureRegion(Game.SpriteSheet, x, 272, 32, 32);
+            textureRegions[index] =  new TextureRegion(Game.SpriteSheet, x, 96, 32, 32);
 
             index++;
         }
@@ -29,19 +28,19 @@ public class Cudgel extends RotatableWeapon {
 
         for (int x = 160; x < 160 + 32 * attackTextureRegions.length; x += 32) {
 
-            attackTextureRegions[index] =  new TextureRegion(Game.SpriteSheet, x, 272, 32, 32);
+            attackTextureRegions[index] =  new TextureRegion(Game.SpriteSheet, x, 96, 32, 32);
 
             index++;
         }
     }
 
-    public Cudgel(Callback interactionCallback) {
+    public Axe(Callback interactionCallback) {
 
-        super(10, 0.35f, interactionCallback, -45, 45, textureRegions, attackTextureRegions);
+        super(50, 0.225f, interactionCallback, -45, 45, textureRegions, attackTextureRegions);
 
         size.set(Game.EntitySize, Game.EntitySize);
 
-        information = "Filth's weapon\nAttack damage: " + attackDamage;
+        information = "A dwarf's deerest friend\nAttack damage: " + attackDamage;
     }
 
     @Override
@@ -54,11 +53,11 @@ public class Cudgel extends RotatableWeapon {
 
             getTextureRegion().flip(true, false);
 
-            xDelta = -size.x / 2.0f - (size.x / 16) * 6;
+            xDelta = -size.x / 2.0f - (size.x / 16);
         }
         else {
 
-            xDelta = -size.x / 2.0f + (size.x / 16) * 6;
+            xDelta = -size.x / 2.0f + (size.x / 16);
         }
 
         batch.draw(getTextureRegion(), position.x + xDelta, position.y + yDelta + walkingOffset, size.x * 2, size.y * 2);

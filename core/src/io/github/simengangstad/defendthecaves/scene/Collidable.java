@@ -2,7 +2,7 @@ package io.github.simengangstad.defendthecaves.scene;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.math.Vector2;
-import io.github.simengangstad.defendthecaves.components.GameObject;
+import io.github.simengangstad.defendthecaves.GameObject;
 
 /**
  * An item which can be drawn and collide with the map.

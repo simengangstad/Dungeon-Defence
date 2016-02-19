@@ -4,7 +4,7 @@ import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.math.Vector2;
 import com.sun.istack.internal.NotNull;
 import io.github.simengangstad.defendthecaves.Game;
-import io.github.simengangstad.defendthecaves.components.GameObject;
+import io.github.simengangstad.defendthecaves.GameObject;
 import io.github.simengangstad.defendthecaves.scene.*;
 
 import java.util.List;

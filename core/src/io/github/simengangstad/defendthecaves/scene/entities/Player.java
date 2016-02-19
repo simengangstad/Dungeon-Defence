@@ -14,10 +14,10 @@ import io.github.simengangstad.defendthecaves.Game;
 import io.github.simengangstad.defendthecaves.procedural.MapGenerator;
 import io.github.simengangstad.defendthecaves.scene.Entity;
 import io.github.simengangstad.defendthecaves.scene.Map;
-import io.github.simengangstad.defendthecaves.scene.RotatableWeapon;
+import io.github.simengangstad.defendthecaves.scene.items.RotatableWeapon;
 import io.github.simengangstad.defendthecaves.scene.TextureUtil;
-import io.github.simengangstad.defendthecaves.scene.gui.CraftingInventory;
-import io.github.simengangstad.defendthecaves.scene.item.*;
+import io.github.simengangstad.defendthecaves.scene.crafting.CraftingInventory;
+import io.github.simengangstad.defendthecaves.scene.items.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -87,6 +87,12 @@ public class Player extends Entity implements InputProcessor {
 
         addItemAtLocation(1, 0, new Shield());
         addItemAtLocation(2, 0, axe);
+
+        for (int i = 0; i < 19; i++) {
+
+            addItem(new Coal(new Vector2(0.0f, 0.0f)));
+            addItem(new Wood(new Vector2(0.0f, 0.0f)));
+        }
 
         addItem(new Shield());
 
@@ -162,6 +168,8 @@ public class Player extends Entity implements InputProcessor {
 
     private void toggleInventory() {
 
+        inventory.toFront();
+
         displayingInventory = !displayingInventory;
 
         System.out.println("Toggling inventory: " + displayingInventory);
@@ -173,6 +181,19 @@ public class Player extends Entity implements InputProcessor {
         if (Gdx.input.isKeyJustPressed(Input.Keys.E)) {
 
             toggleInventory();
+        }
+
+        if (Gdx.input.isKeyJustPressed(Input.Keys.C) && currentItem != null) {
+
+            Vector2 vector = Game.vector2Pool.obtain();
+
+            vector.set(!flip() ? 1 : -1, 0.0f);
+
+            currentItem.throwItem(vector);
+
+            Game.vector2Pool.free(vector);
+
+            currentItem = null;
         }
 
         if (inventory.containsKeys()) {

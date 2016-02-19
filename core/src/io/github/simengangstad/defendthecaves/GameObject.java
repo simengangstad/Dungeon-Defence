@@ -1,12 +1,9 @@
-package io.github.simengangstad.defendthecaves.components;
+package io.github.simengangstad.defendthecaves;
 
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Vector2;
-import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.utils.Disposable;
-import io.github.simengangstad.defendthecaves.Container;
-import io.github.simengangstad.defendthecaves.Game;
 
 /**
  * @author simengangstad

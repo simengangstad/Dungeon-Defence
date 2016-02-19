@@ -1,4 +1,4 @@
-package io.github.simengangstad.defendthecaves.scene.item;
+package io.github.simengangstad.defendthecaves.scene.items;
 
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
@@ -24,7 +24,7 @@ public class Potion extends Item {
 
     public Potion(Vector2 position) {
 
-        super(position, new Vector2(Game.PotionSize, Game.PotionSize), new TextureRegion(Game.SpriteSheet, 32, 208, 16, 16), false);
+        super(position, new Vector2(Game.ItemSize, Game.ItemSize), new TextureRegion(Game.SpriteSheet, 32, 208, 16, 16), false);
     }
 
     @Override
@@ -67,7 +67,7 @@ public class Potion extends Item {
     }
 
     @Override
-    public void draw(SpriteBatch batch, float centreX, float centreY, float width, float height) {
+    public void draw(SpriteBatch batch, float centreX, float centreY, float width, float height, boolean flipAutomatically) {
 
         batch.setColor(Math.abs(getToxicity() + Chemical.UpperBoundary - 100) / 100f, Math.abs(getStability() + Chemical.UpperBoundary - 100) / 100f, (getFlammability() + Chemical.UpperBoundary) / 100f, 1.0f);
 
@@ -75,7 +75,7 @@ public class Potion extends Item {
 
         batch.setColor(Color.WHITE);
 
-        super.draw(batch, centreX, centreY, width, height);
+        super.draw(batch, centreX, centreY, width, height, flipAutomatically);
     }
 
     @Override

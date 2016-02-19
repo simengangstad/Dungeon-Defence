@@ -1,6 +1,6 @@
 package io.github.simengangstad.defendthecaves.scene;
 
-import io.github.simengangstad.defendthecaves.components.GameObject;
+import io.github.simengangstad.defendthecaves.GameObject;
 
 /**
  * @author simengangstad

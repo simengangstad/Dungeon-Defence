@@ -73,7 +73,15 @@
 
 # 0012
 
-- [ ]
+- [x] Add coal item
+- [x] Add wood item
+- [x] Limits stacks to 16 items
+- [x] Add possibility to throw items
+
 
 # To be implemented
+- [ ] Clean up crafting inventory -> remove duplicated code.
+- [ ] Add recipies
+- [ ] Move a stack around the inventory by holding down shift
+- [ ] Add functionality for reversing the process of crafting; retrieving components from a crafted item
 - [ ] Solve bug where the player sometimes ends up in rooms withuot entries.
