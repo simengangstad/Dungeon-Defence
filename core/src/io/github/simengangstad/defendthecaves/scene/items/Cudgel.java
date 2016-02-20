@@ -1,6 +1,5 @@
 package io.github.simengangstad.defendthecaves.scene.items;
 
-import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import io.github.simengangstad.defendthecaves.Callback;
 import io.github.simengangstad.defendthecaves.Game;
@@ -44,27 +43,21 @@ public class Cudgel extends RotatableWeapon {
     }
 
     @Override
-    public void draw(SpriteBatch batch) {
+    protected float xOffset() {
 
-        float xDelta;
-        float yDelta = -size.y / 2.0f - (size.y / 16) * 2;
+        if (flip()) {
 
-        if (!flip()) {
-
-            getTextureRegion().flip(true, false);
-
-            xDelta = -size.x / 2.0f - (size.x / 16) * 6;
+            return -(size.x / 16) * 6;
         }
         else {
 
-            xDelta = -size.x / 2.0f + (size.x / 16) * 6;
+            return (size.x / 16) * 6;
         }
+    }
 
-        batch.draw(getTextureRegion(), position.x + xDelta, position.y + yDelta + walkingOffset, size.x * 2, size.y * 2);
+    @Override
+    protected float yOffset() {
 
-        if (!flip()) {
-
-            getTextureRegion().flip(true, false);
-        }
+        return -(size.y / 16) * 2;
     }
 }

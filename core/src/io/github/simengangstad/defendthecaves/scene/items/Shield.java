@@ -14,6 +14,8 @@ public class Shield extends Item {
 
     private static TextureRegion textureRegion = new TextureRegion(Game.SpriteSheet, 0, 128, 32, 32);
 
+    private final Vector2 tmpPosition = new Vector2(), tmpSize = new Vector2();
+
     public Shield() {
 
         super(new Vector2(), new Vector2(Game.EntitySize, Game.EntitySize), textureRegion, false);
@@ -29,12 +31,13 @@ public class Shield extends Item {
     @Override
     public void draw(SpriteBatch batch) {
 
+        tmpPosition.set(position);
+        tmpSize.set(size);
+
         float xDelta;
         float yDelta = -size.y / 2.0f - (size.y / 16) * 2;
 
         if (flip()) {
-
-            getTextureRegion().flip(true, false);
 
             xDelta = -size.x / 2.0f + (size.x / 16) * 4;
         }
@@ -43,11 +46,12 @@ public class Shield extends Item {
             xDelta = -size.x / 2.0f - (size.x / 16) * 4;
         }
 
-        batch.draw(getTextureRegion(), position.x + xDelta, position.y + yDelta + walkingOffset, size.x * 2, size.y * 2);
+        size.set(size.x * 2, size.y * 2);
+        position.set(position.x + xDelta + size.x / 2.0f, position.y + yDelta + walkingOffset + size.y / 2.0f);
 
-        if (flip()) {
+        super.draw(batch);
 
-            getTextureRegion().flip(true, false);
-        }
+        position.set(tmpPosition);
+        size.set(tmpSize);
     }
 }

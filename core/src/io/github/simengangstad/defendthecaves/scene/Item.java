@@ -32,6 +32,16 @@ public abstract class Item extends Collidable {
     public Entity thrownFrom = null;
 
     /**
+     * How fast the rotation of the item is.
+     */
+    private static final int RotationScalar = 1500;
+
+    /**
+     * The state if the item was flipped when it was thrown.
+     */
+    private boolean wasFlippedWhenThrown = false;
+
+    /**
      * The damage applied when the item hits an entity.
      */
     private static final int ThrowDamage = 10;
@@ -98,20 +108,22 @@ public abstract class Item extends Collidable {
      */
     protected void collides(Entity entity) {
 
+        Vector2 vector = Game.vector2Pool.obtain();
+
+        vector.set(forceApplied).nor();
+
+        ((Scene) host).damage(ThrowDamage, vector, position.x, position.y, size.x, size.y, thrownFrom);
+
         forceApplied.set(0.0f, 0.0f);
 
-        Vector2 force = Game.vector2Pool.obtain();
+        vector.set(0.0f, 0.0f);
 
-        force.set(0.0f, 0.0f);
-
-        applyForce(force, true, 1.5f);
-
-        Game.vector2Pool.free(force);
+        applyForce(vector, true, 1.5f);
 
         thrown = false;
         thrownFrom = null;
 
-        entity.takeDamage(ThrowDamage);
+        Game.vector2Pool.free(vector);
     }
 
     public boolean isThrown() {
@@ -145,6 +157,7 @@ public abstract class Item extends Collidable {
      */
     public void throwItem(Vector2 direction) {
 
+        wasFlippedWhenThrown = parent.flip();
         thrownFrom = parent;
 
         parent.host.addGameObject(this);
@@ -152,7 +165,9 @@ public abstract class Item extends Collidable {
 
         direction.nor();
 
-        this.applyForce(direction.scl(ThrowingScalar), false, 0.0f);
+        direction.y = 0.2f;
+
+        this.applyForce(direction.scl(ThrowingScalar), true, Float.MAX_VALUE);
 
         thrown = true;
     }
@@ -220,6 +235,26 @@ public abstract class Item extends Collidable {
 
             getTextureRegion().flip(true, false);
         }
+    }
+
+
+    @Override
+    public void draw(SpriteBatch batch) {
+
+        if (isThrown()) {
+
+            if (wasFlippedWhenThrown) {
+
+                rotation = timer * RotationScalar;
+            }
+            else {
+
+                rotation = -timer * RotationScalar;
+            }
+
+        }
+
+        super.draw(batch);
     }
 
     @Override

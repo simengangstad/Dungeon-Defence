@@ -239,6 +239,7 @@ public abstract class Entity extends Collidable {
 
         item.parent = this;
         item.map = map;
+        item.rotation = 0.0f;
 
         item.create();
     }
@@ -252,6 +253,7 @@ public abstract class Entity extends Collidable {
 
         item.parent = this;
         item.map = map;
+        item.rotation = 0.0f;
 
         item.create();
 

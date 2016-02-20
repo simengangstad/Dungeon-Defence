@@ -17,6 +17,11 @@ public abstract class GameObject implements Disposable {
     public final Vector2 position = new Vector2(), size = new Vector2();
 
     /**
+     * The rotation of the game object.
+     */
+    public float rotation = 0.0f;
+
+    /**
      * The host of the game object.
      */
     public Container host;
@@ -44,10 +49,10 @@ public abstract class GameObject implements Disposable {
 
         if (Game.DebubDraw) {
 
-            batch.draw(Game.debugDrawTexture, position.x - size.x / 2.0f, position.y - size.y / 2.0f, size.x, size.y);
+            batch.draw(Game.debugDrawTexture, position.x - size.x / 2.0f, position.y - size.y / 2.0f, size.x / 2.0f, size.y / 2.0f, size.x, size.y, 1.0f, 1.0f, rotation);
         }
 
-        batch.draw(getTextureRegion(), position.x - size.x / 2.0f, position.y - size.y / 2.0f, size.x, size.y);
+        batch.draw(getTextureRegion(), position.x - size.x / 2.0f, position.y - size.y / 2.0f, size.x / 2.0f, size.y / 2.0f, size.x, size.y, 1.0f, 1.0f, rotation);
 
         if (flip()) {
 

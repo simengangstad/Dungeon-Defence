@@ -13,7 +13,9 @@ public class Coal extends Item {
 
     public Coal(Vector2 position) {
 
-        super(position, new Vector2(Game.ItemSize, Game.ItemSize), new TextureRegion(Game.SpriteSheet, 64, 208, 16, 16), true);
+        super(position, new Vector2(Game.ItemSize * 1.5f, Game.ItemSize * 1.5f), new TextureRegion(Game.SpriteSheet, 64, 208, 16, 16), true);
+
+        information = "Black gold";
     }
 
     @Override

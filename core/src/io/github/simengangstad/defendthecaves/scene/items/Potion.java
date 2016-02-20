@@ -83,7 +83,7 @@ public class Potion extends Item {
 
         batch.setColor(Math.abs(getToxicity() + Chemical.UpperBoundary - 100) / 100f, Math.abs(getStability() + Chemical.UpperBoundary - 100) / 100f, (getFlammability() + Chemical.UpperBoundary) / 100f, 1.0f);
 
-        batch.draw(fill, position.x - size.x / 2.0f, position.y - size.y / 2.0f, size.x, size.y);
+        batch.draw(fill, position.x - size.x / 2.0f, position.y - size.y / 2.0f, size.x / 2.0f, size.y / 2.0f, size.x, size.y, 1.0f, 1.0f, rotation);
 
         batch.setColor(Color.WHITE);
 

@@ -13,7 +13,9 @@ public class Wood extends Item {
 
     public Wood(Vector2 position) {
 
-        super(position, new Vector2(Game.ItemSize, Game.ItemSize), new TextureRegion(Game.SpriteSheet, 80, 208, 16, 16), true);
+        super(position, new Vector2(Game.ItemSize * 1.5f, Game.ItemSize * 1.5f), new TextureRegion(Game.SpriteSheet, 80, 208, 16, 16), true);
+
+        information = "Wood";
     }
 
     @Override

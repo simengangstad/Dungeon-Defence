@@ -80,7 +80,7 @@ public abstract class RotatableWeapon extends Weapon {
 
             int angle = rotation;
 
-            if (!flip()) {
+            if (flip()) {
 
                 angle = -angle;
             }

@@ -55,7 +55,7 @@ public class Scene extends Container {
     /**
      * The maximum amount one can zoom out of the map.
      */
-    private final int MaxZoom = 60;
+    private final int MaxZoom = 400;
 
     /**
      * Tmp
@@ -165,7 +165,7 @@ public class Scene extends Container {
 
     private void initialiseMap() {
 
-        map = new Map(30, 30, 7, 5, 11, 453123123, player.size, 1, 3);
+        map = new Map(200, 200, 200, 5, 11, 453123123, player.size, 1, 3);
 
         pathfindingGrid = new PathfindingGrid(map.getWidth(), map.getHeight());
 
