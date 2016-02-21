@@ -30,6 +30,14 @@ public abstract class Recipe {
     public abstract Item result();
 
     /**
+     * @return The amount of ingredients in the receipe.
+     */
+    public int amountOfIngredients() {
+
+        return ingredients.size();
+    }
+
+    /**
      * Adds the passed ingredient.
      */
     public void addIngredient(Class ingredient) {

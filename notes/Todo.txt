@@ -77,11 +77,15 @@
 - [x] Limits stacks to 16 items
 - [x] Add possibility to throw items
 
+# 0013
+- [x] Add torches
+- [x] Add receipe for torch
+
 
 # To be implemented
+- [ ] Add pixelated lightning
+- [ ] Drake's sniper scopes to look in the dark?
 - [ ] Clean up crafting inventory -> remove duplicated code.
-- [ ] Add recipies
-- [ ] Add torches
-- [ ] Move a stack around the inventory by holding down shift
 - [ ] Add functionality for reversing the process of crafting; retrieving components from a crafted item
+- [ ] Move a stack around the inventory by holding down shift
 - [ ] Solve bug where the player sometimes ends up in rooms withuot entries.

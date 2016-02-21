@@ -1,3 +1,5 @@
+Think like the tunnel series, how Drake and Elliott fight against the limiters
+
 - Combat and health system
   - [ ] Receive health from fallen enemies.
   - [ ] Have an option for walking silently (though slower).
@@ -11,21 +13,21 @@
   - [ ] Add stairways to make the make look more isometric (?).
   - [ ] Add entrances for enemies (which you can block).
     - [ ] You have to collect stones in order to block them!
-    - [ ] Entrances need to be surrounded with solid material one cannot breach through
+    - [x] Entrances need to be surrounded with solid material one cannot breach through
   - [ ] Add multiple levels with caves leading down to these levels (there has to be a maximum amount of levels though, as these
         levels has to be held in memory at runtime).
-  - [ ] Add secret rooms.
+  - [x] Add secret rooms.
     - [ ] Can't see through the walls of these
-  - [ ] Add loot.
+  - [x] Add loot.
   - [ ] Map is dark with the player having a torch which he can hide away to not attract enemies (in this way you can be kill the
         enemies silently).
     - [ ] Torches can be placed around the map.
 
 - Enemies
-  - [ ] Snakes
-  - [ ] Orc (An anoje)
+  - [x] Snakes
+  - [x] Orc (An anoje)
   - [ ] A massive orc
-  - [ ] A creature which spits some acid
+  - [x] A creature which spits some acid
 
 
 - Traps
@@ -35,7 +37,7 @@
 
 - Crafting system
   - [ ] Care packages are placed around the map
-  - [ ] Items drop from the enemies
+  - [x] Items drop from the enemies
   - Items
     - Stone
     - Iron

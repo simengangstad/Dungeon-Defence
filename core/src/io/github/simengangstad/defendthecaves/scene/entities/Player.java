@@ -95,6 +95,7 @@ public class Player extends Entity implements InputProcessor {
         }
 
         addItem(new Shield());
+        addItem(new Torch(new Vector2()));
 
         host.addInputProcessor(this);
 

@@ -1,9 +1,8 @@
 package io.github.simengangstad.defendthecaves.scene.crafting;
 
+import com.badlogic.gdx.math.Vector2;
 import io.github.simengangstad.defendthecaves.scene.Item;
-import io.github.simengangstad.defendthecaves.scene.items.Axe;
-import io.github.simengangstad.defendthecaves.scene.items.Cudgel;
-import io.github.simengangstad.defendthecaves.scene.items.Potion;
+import io.github.simengangstad.defendthecaves.scene.items.*;
 
 import java.util.ArrayList;
 
@@ -13,33 +12,41 @@ import java.util.ArrayList;
  */
 public class CraftingSystem {
 
-    private static Recipe recipe = new Recipe(new Class[] {
+    private static ArrayList<Recipe> recipes = new ArrayList<>();
 
-            Potion.class,
-            Axe.class
-    }) {
+    static {
 
-        @Override
-        public Item result() {
+        recipes.add(new Recipe(new Class[] {
 
-            return new Cudgel(() -> {});
-        }
-    };
+                Coal.class,
+                Wood.class
+        }) {
+
+            @Override
+            public Item result() {
+
+                return new Torch(new Vector2());
+            }
+        });
+    }
 
     public static Item obtainItemFromGivenItems(ArrayList<Item> items) {
 
-        if (items.size() == 2) {
+        for (Recipe recipe : recipes) {
 
-            recipe.clear();
+            if (recipe.amountOfIngredients() == items.size()) {
 
-            for (Item item : items) {
+                recipe.clear();
 
-                recipe.addIngredient(item.getClass());
-            }
+                for (Item item : items) {
 
-            if (recipe.isFulfilled()) {
+                    recipe.addIngredient(item.getClass());
+                }
 
-                return recipe.result();
+                if (recipe.isFulfilled()) {
+
+                    return recipe.result();
+                }
             }
         }
 

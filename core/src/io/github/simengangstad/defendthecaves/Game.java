@@ -37,6 +37,8 @@ public class Game extends ApplicationAdapter {
     public static Texture CaterpillarMoving;
     public static Texture CaterpillarAttacking;
 
+    public static Texture Torch;
+
     public static final int EntitySize = 80;
     public static final int ItemSize = (EntitySize / 2);
 
@@ -90,6 +92,8 @@ public class Game extends ApplicationAdapter {
         CaterpillarStationary = new Texture("assets/animations/CaterpillarStationary.png");
         CaterpillarMoving = new Texture("assets/animations/CaterpillarMoving.png");
         CaterpillarAttacking = new Texture("assets/animations/CaterpillarAttacking.png");
+
+        Torch = new Texture("assets/animations/Torch.png");
 
         debugDrawTexture = new TextureRegion(SpriteSheet, 48, 80, 16, 16);
 
