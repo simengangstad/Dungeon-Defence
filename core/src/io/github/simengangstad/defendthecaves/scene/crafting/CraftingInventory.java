@@ -1,6 +1,7 @@
 package io.github.simengangstad.defendthecaves.scene.crafting;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Vector2;
@@ -18,7 +19,7 @@ import java.util.Iterator;
  */
 public class CraftingInventory extends Inventory {
 
-    public Item result = null;
+    public ArrayList<Item> result = new ArrayList<>();
 
     private final int widthOfGap;
 
@@ -36,7 +37,11 @@ public class CraftingInventory extends Inventory {
 
     private Label label = new Label("Places left: 8", Game.UISkin);
 
+    private Label resultLabel = new Label("", Game.UISkin);
+
     private boolean currentItemWasCrafted = false;
+
+    private Recipe recipe;
 
     public CraftingInventory(int widthOfGap) {
 
@@ -97,9 +102,20 @@ public class CraftingInventory extends Inventory {
 
         style.slot.draw(batch, posXResult, posYResult, slotSize, slotSize);
 
-        if (result != null) {
+        resultLabel.setVisible(false);
 
-            result.draw((SpriteBatch) batch, posXResult, posYResult, slotSize, slotSize, false);
+        if (!result.isEmpty()) {
+
+            result.get(0).draw((SpriteBatch) batch, posXResult, posYResult, slotSize, slotSize, false);
+
+            stringBuilder.setLength(0);
+            stringBuilder.append(result.size());
+            resultLabel.setText(stringBuilder);
+
+            resultLabel.setPosition(posXResult + slotSize - resultLabel.getPrefWidth() - 3.0f, posYResult + 10.0f);
+            resultLabel.setVisible(true);
+
+            resultLabel.draw(batch, parentAlpha);
         }
 
 
@@ -172,9 +188,16 @@ public class CraftingInventory extends Inventory {
 
                 speechBubble.setText(stringBuilder);
 
-                if (Gdx.input.isButtonPressed(0) && currentItem == null) {
+                if (currentItems.isEmpty() && Gdx.input.isButtonPressed(0)) {
 
-                    currentItem = obtainItem(column, row, 1).get(0);
+                    if (Gdx.input.isKeyPressed(Input.Keys.SHIFT_LEFT)) {
+
+                        currentItems.addAll(obtainItem(column, row, getItemList(column, row).size()));
+                    }
+                    else {
+
+                        currentItems.add(obtainItem(column, row, 1).get(0));
+                    }
 
                     cameFromCraftingArea = false;
                     currentItemWasCrafted = false;
@@ -203,9 +226,9 @@ public class CraftingInventory extends Inventory {
 
                     speechBubble.setText(stringBuilder);
 
-                    if (currentItem == null && Gdx.input.isButtonPressed(0)) {
+                    if (currentItems.isEmpty() && Gdx.input.isButtonPressed(0)) {
 
-                        currentItem = item;
+                        currentItems.add(item);
 
                         lastPosition.set(tmpCraftingVector.x, tmpCraftingVector.y);
 
@@ -223,35 +246,36 @@ public class CraftingInventory extends Inventory {
         }
         else if (posXResult <= x && x < posXResult + slotSize && posYResult <= y && y < posYResult + slotSize) {
 
-            if (Gdx.input.isButtonPressed(0) && currentItem == null) {
+            if (currentItems.isEmpty() && Gdx.input.isButtonPressed(0)) {
 
-                currentItem = result;
-
-                result = null;
+                currentItems.addAll(result);
+                result.clear();
+                items.clear();
 
                 currentItemWasCrafted = true;
-
-                items.clear();
             }
         }
 
-        if (currentItem != null && !Gdx.input.isButtonPressed(0)) {
+        if (!currentItems.isEmpty() && !Gdx.input.isButtonPressed(0)) {
 
-            if (isValidPosition(column, row) && ((currentItem.stackable && getItemType(column, row) == currentItem.getClass() && getItemList(column, row).size() < MaxAmountOfItemsInSlot) || getItemType(column, row) == null)) {
+            if (isValidPosition(column, row) && ((currentItems.get(0).stackable && getItemType(column, row) == currentItems.get(0).getClass() && getItemList(column, row).size() < MaxAmountOfItemsInSlot) || getItemType(column, row) == null)) {
 
                 if (currentItemWasCrafted) {
 
-                    currentItem.parent = host;
-                    currentItem.map = host.map;
+                    currentItems.get(0).parent = host;
+                    currentItems.get(0).map = host.map;
                 }
 
-                placeItem(column, row, currentItem);
+                placeItems(column, row, currentItems);
             }
-            else if (isInsideCraftingArea(x, y) && items.size() < MaxAmount) {
+            else if (isInsideCraftingArea(x, y) && items.size() + currentItems.size() < MaxAmount) {
 
-                currentItem.inventoryPosition.set(x, y);
+                for (Item item : currentItems) {
 
-                items.add(currentItem);
+                    item.inventoryPosition.set(x, y);
+                }
+
+                items.addAll(currentItems);
 
                 computeResultFromCrafting();
             }
@@ -259,27 +283,27 @@ public class CraftingInventory extends Inventory {
 
                 if (cameFromCraftingArea) {
 
-                    currentItem.inventoryPosition.set(lastPosition);
+                    currentItems.get(0).inventoryPosition.set(lastPosition);
 
-                    items.add(currentItem);
+                    items.add(currentItems.get(0));
 
                     computeResultFromCrafting();
 
                 }
                 else {
 
-                    placeItem(lastColumn, lastRow, currentItem);
+                    placeItems(lastColumn, lastRow, currentItems);
                 }
             }
 
-            currentItem = null;
+            currentItems.clear();
         }
 
-        if (currentItem != null) {
+        if (!currentItems.isEmpty()) {
 
             float scale = 1.25f;
 
-            currentItem.draw(
+            currentItems.get(0).draw(
                     (SpriteBatch) batch,
                     x - slotSize * scale / 2.0f,
                     y - slotSize * scale / 2.0f,
@@ -296,6 +320,11 @@ public class CraftingInventory extends Inventory {
 
     private void computeResultFromCrafting() {
 
-        result = CraftingSystem.obtainItemFromGivenItems(items);
+        result.clear();
+
+        CraftingSystem.Product product = CraftingSystem.obtainItemFromGivenItems(items);
+
+        result.addAll(product.items);
+        recipe = product.recipe;
     }
 }

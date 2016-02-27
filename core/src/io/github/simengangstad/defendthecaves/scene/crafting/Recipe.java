@@ -39,10 +39,19 @@ public abstract class Recipe {
 
     /**
      * Adds the passed ingredient.
+     *
+     * @return True if the given ingredient wasn't already added.
      */
-    public void addIngredient(Class ingredient) {
+    public boolean addIngredient(Class ingredient) {
 
-        ingredients.put(ingredient, true);
+        if (ingredients.get(ingredient) != null) {
+
+            ingredients.put(ingredient, true);
+
+            return true;
+        }
+
+        return false;
     }
 
     /**
@@ -50,7 +59,7 @@ public abstract class Recipe {
      */
     public void clear() {
 
-        ingredients.forEach((item, value) -> value = false);
+        ingredients.forEach((item, value) -> ingredients.put(item, false));
     }
 
     /**
@@ -69,5 +78,20 @@ public abstract class Recipe {
         }
 
         return true;
+    }
+
+    @Override
+    public String toString() {
+
+        final StringBuilder information = new StringBuilder();
+
+        information.append("Recipe:\n");
+
+        ingredients.forEach((id, value) -> {
+
+            information.append(id + " - added: " + value + "\n");
+        });
+
+        return information.toString();
     }
 }

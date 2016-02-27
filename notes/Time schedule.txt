@@ -20,5 +20,5 @@
 # By the end of February 2016
 
 - [x] Display properties of entities
-- [ ] Add different types of loot
-- [ ] Implement craft system
+- [x] Add different types of loot
+- [x] Implement craft system

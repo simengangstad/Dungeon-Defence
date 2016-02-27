@@ -81,11 +81,11 @@
 - [x] Add torches
 - [x] Add receipe for torch
 
+# 0014
+- [x] Move a stack around the inventory by holding down shift
+- [x] Add pixelated lightning
 
 # To be implemented
-- [ ] Add pixelated lightning
-- [ ] Drake's sniper scopes to look in the dark?
 - [ ] Clean up crafting inventory -> remove duplicated code.
-- [ ] Add functionality for reversing the process of crafting; retrieving components from a crafted item
-- [ ] Move a stack around the inventory by holding down shift
 - [ ] Solve bug where the player sometimes ends up in rooms withuot entries.
+- [ ] Add functionality for reversing the process of crafting; retrieving components from a crafted item

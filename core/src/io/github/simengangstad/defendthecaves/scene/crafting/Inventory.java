@@ -1,6 +1,7 @@
 package io.github.simengangstad.defendthecaves.scene.crafting;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Vector2;
@@ -56,12 +57,12 @@ public class Inventory extends Table {
     private int size = 0;
 
     /**
-     * The item which the user is currently intercting with.
+     * The item(s) which the user is currently intercting with.
      */
-    protected Item currentItem = null;
+    protected ArrayList<Item> currentItems = new ArrayList<>();
 
     /**
-     * Reference to the position the {@link Inventory#currentItem} was placed at.
+     * Reference to the position the {@link Inventory#currentItems} was placed at.
      */
     protected int lastColumn = 0, lastRow = 0;
 
@@ -164,6 +165,19 @@ public class Inventory extends Table {
         return keys;
     }
 
+    public boolean placeItems(int x, int y, ArrayList<Item> items) {
+
+        for (Item item : items) {
+
+            if (!placeItem(x, y, item)) {
+
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     public boolean placeItem(int x, int y, Item item) {
 
         if (!isValidPosition(x, y)) {
@@ -218,6 +232,19 @@ public class Inventory extends Table {
         }
 
         return false;
+    }
+
+    public boolean placeItems(ArrayList<Item> items) {
+
+        for (Item item : items) {
+
+            if (!placeItem(item)) {
+
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /**
@@ -450,9 +477,16 @@ public class Inventory extends Table {
 
                 speechBubble.setText(stringBuilder);
 
-                if (currentItem == null && Gdx.input.isButtonPressed(0)) {
+                if (currentItems.isEmpty() && Gdx.input.isButtonPressed(0)) {
 
-                    currentItem = obtainItem(column, row, 1).get(0);
+                    if (Gdx.input.isKeyPressed(Input.Keys.SHIFT_LEFT)) {
+
+                        currentItems.addAll(obtainItem(column, row, getItemList(column, row).size()));
+                    }
+                    else {
+
+                        currentItems.add(obtainItem(column, row, 1).get(0));
+                    }
 
                     lastColumn = column;
                     lastRow = row;
@@ -460,28 +494,28 @@ public class Inventory extends Table {
             }
         }
 
-        if (currentItem != null && !Gdx.input.isButtonPressed(0)) {
+        if (!currentItems.isEmpty() && !Gdx.input.isButtonPressed(0)) {
 
-            if (isValidPosition(column, row) && ((currentItem.stackable && getItemType(column, row) == currentItem.getClass() && getItemList(column, row).size() < MaxAmountOfItemsInSlot) || getItemType(column, row) == null)) {
+            if (isValidPosition(column, row) && ((currentItems.get(0).stackable && getItemType(column, row) == currentItems.get(0).getClass() && getItemList(column, row).size() < MaxAmountOfItemsInSlot) || getItemType(column, row) == null)) {
 
-                placeItem(column, row, currentItem);
+                placeItems(column, row, currentItems);
             }
             else {
 
-                placeItem(lastColumn, lastRow, currentItem);
+                placeItems(lastColumn, lastRow, currentItems);
             }
 
-            currentItem = null;
+            currentItems.clear();
         }
 
-        if (currentItem != null) {
+        if (currentItems.isEmpty()) {
 
             float width = getWidth() / columns - (getWidth() / columns / 20) * 2;
             float height = getHeight() / rows - (getHeight() / rows / 20) * 2;
 
             int scale = 1;
 
-            if (currentItem instanceof Weapon || currentItem instanceof Shield) {
+            if (currentItems.get(0) instanceof Weapon || currentItems.get(0) instanceof Shield) {
 
                 width -= (getWidth() / columns / 20) * 2;
                 height -= (getHeight() / rows / 20) * 2;
@@ -489,7 +523,9 @@ public class Inventory extends Table {
                 scale = 2;
             }
 
-            currentItem.draw(
+
+
+            currentItems.get(0).draw(
                     (SpriteBatch) batch,
                     x + (getWidth() / columns / 20) * 1 - (width / 2.0f) * scale,
                     y + (getHeight() / rows / 20) * 1 - (height / 2.0f) * scale,

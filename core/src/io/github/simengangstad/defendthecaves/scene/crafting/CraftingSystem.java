@@ -5,6 +5,7 @@ import io.github.simengangstad.defendthecaves.scene.Item;
 import io.github.simengangstad.defendthecaves.scene.items.*;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 
 /**
  * @author simengangstad
@@ -13,6 +14,8 @@ import java.util.ArrayList;
 public class CraftingSystem {
 
     private static ArrayList<Recipe> recipes = new ArrayList<>();
+
+    private static ArrayList<Item> itemsCopy = new ArrayList<>();
 
     static {
 
@@ -30,26 +33,73 @@ public class CraftingSystem {
         });
     }
 
-    public static Item obtainItemFromGivenItems(ArrayList<Item> items) {
+    public static class Product {
+
+        public ArrayList<Item> items = new ArrayList<>();
+        public Recipe recipe;
+    }
+
+    private static Product product = new Product();
+
+    public static Product obtainItemFromGivenItems(ArrayList<Item> items) {
 
         for (Recipe recipe : recipes) {
 
-            if (recipe.amountOfIngredients() == items.size()) {
+            product.items.clear();
 
-                recipe.clear();
+            product.recipe = recipe;
 
-                for (Item item : items) {
+            // Check that the items given are the amount of required ingredients times
+            // some integer
+            if (items.size() % recipe.amountOfIngredients() == 0) {
 
-                    recipe.addIngredient(item.getClass());
+                // Check that the items given are sufficient for n amount of result items
+                itemsCopy.clear();
+                itemsCopy.addAll(items);
+
+                boolean noMoreResultingItems = false;
+                boolean addedItems = false;
+
+                while (!noMoreResultingItems) {
+
+                    // Grab the ingredients in the list and look for the other corresponding
+                    // ingredients for the recipe
+                    recipe.clear();
+
+                    Iterator itemIterator = itemsCopy.iterator();
+
+                    // Iterate through and remove the added ingredients so that we don't include
+                    // these items in the next iteration.
+                    while (itemIterator.hasNext()) {
+
+                        Item next = (Item) itemIterator.next();
+
+                        if (recipe.addIngredient(next.getClass())) {
+
+                            itemIterator.remove();
+                        }
+                    }
+
+                    if (recipe.isFulfilled()) {
+
+                        product.items.add(recipe.result());
+
+                        addedItems = true;
+                    }
+                    else {
+
+                        noMoreResultingItems = true;
+                    }
                 }
 
-                if (recipe.isFulfilled()) {
+                // If we added items with this recipe, don't look for other combinations
+                if (addedItems) {
 
-                    return recipe.result();
+                    return product;
                 }
             }
         }
 
-        return null;
+        return product;
     }
 }

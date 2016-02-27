@@ -550,6 +550,8 @@ public abstract class Entity extends Collidable {
 
     public void draw(SpriteBatch batch) {
 
+        healthBar.setColor(batch.getColor());
+
         // Set the uniform location of the white overlay if not previous set.
         if (uniformLocation == -1) uniformLocation = batch.getShader().getUniformLocation("u_flash");
 

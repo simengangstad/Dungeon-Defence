@@ -1,9 +1,11 @@
 package io.github.simengangstad.defendthecaves.scene;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.math.Vector3;
 import io.github.simengangstad.defendthecaves.Container;
 import io.github.simengangstad.defendthecaves.Game;
 import io.github.simengangstad.defendthecaves.GameObject;
@@ -26,6 +28,16 @@ public class Scene extends Container {
      * The map that hosts the game objects.
      */
     private Map map;
+
+    /**
+     * The shader of the scene.
+     */
+    private LightShader lightShader = new LightShader(Map.TileSizeInPixelsInWorldSpace / Game.SizeOfTileInPixelsInSpritesheet / 2);
+
+    /**
+     * The lights in the scene.
+     */
+    private ArrayList<Light> lights = new ArrayList<>();
 
     /**
      * The pathfinding grid used for enemy AI.
@@ -76,14 +88,15 @@ public class Scene extends Container {
 
         initialiseMap();
 
-        ShaderProgram shaderProgram = new ShaderProgram(Gdx.files.internal("assets/shaders/shader.vs"), Gdx.files.internal("assets/shaders/shader.fs"));
+        lightShader.create();
 
-        if (!shaderProgram.isCompiled()) {
+        batch.setShader(lightShader.handle);
 
-            System.err.println("Couldn't compile shader: " + shaderProgram.getLog());
-        }
+        lightShader.setAmbientColour(0.1f, 0.1f, 0.1f);
 
-        batch.setShader(shaderProgram);
+        addLight(new Light(player.position, new Vector3(0.9f, 0.55f, 0.19f), 30));
+        addLight(new Light(player.position.cpy().add(200.0f, 0.0f), new Vector3(0.9f, 0.55f, 0.19f), 30));
+        addLight(new Light(player.position.cpy().add(400.0f, 0.0f), new Vector3(0.9f, 0.55f, 0.19f), 30));
     }
 
     /*
@@ -165,7 +178,7 @@ public class Scene extends Container {
 
     private void initialiseMap() {
 
-        map = new Map(200, 200, 200, 5, 11, 453123123, player.size, 1, 3);
+        map = new Map(30, 30, 3, 5, 11, 453123123, player.size, 1, 3);
 
         pathfindingGrid = new PathfindingGrid(map.getWidth(), map.getHeight());
 
@@ -322,6 +335,10 @@ public class Scene extends Container {
         player.camera.viewportWidth = Gdx.graphics.getWidth();
         player.camera.viewportHeight = Gdx.graphics.getHeight();
         player.camera.update();
+
+        lightShader.handle.begin();
+        lightShader.uploadUniforms(lights, player.camera.projection);
+        lightShader.handle.end();
     }
 
     @Override
@@ -350,6 +367,52 @@ public class Scene extends Container {
 
             ((Item) gameObject).toggleTimer();
         }
+    }
+
+    public void addLight(Light light) {
+
+        boolean drawing = batch.isDrawing();
+
+        if (drawing) {
+
+            batch.end();
+        }
+
+        lights.add(light);
+
+        lightShader.update(lights.size());
+
+        batch.setShader(lightShader.handle);
+
+        if (drawing) {
+
+            batch.begin();
+        }
+
+        lightShader.uploadUniforms(lights, player.camera.projection);
+    }
+
+    public void removeLight(Light light) {
+
+        boolean drawing = batch.isDrawing();
+
+        if (drawing) {
+
+            batch.end();
+        }
+
+        lights.remove(light);
+
+        lightShader.update(lights.size());
+
+        batch.setShader(lightShader.handle);
+
+        if (drawing) {
+
+            batch.begin();
+        }
+
+        lightShader.uploadUniforms(lights, player.camera.projection);
     }
 
     /**
@@ -437,6 +500,9 @@ public class Scene extends Container {
      */
     public void tick() {
 
+        Gdx.gl.glClearColor(0, 0, 0, 1);
+        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
+
         if (!buffer.isEmpty()) {
 
             gameObjects.addAll(buffer);
@@ -482,6 +548,8 @@ public class Scene extends Container {
         batch.setProjectionMatrix(player.camera.combined);
 
         batch.begin();
+
+        lightShader.uploadUniforms(lights, player.camera.projection);
 
         map.playerPosition = player.position;
 
@@ -615,7 +683,6 @@ public class Scene extends Container {
 
         batch.end();
 
-        stage.act();
         stage.draw();
     }
 

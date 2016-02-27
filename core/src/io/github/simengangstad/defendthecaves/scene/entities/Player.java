@@ -92,6 +92,7 @@ public class Player extends Entity implements InputProcessor {
 
             addItem(new Coal(new Vector2(0.0f, 0.0f)));
             addItem(new Wood(new Vector2(0.0f, 0.0f)));
+            addItem(new StringItem(new Vector2(0.0f, 0.0f)));
         }
 
         addItem(new Shield());

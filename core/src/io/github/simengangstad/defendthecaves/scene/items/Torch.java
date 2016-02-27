@@ -23,6 +23,8 @@ public class Torch extends Item {
     public Torch(Vector2 position) {
 
         super(position, new Vector2(Game.EntitySize, Game.EntitySize), animation.getKeyFrame(0.0f, true), true);
+
+        information = "Torch";
     }
 
     @Override

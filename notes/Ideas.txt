@@ -1,5 +1,7 @@
 Think like the tunnel series, how Drake and Elliott fight against the limiters
 
+- [ ] Drake's sniper scopes to look in the dark?
+
 - Combat and health system
   - [ ] Receive health from fallen enemies.
   - [ ] Have an option for walking silently (though slower).
