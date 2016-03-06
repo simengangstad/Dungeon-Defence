@@ -14,7 +14,7 @@ public abstract class GameObject implements Disposable {
     /**
      * The position (centre) and size (diameter on both axes).
      */
-    public final Vector2 position = new Vector2(), size = new Vector2();
+    public Vector2 position = new Vector2(), size = new Vector2();
 
     /**
      * The rotation of the game object.

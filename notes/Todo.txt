@@ -85,7 +85,20 @@
 - [x] Move a stack around the inventory by holding down shift
 - [x] Add pixelated lightning
 
+# 0015
+
+- [x] Make light reflect from walls
+    - Upload byte map to shader with 1 for solid, 0 for free and initial position of map
+    - Check v_position against this by dividing by TileSize constant
+    - If solid then don't show light
+
+# 0016
+
+- [x] Show overlay for selected tiles.
+- [x] Block entrances with stones
+
 # To be implemented
+- [ ] Make lights flicker with different intervals
 - [ ] Clean up crafting inventory -> remove duplicated code.
 - [ ] Solve bug where the player sometimes ends up in rooms withuot entries.
 - [ ] Add functionality for reversing the process of crafting; retrieving components from a crafted item

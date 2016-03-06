@@ -2,7 +2,7 @@ package io.github.simengangstad.defendthecaves.scene;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
-import com.badlogic.gdx.math.Matrix4;
+import com.badlogic.gdx.math.Vector3;
 
 import java.util.ArrayList;
 
@@ -22,36 +22,45 @@ public class LightShader {
      */
     public int amountOfLights = 1;
 
+
     /**
      * The width and size of tiles within the canvas. Light will be clamped to these tiles,
      * so in order to have pixel perfect light this has to be equal to 1.
      */
-    private final float[] lightTileSizeInPixels = new float[1];
+    private float lightTileSizeInPixels;
 
     private final String LightTileSizeInPixelsUniformName = "u_lightTileSize";
 
 
-    private final float[] ambientColour = new float[3];
+    private final Vector3 ambientColour = new Vector3();
 
     private final String AmbientColourUniformName = "u_ambientSceneColour";
 
 
-    private final float[] time = new float[1];
+    private float time;
 
     private final String TimeUniformName = "u_time";
 
 
-    public LightShader(int LightTileSizeInPixels) {
+    private final String TileSizeUniformName = "u_tileSizeInWorldSpace";
 
-        this.lightTileSizeInPixels[0] = LightTileSizeInPixels;
+    private final String MapWidthUniformName = "u_widthOfMap";
+
+    private final float[] byteMap;
+
+    private final int width;
+
+
+    public LightShader(int LightTileSizeInPixels, int widthOfMap, int heightOfMap) {
+
+        this.lightTileSizeInPixels = LightTileSizeInPixels;
+
+        width = widthOfMap;
+
+        byteMap = new float[widthOfMap * heightOfMap];
     }
 
-    public void create() {
-
-        update(amountOfLights);
-    }
-
-    public void update(int amountOfLights) {
+    public void updateLights(int amountOfLights) {
 
         if (handle != null) {
 
@@ -60,7 +69,7 @@ public class LightShader {
 
         this.amountOfLights = amountOfLights;
 
-        handle = new ShaderProgram(getVertexShader(), getFragmentShader(amountOfLights));
+        handle = new ShaderProgram(getVertexShader(), getFragmentShader(amountOfLights == 0 ? 1 : amountOfLights));
 
         if (!handle.isCompiled()) {
 
@@ -68,30 +77,44 @@ public class LightShader {
         }
     }
 
-    public void setAmbientColour(float r, float g, float b) {
+    public void updateMap(Map map) {
 
-        ambientColour[0] = r;
-        ambientColour[1] = g;
-        ambientColour[2] = b;
+        for (int y = 0; y < map.getHeight(); y++) {
+
+            for (int x = 0; x < map.getWidth(); x++) {
+
+                byteMap[x + y * map.getWidth()] = (map.isSolid(x, y) ? 1 : 0);
+            }
+        }
+
+        handle.setUniform1fv("u_map[0]", byteMap, 0, byteMap.length);
     }
 
-    public void uploadUniforms(ArrayList<Light> lights, Matrix4 projectionMatrix) {
+    public void setAmbientColour(float r, float g, float b) {
 
-        handle.setUniform1fv(LightTileSizeInPixelsUniformName, lightTileSizeInPixels, 0, 1);
+        ambientColour.set(r, g, b);
+    }
 
-        handle.setUniform3fv(AmbientColourUniformName, ambientColour, 0, 3);
+    public void uploadUniforms(ArrayList<Light> lights) {
 
-        time[0] += Gdx.graphics.getDeltaTime() * 5;
+        handle.setUniformf(LightTileSizeInPixelsUniformName, lightTileSizeInPixels);
 
-        handle.setUniform1fv(TimeUniformName, time, 0, 1);
+        handle.setUniformf(AmbientColourUniformName, ambientColour);
+        handle.setUniformf(TileSizeUniformName, Map.TileSizeInPixelsInWorldSpace);
+        handle.setUniformi(MapWidthUniformName, width);
+
+        time += Gdx.graphics.getDeltaTime() * 5;
+
+        handle.setUniformf(TimeUniformName, time);
 
         for (int i = 0; i < lights.size(); i++) {
 
             Light light = lights.get(i);
 
-            handle.setUniform2fv("u_lights[" + i + "].position", light.getPositionArray(), 0, 2);
-            handle.setUniform3fv("u_lights[" + i + "].colour", light.getColourArray(), 0, 3);
-            handle.setUniform1fv("u_lights[" + i + "].range", light.getRangeArray(), 0, 1);
+            handle.setUniformf("u_lights[" + i + "].position", light.position);
+            handle.setUniformf("u_lights[" + i + "].colour", light.colour);
+            handle.setUniformf("u_lights[" + i + "].range", light.range);
+            handle.setUniformi("u_lights[" + i + "].enabled", light.enabled ? 1 : 0);
         }
     }
 
@@ -142,6 +165,7 @@ public class LightShader {
                     "vec2 position;\n" +
                     "vec3 colour;\n" +
                     "float range;\n" +
+                    "int enabled;\n" +
                 "};\n" +
 
                 "uniform float u_time;\n" +
@@ -150,6 +174,10 @@ public class LightShader {
                 "uniform Light u_lights[AmountOfLights];\n" +
                 "uniform sampler2D u_texture;\n" +
                 "uniform bool u_flash;\n" +
+
+                "uniform float u_tileSizeInWorldSpace;\n" +
+                "uniform int u_widthOfMap;\n" +
+                "uniform float u_map["+byteMap.length+"];\n" +
 
                 "const float timeScalar = 1.5;\n" +
 
@@ -173,52 +201,62 @@ public class LightShader {
                         "colour = vec4(1.0, 1.0, 1.0, texColor.a);\n" +
                     "}\n" +
 
-                    "bool illuminated = false;\n" +
+                    "vec2 tilePos = vec2(int(v_position.x / u_tileSizeInWorldSpace), int(v_position.y / u_tileSizeInWorldSpace));\n" +
 
-                    "vec3 preColour = vec3(colour);\n" +
+                    "bool illuminated = false;\n" +
                     "vec3 finalLightColour = vec3(-1.0, -1.0, -1.0);\n" +
 
                     "float intensity = 0.0;\n" +
+                    "int intensity1 = u_widthOfMap;\n" +
 
-                    "for (int i = 0; i < AmountOfLights; i++) {\n" +
+                    "if  (u_map[int(tilePos.x) + int(tilePos.y) * u_widthOfMap] == 0.0 || \n" +
+                        "(u_map[int(tilePos.x) + int(tilePos.y) * u_widthOfMap] == 1.0 && u_map[int(tilePos.x) + int(tilePos.y - 1.0) * u_widthOfMap] == 0.0)/* ||\n" +
+                        "(u_map[int(tilePos.x) + int(tilePos.y) * u_widthOfMap] == 1.0 && u_map[int(tilePos.x + 1.0) + int(tilePos.y) * u_widthOfMap] == 0.0) ||\n" +
+                        "(u_map[int(tilePos.x) + int(tilePos.y) * u_widthOfMap] == 1.0 && u_map[int(tilePos.x - 1.0) + int(tilePos.y) * u_widthOfMap] == 0.0)*/) {\n" +
 
-                        "float lightRange = u_lights[i].range;\n" +
-                        "float range = length(vec2(int(v_position.x / u_lightTileSize), int(v_position.y / u_lightTileSize)) - vec2(int(u_lights[i].position.x / u_lightTileSize), int(u_lights[i].position.y / u_lightTileSize)));\n" +
+                        "vec3 preColour = vec3(colour);\n" +
 
-                        "if (range < lightRange) {\n" +
+                        "for (int i = 0; i < AmountOfLights; i++) {\n" +
 
-                            // Temp
+                            "if (u_lights[i].enabled == 0) {\n" +
 
-                            "if (finalLightColour.x == -1.0) {\n" +
+                                "continue;\n" +
 
-                                "finalLightColour = u_lights[i].colour;\n" +
-                            "}\n" +
-                            "else {\n" +
-
-                                //"finalLightColour = (finalLightColour + u_lights[i].colour);\n" +
-                                "finalLightColour = u_lights[i].colour;\n" +
                             "}\n" +
 
+                            "float lightRange = u_lights[i].range;\n" +
+                            "float range = length(vec2(int(v_position.x / u_lightTileSize), int(v_position.y / u_lightTileSize)) - vec2(int(u_lights[i].position.x / u_lightTileSize), int(u_lights[i].position.y / u_lightTileSize)));\n" +
 
-                            "bool fullIntensity = false;\n" +
+                            "if (range < lightRange) {\n" +
 
-                            "illuminated = true;\n" +
+                                // Temp
 
-                            "if ((range / lightRange) < 2.25/3.0) {\n" +
+                                "if (finalLightColour.x == -1.0) {\n" +
 
-                                "intensity += 1.0;\n" +
+                                    "finalLightColour = u_lights[i].colour;\n" +
+                                "}\n" +
+                                "else {\n" +
 
-                                "fullIntensity = true;\n" +
-                            "}\n" +
+                                    //"finalLightColour = (finalLightColour + u_lights[i].colour);\n" +
+                                    "finalLightColour = u_lights[i].colour;\n" +
+                                "}\n" +
 
-                            "else if ((range / lightRange) < 2.625/3.0) {\n" +
+                                "illuminated = true;\n" +
 
-                                "intensity += 0.5;\n" +
-                            "}\n" +
+                                "if ((range / lightRange) < 2.25/3.0) {\n" +
 
-                            "else if ((range / lightRange) <= 3.0/3.0) {\n" +
+                                    "intensity += 1.0;\n" +
+                                "}\n" +
 
-                                "intensity += 0.25;\n" +
+                                "else if ((range / lightRange) < 2.625/3.0) {\n" +
+
+                                    "intensity += 0.5;\n" +
+                                "}\n" +
+
+                                "else if ((range / lightRange) <= 3.0/3.0) {\n" +
+
+                                    "intensity += 0.25;\n" +
+                                "}\n" +
                             "}\n" +
                         "}\n" +
                     "}\n" +

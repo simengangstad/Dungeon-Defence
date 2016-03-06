@@ -6,6 +6,7 @@ import com.badlogic.gdx.maps.tiled.TiledMapTileLayer;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector;
 import com.badlogic.gdx.math.Vector2;
+import io.github.simengangstad.defendthecaves.Callback;
 import io.github.simengangstad.defendthecaves.Game;
 import io.github.simengangstad.defendthecaves.pathfinding.Coordinate;
 import io.github.simengangstad.defendthecaves.procedural.MapGenerator;
@@ -385,6 +386,11 @@ public class Map {
      */
     public Vector2 playerPosition;
 
+    /**
+     * Callback that gets called when a change is registered.
+     */
+    public Callback changeCallback;
+
     private final MapGenerator.Room[] rooms;
 
     /**
@@ -447,7 +453,7 @@ public class Map {
 
                             spawnPoints.add(new Vector2(x, y));
 
-                            tileMap[x][y] = SpawnIntact;
+                            set(x, y, SpawnIntact);
 
                             for (int xs = x - 1; xs <= x + 1; xs++) {
 
@@ -551,6 +557,8 @@ public class Map {
 
             return;
         }
+
+        if (changeCallback != null) changeCallback.callback();
 
         tileMap[x][y] = value;
 

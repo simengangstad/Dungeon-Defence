@@ -44,7 +44,7 @@ public abstract class Recipe {
      */
     public boolean addIngredient(Class ingredient) {
 
-        if (ingredients.get(ingredient) != null) {
+        if (ingredients.get(ingredient) == false) {
 
             ingredients.put(ingredient, true);
 

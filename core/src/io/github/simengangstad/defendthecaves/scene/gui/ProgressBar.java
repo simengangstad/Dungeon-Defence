@@ -9,17 +9,17 @@ import io.github.simengangstad.defendthecaves.Game;
  * @author simengangstad
  * @since 16/02/16
  */
-public class HealthBar extends Table {
+public class ProgressBar extends Table {
 
-    private HealthBarStyle style;
+    private ProgressBarStyle style;
 
     public final int max;
 
     public float value;
 
-    public HealthBar(int max) {
+    public ProgressBar(int max) {
 
-        setStyle(Game.UISkin.get(HealthBarStyle.class));
+        setStyle(Game.UISkin.get(ProgressBarStyle.class));
 
         value = max;
 
@@ -28,7 +28,7 @@ public class HealthBar extends Table {
         super.setSize(100.0f, 10.0f);
     }
 
-    public void setStyle(HealthBarStyle style) {
+    public void setStyle(ProgressBarStyle style) {
 
         setBackground(style.background);
 
@@ -49,13 +49,13 @@ public class HealthBar extends Table {
         style.progress.draw(batch, getX() + posX, getY() + posY, (value / max) * width, height);
     }
 
-    public static class HealthBarStyle {
+    public static class ProgressBarStyle {
 
         public Drawable background, progress;
 
-        public HealthBarStyle() {}
+        public ProgressBarStyle() {}
 
-        public HealthBarStyle(Drawable background, Drawable progress) {
+        public ProgressBarStyle(Drawable background, Drawable progress) {
 
             this.background = background;
             this.progress = progress;

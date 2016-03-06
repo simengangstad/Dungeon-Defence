@@ -262,8 +262,12 @@ public class CraftingInventory extends Inventory {
 
                 if (currentItemWasCrafted) {
 
-                    currentItems.get(0).parent = host;
-                    currentItems.get(0).map = host.map;
+                    for (Item item : currentItems) {
+
+                        item.host = host.host;
+                        item.parent = host;
+                        item.map = host.map;
+                    }
                 }
 
                 placeItems(column, row, currentItems);

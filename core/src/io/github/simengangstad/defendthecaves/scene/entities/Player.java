@@ -53,6 +53,8 @@ public class Player extends Entity implements InputProcessor {
 
     private Key tmpKey;
 
+    public boolean inRangeOfBarrier = false;
+
     private boolean displayingEnteringMessage = false;
 
     private float miningTimer = 0.0f;
@@ -96,7 +98,10 @@ public class Player extends Entity implements InputProcessor {
         }
 
         addItem(new Shield());
-        addItem(new Torch(new Vector2()));
+        addItem(new Torch(new Vector2(position)));
+        addItem(new Rock(new Vector2()));
+        addItem(new Rock(new Vector2()));
+        addItem(new Rock(new Vector2()));
 
         host.addInputProcessor(this);
 
@@ -255,7 +260,10 @@ public class Player extends Entity implements InputProcessor {
             displayingEnteringMessage = false;
             canOpen = false;
 
-            hideMessage();
+            if (!inRangeOfStationaryItem && !inRangeOfBarrier) {
+
+                hideMessage();
+            }
         }
 
         if (!displayingInventory) {
@@ -427,14 +435,14 @@ public class Player extends Entity implements InputProcessor {
             if (map.get((int) (tmpVec.x / Map.TileSizeInPixelsInWorldSpace), (int) (tmpVec.y / Map.TileSizeInPixelsInWorldSpace)) < Map.SpawnIntact) {
 
                 selectedSolid = true;
-
-                batch.draw(overlayTextureRegion, ((int) (tmpVec.x / Map.TileSizeInPixelsInWorldSpace)) * Map.TileSizeInPixelsInWorldSpace, ((int) (tmpVec.y / Map.TileSizeInPixelsInWorldSpace)) * Map.TileSizeInPixelsInWorldSpace, Map.TileSizeInPixelsInWorldSpace, Map.TileSizeInPixelsInWorldSpace);
             }
         }
         else {
 
             selectedSolid = false;
         }
+
+        batch.draw(overlayTextureRegion, ((int) (tmpVec.x / Map.TileSizeInPixelsInWorldSpace)) * Map.TileSizeInPixelsInWorldSpace, ((int) (tmpVec.y / Map.TileSizeInPixelsInWorldSpace)) * Map.TileSizeInPixelsInWorldSpace, Map.TileSizeInPixelsInWorldSpace, Map.TileSizeInPixelsInWorldSpace);
 
         inventory.setVisible(displayingInventory);
 /*

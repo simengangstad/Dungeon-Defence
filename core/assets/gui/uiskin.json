@@ -64,7 +64,7 @@
 	io.github.simengangstad.defendthecaves.scene.gui.SpeechBubble$SpeechBubbleStyle: {
 		default: { background: speech-bubble, extra: speech-bubble-extra, font: default-font, fontColor: white}
 	}
-	io.github.simengangstad.defendthecaves.scene.gui.HealthBar$HealthBarStyle: {
+	io.github.simengangstad.defendthecaves.scene.gui.ProgressBar$ProgressBarStyle: {
 
 		default: { background: speech-bubble, progress: progress}
 	}

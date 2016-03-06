@@ -22,3 +22,13 @@
 - [x] Display properties of entities
 - [x] Add different types of loot
 - [x] Implement craft system
+
+# By the end of March 2016
+
+- [ ] Better AI
+    - Finds paths to the player
+    - Attracted by light
+- [ ] Screen shaking
+- [ ] Unable to see contents of locked rooms
+- [ ] Traps and bombs
+- [ ] Health potions

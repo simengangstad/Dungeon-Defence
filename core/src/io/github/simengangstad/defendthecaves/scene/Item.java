@@ -87,6 +87,15 @@ public abstract class Item extends Collidable {
     protected String information = "";
 
     /**
+     * Set the item to a stationary position where it doesn't get attracted to
+     * an entity.
+     */
+    protected boolean placed = false;
+
+    public boolean overwriteFlip = false;
+    public boolean flip = false;
+
+    /**
      * Initializes the item.
      */
     public Item(Vector2 position, Vector2 size, TextureRegion textureRegion, boolean stackable) {
@@ -129,6 +138,11 @@ public abstract class Item extends Collidable {
     public boolean isThrown() {
 
         return thrown;
+    }
+
+    public boolean isPlaced() {
+
+        return placed;
     }
 
     /**
@@ -266,12 +280,19 @@ public abstract class Item extends Collidable {
     @Override
     public boolean flip() {
 
-        if (parent == null) {
+        if (overwriteFlip) {
 
-            return false;
+            return flip;
         }
+        else {
 
-        return !parent.flip();
+            if (parent == null) {
+
+                return false;
+            }
+
+            return !parent.flip();
+        }
     }
 
     @Override

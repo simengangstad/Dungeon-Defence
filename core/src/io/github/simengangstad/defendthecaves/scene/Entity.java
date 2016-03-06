@@ -9,11 +9,12 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import io.github.simengangstad.defendthecaves.Callback;
 import io.github.simengangstad.defendthecaves.Game;
-import io.github.simengangstad.defendthecaves.scene.gui.HealthBar;
+import io.github.simengangstad.defendthecaves.scene.gui.ProgressBar;
 import io.github.simengangstad.defendthecaves.scene.crafting.Inventory;
 import io.github.simengangstad.defendthecaves.scene.gui.SpeechBubble;
 import io.github.simengangstad.defendthecaves.scene.items.Potion;
 import io.github.simengangstad.defendthecaves.scene.items.Shield;
+import io.github.simengangstad.defendthecaves.scene.items.Torch;
 import io.github.simengangstad.defendthecaves.scene.items.Weapon;
 
 import java.util.ArrayList;
@@ -39,7 +40,7 @@ public abstract class Entity extends Collidable {
     /**
      * The current item.
      */
-    protected Item currentItem = null;
+    protected Item currentItem = null, lastItem = null;
 
     /**
      * The maximum health an entity can have.
@@ -169,7 +170,13 @@ public abstract class Entity extends Collidable {
     /**
      * The progress bar showing health.
      */
-    private HealthBar healthBar = new HealthBar(MaxHealth);
+    private ProgressBar healthBar = new ProgressBar(MaxHealth);
+
+    /**
+     * Is set to true when the entity is near an item in its {@link Item#placed} state.
+     * Is not set true for regular items such as wood, coal etc., but for torches which are placed for example.
+     */
+    public boolean inRangeOfStationaryItem = false;
 
     /**
      * Initializes the movable entity with a position, size and the locaitons for the animations.
@@ -235,11 +242,19 @@ public abstract class Entity extends Collidable {
      */
     public void addItem(Item item) {
 
+        if (item instanceof Torch) {
+
+            ((Torch) item).light.enabled = false;
+        }
+
         inventory.placeItem(item);
 
+        item.host = host;
         item.parent = this;
         item.map = map;
         item.rotation = 0.0f;
+        item.placed = false;
+        item.overwriteFlip = false;
 
         item.create();
     }
@@ -249,8 +264,14 @@ public abstract class Entity extends Collidable {
      */
     public void addItemAtLocation(int x, int y, Item item) {
 
+        if (item instanceof Torch) {
+
+            ((Torch) item).light.enabled = false;
+        }
+
         inventory.placeItem(x, y, item);
 
+        item.host = host;
         item.parent = this;
         item.map = map;
         item.rotation = 0.0f;
@@ -290,7 +311,43 @@ public abstract class Entity extends Collidable {
      */
     public void shuffleItem() {
 
+        ArrayList<Item> list = inventory.getItemList((inventory.columns - 2) + currentItemPointer, 0);
+
+        Item lastItem;
+
+        if (0 < list.size()) {
+
+            lastItem = list.get(list.size() - 1);
+        }
+        else {
+
+            lastItem = null;
+        }
+
+        if (lastItem instanceof Torch) {
+
+            ((Torch) lastItem).light.enabled = false;
+        }
+
         currentItemPointer = (currentItemPointer + 1) % 2;
+
+        ArrayList<Item> newList = inventory.getItemList((inventory.columns - 2) + currentItemPointer, 0);
+
+        Item nextItem;
+
+        if (0 < newList.size()) {
+
+            nextItem = newList.get(newList.size() - 1);
+        }
+        else {
+
+            nextItem = null;
+        }
+
+        if (nextItem instanceof Torch) {
+
+            ((Torch) nextItem).light.enabled = true;
+        }
 
         System.out.println("Set current pointer for current item to: " + ((inventory.columns - 2) + currentItemPointer));
     }
@@ -395,7 +452,7 @@ public abstract class Entity extends Collidable {
 
         if (speechBubble.isVisible()) {
 
-            speechBubble.setPosition(vector.x + Game.EntitySize / 2.0f, vector.y + Game.EntitySize / 2.0f);
+            speechBubble.setPosition(vector.x - speechBubble.getWidth() / 2.0f, vector.y + Game.EntitySize / 2.0f + 30.0f);
 
             if (0.0f < speechBubbleVisibilityDuration) {
 
@@ -525,6 +582,18 @@ public abstract class Entity extends Collidable {
 
             currentItem = list.get(list.size() - 1);
 
+            if (currentItem instanceof Torch) {
+
+                ((Torch) currentItem).light.enabled = true;
+
+                for (int i = 0; i < list.size() - 1; i++) {
+
+                    Item item = list.get(i);
+
+                    ((Torch) item).light.enabled = false;
+                }
+            }
+
             currentItem.tick();
         }
         else {
@@ -589,7 +658,6 @@ public abstract class Entity extends Collidable {
 
                 currentItem.position.set(position.x, position.y);
             }
-
 
             currentItem.draw(batch);
         }

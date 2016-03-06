@@ -1,11 +1,14 @@
 package io.github.simengangstad.defendthecaves.scene;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Input;
+import com.badlogic.gdx.ai.fsm.StackStateMachine;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
+import io.github.simengangstad.defendthecaves.Callback;
 import io.github.simengangstad.defendthecaves.Container;
 import io.github.simengangstad.defendthecaves.Game;
 import io.github.simengangstad.defendthecaves.GameObject;
@@ -14,9 +17,11 @@ import io.github.simengangstad.defendthecaves.procedural.MapGenerator;
 import io.github.simengangstad.defendthecaves.scene.entities.*;
 import io.github.simengangstad.defendthecaves.scene.items.*;
 
+import java.io.Closeable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 
 /**
  * @author simengangstad
@@ -32,7 +37,7 @@ public class Scene extends Container {
     /**
      * The shader of the scene.
      */
-    private LightShader lightShader = new LightShader(Map.TileSizeInPixelsInWorldSpace / Game.SizeOfTileInPixelsInSpritesheet / 2);
+    private LightShader lightShader;
 
     /**
      * The lights in the scene.
@@ -74,6 +79,9 @@ public class Scene extends Container {
      */
     private final Vector2 tmp = new Vector2();
 
+    private int distanceToBarrierInOrderToRebuild = 2;
+    private Barrier closestsBarrier = null;
+
     /**
      * Instantiates the scene with a player.
      */
@@ -88,45 +96,20 @@ public class Scene extends Container {
 
         initialiseMap();
 
-        lightShader.create();
+        lightShader = new LightShader(Map.TileSizeInPixelsInWorldSpace / Game.SizeOfTileInPixelsInSpritesheet / 2, map.getWidth(), map.getHeight());
 
         batch.setShader(lightShader.handle);
 
-        lightShader.setAmbientColour(0.1f, 0.1f, 0.1f);
+        lightShader.setAmbientColour(1.1f, 1.1f, 1.1f);
 
-        addLight(new Light(player.position, new Vector3(0.9f, 0.55f, 0.19f), 30));
-        addLight(new Light(player.position.cpy().add(200.0f, 0.0f), new Vector3(0.9f, 0.55f, 0.19f), 30));
-        addLight(new Light(player.position.cpy().add(400.0f, 0.0f), new Vector3(0.9f, 0.55f, 0.19f), 30));
+        lightShader.updateLights(lights.size());
+
+        lightShader.handle.begin();
+        lightShader.updateMap(map);
+        lightShader.handle.end();
+        batch.setShader(lightShader.handle);
+        recompileShader = false;
     }
-
-    /*
-    private void initialiseWidgetFrame() {
-
-        button = new KeyButton(new Vector2(), new Vector2(32, 32), new TextureRegion(Game.GUISheet, 0, 0, 16, 16), Input.Keys.G) {
-
-            @Override
-            public void buttonClicked() {
-
-            }
-
-            @Override
-            public void buttonPressed() {
-
-                if (closestsBarrier == null) return;
-
-                closestsBarrier.updateState(10 * Gdx.graphics.getDeltaTime());
-            }
-
-            @Override
-            public void buttonReleased() {
-
-            }
-        };
-
-        button.visible = false;
-
-        widgetFrame.addGameObject(button);
-    }*/
 
     /**
      * Adds random loot to a room. The total amount of added loot will be
@@ -178,7 +161,22 @@ public class Scene extends Container {
 
     private void initialiseMap() {
 
-        map = new Map(30, 30, 3, 5, 11, 453123123, player.size, 1, 3);
+        map = new Map(30, 30, 3, 5, 11, 323123, player.size, 1, 3);
+
+        map.changeCallback = () -> {
+
+            if (!batch.isDrawing()) {
+
+                lightShader.handle.begin();
+            }
+
+            lightShader.updateMap(map);
+
+            if (!batch.isDrawing()) {
+
+                batch.getShader().end();
+            }
+        };
 
         pathfindingGrid = new PathfindingGrid(map.getWidth(), map.getHeight());
 
@@ -234,7 +232,9 @@ public class Scene extends Container {
 
         for (int i = 0; i < barriers.length; i++) {
 
-            barriers[i] = new Barrier(spawnPoints[i]);
+            barriers[i] = new Barrier(spawnPoints[i], map, player);
+
+            stage.addActor(barriers[i].progressBar);
 
             enemiesAtHold.put(barriers[i], new ArrayList<>());
         }
@@ -282,12 +282,11 @@ public class Scene extends Container {
 
                     enemyToAdd = new HumanLikeEnemy(positionOfEnemy, new Vector2(Game.EntitySize, Game.EntitySize), 6, player);
 
-
                     break;
 
                 case 1:
 
-                    enemyToAdd = new Snake(position, new Vector2(Game.EntitySize * 2, Game.EntitySize), 4, player);
+                    enemyToAdd = new Snake(positionOfEnemy, new Vector2(Game.EntitySize * 2, Game.EntitySize), 4, player);
 
                     break;
 
@@ -298,18 +297,24 @@ public class Scene extends Container {
                     break;
             }
 
-            Potion potion = new Potion(position);
+            Potion potion = new Potion(positionOfEnemy);
 
             for (int j = 0; j < MathUtils.random(1, 5); j++) {
 
                 potion.addChemical(new Chemical());
             }
 
+            enemyToAdd.map = this.map;
+
             enemyToAdd.addItem(potion);
 
             if (!keys.isEmpty()) {
 
-                enemyToAdd.addItem(keys.get(keys.size() - 1));
+                Key key = keys.get(keys.size() - 1);
+
+                key.map = this.map;
+
+                enemyToAdd.addItem(key);
             }
 
             enemiesAtHold.get(barrier).add(enemyToAdd);
@@ -337,7 +342,7 @@ public class Scene extends Container {
         player.camera.update();
 
         lightShader.handle.begin();
-        lightShader.uploadUniforms(lights, player.camera.projection);
+        lightShader.uploadUniforms(lights);
         lightShader.handle.end();
     }
 
@@ -369,50 +374,20 @@ public class Scene extends Container {
         }
     }
 
+    private boolean recompileShader = false;
+
     public void addLight(Light light) {
-
-        boolean drawing = batch.isDrawing();
-
-        if (drawing) {
-
-            batch.end();
-        }
 
         lights.add(light);
 
-        lightShader.update(lights.size());
-
-        batch.setShader(lightShader.handle);
-
-        if (drawing) {
-
-            batch.begin();
-        }
-
-        lightShader.uploadUniforms(lights, player.camera.projection);
+        recompileShader = true;
     }
 
     public void removeLight(Light light) {
 
-        boolean drawing = batch.isDrawing();
-
-        if (drawing) {
-
-            batch.end();
-        }
-
         lights.remove(light);
 
-        lightShader.update(lights.size());
-
-        batch.setShader(lightShader.handle);
-
-        if (drawing) {
-
-            batch.begin();
-        }
-
-        lightShader.uploadUniforms(lights, player.camera.projection);
+        recompileShader = true;
     }
 
     /**
@@ -503,6 +478,19 @@ public class Scene extends Container {
         Gdx.gl.glClearColor(0, 0, 0, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
+        if (recompileShader) {
+
+            lightShader.handle.begin();
+            lightShader.updateLights(lights.size());
+            lightShader.handle.end();
+
+            batch.setShader(lightShader.handle);
+
+            recompileShader = false;
+
+            System.out.println("Recompiling shader!");
+        }
+
         if (!buffer.isEmpty()) {
 
             gameObjects.addAll(buffer);
@@ -517,9 +505,86 @@ public class Scene extends Container {
             removeBuffer.clear();
         }
 
+
+        if (player.inRangeOfBarrier && Gdx.input.isKeyPressed(Input.Keys.F)) {
+
+            if (!rebuilding) {
+
+                List<Object> rocks = new ArrayList<>();
+
+                player.inventory.getAllItemsByType(Rock.class, rocks);
+
+                // If player has stones, then update state...
+                if (rocks.size() > 0) {
+
+                    rebuilding = true;
+                }
+                else {
+
+                    player.displayMessage("Bollocks, no rocks left...", 2.0f);
+                }
+            }
+            else {
+
+                rebuildingTimer += Gdx.graphics.getDeltaTime();
+                totalTimer += Gdx.graphics.getDeltaTime();
+
+                if (interval * closestsBarrier.TimeToDemolishBarrier <= rebuildingTimer || closestsBarrier.TimeToDemolishBarrier <= totalTimer) {
+
+                    rebuilding = false;
+
+                    rebuildingTimer = 0.0f;
+
+                    boolean obtained = false;
+
+                    for (int x = 0; x < player.inventory.columns; x++) {
+
+                        for (int y = 0; y < player.inventory.rows; y++) {
+
+                            List<Item> items = player.inventory.getItemList(x, y);
+
+                            if (items.isEmpty()) {
+
+                                continue;
+                            }
+
+                            if (items.get(0) instanceof Rock) {
+
+                                player.inventory.obtainItem(x, y, 1);
+
+                                closestsBarrier.lastState += closestsBarrier.TimeToDemolishBarrier / 3.0f;
+
+                                obtained = true;
+
+                                break;
+                            }
+                        }
+
+                        if (obtained) {
+
+                            break;
+                        }
+                    }
+                }
+
+                closestsBarrier.updateState(Gdx.graphics.getDeltaTime());
+            }
+        }
+        else {
+
+            if (closestsBarrier != null && rebuildingTimer != 0.0f) {
+
+                closestsBarrier.setState(closestsBarrier.lastState);
+            }
+
+            totalTimer = 0.0f;
+            rebuildingTimer = 0.0f;
+            rebuilding = false;
+        }
+
         enemiesAtHold.forEach((barrier, array) -> {
 
-            if (barrier.getState() == 0) {
+            if (barrier.getState() <= 0) {
 
                 array.forEach((enemy -> addGameObject(enemy)));
 
@@ -527,20 +592,30 @@ public class Scene extends Container {
             }
             else {
 
-                barrier.updateState(-array.size() * Gdx.graphics.getDeltaTime());
+                if (array.size() > 0) {
+
+                    barrier.updateState(-array.size() * Gdx.graphics.getDeltaTime());
+                    barrier.lastState = barrier.getState();
+                }
             }
 
-            if (barrier.getState() / barrier.TimeToDemolishBarrier == 1.0f && map.get((int) barrier.position.x, (int) barrier.position.y) != Map.SpawnIntact){
+            barrier.tick();
+
+            if (barrier.getState() / barrier.TimeToDemolishBarrier == 1.0f && map.get((int) barrier.position.x, (int) barrier.position.y) != Map.SpawnIntact) {
 
                 map.set((int) barrier.position.x, (int) barrier.position.y, Map.SpawnIntact);
             }
-            else if ((1.0f/3.0f < barrier.getState() / barrier.TimeToDemolishBarrier && barrier.getState() / barrier.TimeToDemolishBarrier < 2.0f/3.0f) && map.get((int) barrier.position.x, (int) barrier.position.y) != Map.SpawnSlightlyBroken) {
+            else if ((1.5f/3.0f <= barrier.getState() / barrier.TimeToDemolishBarrier && barrier.getState() / barrier.TimeToDemolishBarrier < 3.0f/3.0f) && map.get((int) barrier.position.x, (int) barrier.position.y) != Map.SpawnSlightlyBroken) {
 
                 map.set((int) barrier.position.x, (int) barrier.position.y, Map.SpawnSlightlyBroken);
+
+                System.out.println("Barrier (" + barrier + ") is slightly broken.");
             }
-            else if ((barrier.getState() / barrier.TimeToDemolishBarrier) < 1.0f/3.0f && map.get((int) barrier.position.x, (int) barrier.position.y) != Map.SpawnBroken) {
+            else if ((barrier.getState() / barrier.TimeToDemolishBarrier) <= 0.0f && map.get((int) barrier.position.x, (int) barrier.position.y) != Map.SpawnBroken) {
 
                 map.set((int) barrier.position.x, (int) barrier.position.y, Map.SpawnBroken);
+
+                System.out.println("Barrier (" + barrier + ") is broken.");
             }
 
         });
@@ -549,13 +624,15 @@ public class Scene extends Container {
 
         batch.begin();
 
-        lightShader.uploadUniforms(lights, player.camera.projection);
+        lightShader.uploadUniforms(lights);
 
         map.playerPosition = player.position;
 
         map.draw(batch, scaleFactor);
 
         player.draw(batch);
+
+        boolean inRangeOfPlacedItem = false;
 
         for (Iterator<GameObject> iterator = gameObjects.iterator(); iterator.hasNext();) {
 
@@ -578,7 +655,7 @@ public class Scene extends Container {
 
                         // TODO: Game over
 
-                        continue;
+                        //continue;
                     }
 
                     entity.die();
@@ -595,14 +672,20 @@ public class Scene extends Container {
 
                     for (Barrier barrier : barriers) {
 
-                        tmp.set(gameObject.position.x - barrier.position.x * Map.TileSizeInPixelsInWorldSpace, gameObject.position.y - barrier.position.y * Map.TileSizeInPixelsInWorldSpace);
+                        barrier.progressBar.setVisible(false);
 
-                        if (tmp.len() / Map.TileSizeInPixelsInWorldSpace < distanceToBarrierInOrderToRebuild && barrier.getState() < barrier.TimeToDemolishBarrier) {
+                        tmp.set(gameObject.position.x / Map.TileSizeInPixelsInWorldSpace - barrier.position.x, gameObject.position.y / Map.TileSizeInPixelsInWorldSpace - barrier.position.y);
+
+                        if (tmp.len() < distanceToBarrierInOrderToRebuild && barrier.getState() < barrier.TimeToDemolishBarrier) {
 
                             closeToBarrier = true;
 
                             closestsBarrier = barrier;
-                            //button.visible = true;
+                            closestsBarrier.progressBar.setVisible(true);
+
+                            player.displayMessage("If only I had some stones to block out those bastards (f).");
+
+                            player.inRangeOfBarrier = true;
 
                             break;
                         }
@@ -611,7 +694,7 @@ public class Scene extends Container {
                     if (!closeToBarrier) {
 
                         closestsBarrier = null;
-                        //button.visible = false;
+                        player.inRangeOfBarrier = false;
                     }
                 }
             }
@@ -619,61 +702,91 @@ public class Scene extends Container {
 
                 Item item = ((Item) gameObject);
 
-                for (GameObject gameObjectToCheckAgainst : gameObjects) {
+                if (!item.isPlaced()) {
 
-                    if (gameObjectToCheckAgainst instanceof Entity) {
+                    for (GameObject gameObjectToCheckAgainst : gameObjects) {
 
-                        Entity entity = ((Entity) gameObjectToCheckAgainst);
+                        if (gameObjectToCheckAgainst instanceof Entity) {
 
-                        if (item.isThrown()) {
+                            Entity entity = ((Entity) gameObjectToCheckAgainst);
 
-                            if (entity == item.thrownFrom) {
+                            if (item.isThrown()) {
 
-                                continue;
+                                if (entity == item.thrownFrom) {
+
+                                    continue;
+                                }
+
+                                if (entity.intersects(item)) {
+
+                                    item.collides(entity);
+                                }
                             }
+                            else {
 
-                            if (entity.intersects(item)) {
+                                float length = map.lengthBetweenCoordinates(item.position, entity.position);
 
-                                item.collides(entity);
+                                if (item.getTimer() > 0.75f) {
+
+                                    if (length < 0.5) {
+
+                                        item.forceApplied.set(0.0f, 0.0f);
+
+                                        System.out.println("Item timer: " + item.getTimer());
+
+                                        if (entity.inventory.sufficientPlaceForItem(item)) {
+
+                                            entity.addItem(item);
+
+                                            System.out.println("Entity (" + entity + ") picked up item: " + item);
+
+                                            removeGameObject(item);
+                                        }
+                                    }
+                                    else if (length < 2) {
+
+                                        if (entity.inventory.sufficientPlaceForItem(item) && item.forceApplied.x == 0.0f && item.forceApplied.y == 0.0f) {
+
+                                            System.out.println("Item (" + item + ") in range of entity (" + entity + "), applying force.");
+
+                                            Vector2 vector = Game.vector2Pool.obtain();
+
+                                            vector.set(entity.position).sub(item.position);
+                                            vector.scl(0.05f);
+
+                                            item.applyForce(vector, false, 0.0f);
+
+                                            Game.vector2Pool.free(vector);
+                                        }
+                                    }
+                                }
                             }
                         }
-                        else {
+                    }
+                }
+                else {
 
-                            float length = map.lengthBetweenCoordinates(item.position, entity.position);
+                    float length = map.lengthBetweenCoordinates(item.position, player.position);
 
-                            if (item.getTimer() > 0.75f) {
+                    if (length < 1.25f) {
 
-                                if (length < 0.5) {
+                        inRangeOfPlacedItem = true;
 
-                                    item.forceApplied.set(0.0f, 0.0f);
+                        player.displayMessage("This might come handy (f)");
 
-                                    System.out.println("Item timer: " + item.getTimer());
+                        if (Gdx.input.isKeyJustPressed(Input.Keys.F)) {
 
-                                    if (entity.inventory.sufficientPlaceForItem(item)) {
+                            if (player.inventory.sufficientPlaceForItem(item)) {
 
-                                        entity.addItem(item);
+                                player.addItem(item);
 
-                                        System.out.println("Entity (" + entity + ") picked up item: " + item);
+                                System.out.println("Entity (" + player + ") picked up item: " + item);
 
-                                        removeGameObject(item);
-                                    }
-                                }
-                                else if (length < 2) {
+                                removeGameObject(item);
+                            }
+                            else {
 
-                                    if (entity.inventory.sufficientPlaceForItem(item) && item.forceApplied.x == 0.0f && item.forceApplied.y == 0.0f) {
-
-                                        System.out.println("Item (" + item + ") in range of entity (" + entity + "), applying force.");
-
-                                        Vector2 vector = Game.vector2Pool.obtain();
-
-                                        vector.set(entity.position).sub(item.position);
-                                        vector.scl(0.05f);
-
-                                        item.applyForce(vector, false, 0.0f);
-
-                                        Game.vector2Pool.free(vector);
-                                    }
-                                }
+                                player.displayMessage("Darn it, not enough place in my rucksac...", 2.0f);
                             }
                         }
                     }
@@ -681,14 +794,17 @@ public class Scene extends Container {
             }
         }
 
+        player.inRangeOfStationaryItem = inRangeOfPlacedItem;
+
         batch.end();
 
         stage.draw();
     }
 
-    private int distanceToBarrierInOrderToRebuild = 2;
-    private Barrier closestsBarrier = null;
-
+    float totalTimer = 0.0f;
+    float rebuildingTimer = 0.0f;
+    final float interval = 0.5f;
+    boolean rebuilding = false;
 
     @Override
     public void dispose() {

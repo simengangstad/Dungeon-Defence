@@ -256,9 +256,9 @@ public class Inventory extends Table {
 
         boolean foundPlace = false;
 
-        for (int x = 0;  x < items.length; x++) {
+        for (int y = 0; y < items[0].length; y++) {
 
-            for (int y = 0; y < items[0].length; y++) {
+            for (int x = 0;  x < items.length; x++) {
 
                 Class itemType = getItemType(x, y);
 
