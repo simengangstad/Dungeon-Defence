@@ -103,6 +103,12 @@ public class Player extends Entity implements InputProcessor {
         addItem(new Rock(new Vector2()));
         addItem(new Rock(new Vector2()));
 
+        Potion potion = new Potion(new Vector2());
+
+        potion.addChemical(new Chemical(-50, 50, 50));
+
+        addItem(potion);
+
         host.addInputProcessor(this);
 
         host.stage.addActor(inventory);

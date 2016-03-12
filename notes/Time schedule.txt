@@ -29,6 +29,5 @@
     - Finds paths to the player
     - Attracted by light
 - [ ] Screen shaking
-- [ ] Unable to see contents of locked rooms
 - [ ] Traps and bombs
 - [ ] Health potions

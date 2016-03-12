@@ -86,19 +86,28 @@
 - [x] Add pixelated lightning
 
 # 0015
-
 - [x] Make light reflect from walls
     - Upload byte map to shader with 1 for solid, 0 for free and initial position of map
     - Check v_position against this by dividing by TileSize constant
     - If solid then don't show light
 
 # 0016
-
 - [x] Show overlay for selected tiles.
 - [x] Block entrances with stones
 
+# 0017
+- [x] Toxic potions apply damage once leaked
+- [x] Explosions
+
 # To be implemented
-- [ ] Make lights flicker with different intervals
-- [ ] Clean up crafting inventory -> remove duplicated code.
-- [ ] Solve bug where the player sometimes ends up in rooms withuot entries.
+- [ ] Traps and bombs
+- [ ] Better AI
+    - Finds paths to the player
+    - Attracted by light
+- [ ] Health potions
+- [ ] Screen shaking
+
 - [ ] Add functionality for reversing the process of crafting; retrieving components from a crafted item
+- [ ] Solve bug where the player sometimes ends up in rooms withuot entries.
+- [ ] Clean up crafting inventory -> remove duplicated code.
+- [ ] Make lights flicker with different intervals

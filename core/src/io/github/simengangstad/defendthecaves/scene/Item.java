@@ -92,6 +92,8 @@ public abstract class Item extends Collidable {
      */
     protected boolean placed = false;
 
+    protected boolean collided = false;
+
     public boolean overwriteFlip = false;
     public boolean flip = false;
 
@@ -133,6 +135,16 @@ public abstract class Item extends Collidable {
         thrownFrom = null;
 
         Game.vector2Pool.free(vector);
+
+        collided = true;
+    }
+
+    /**
+     * Gets called then item collides with a solid.
+     */
+    protected void collides() {
+
+        collided = true;
     }
 
     public boolean isThrown() {
@@ -213,7 +225,9 @@ public abstract class Item extends Collidable {
             timer += Gdx.graphics.getDeltaTime();
         }
 
-        if (map.retrieveCollisionPoint(position, size, delta, null)) {
+        if (map.retrieveCollisionPoint(position, size, delta, null) && parent == null) {
+
+            collides();
 
             forceApplied.set(0.0f, 0.0f);
 

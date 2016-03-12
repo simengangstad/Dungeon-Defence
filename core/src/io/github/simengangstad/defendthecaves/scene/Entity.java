@@ -178,6 +178,8 @@ public abstract class Entity extends Collidable {
      */
     public boolean inRangeOfStationaryItem = false;
 
+    public float durationBeforeApplyingDamageAgain = 0.0f;
+
     /**
      * Initializes the movable entity with a position, size and the locaitons for the animations.
      */
@@ -390,6 +392,22 @@ public abstract class Entity extends Collidable {
         adjustHealth(-damage);
 
         timeLeftOfTakingDamage = DamageTime;
+    }
+
+    public void takeDamage(int damage, float durationBeforeApplyingDamage) {
+
+        if (durationBeforeApplyingDamageAgain <= 0.0f) {
+
+            durationBeforeApplyingDamageAgain = durationBeforeApplyingDamage;
+
+            timeLeftOfTakingDamage = durationBeforeApplyingDamage;
+
+            adjustHealth(-damage);
+        }
+        else {
+
+            durationBeforeApplyingDamageAgain -= Gdx.graphics.getDeltaTime();
+        }
     }
 
     public void die() {

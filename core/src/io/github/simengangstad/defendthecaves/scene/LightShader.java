@@ -87,7 +87,7 @@ public class LightShader {
             }
         }
 
-        handle.setUniform1fv("u_map[0]", byteMap, 0, byteMap.length);
+        //handle.setUniform1fv("u_map[0]", byteMap, 0, byteMap.length);
     }
 
     public void setAmbientColour(float r, float g, float b) {
@@ -177,7 +177,7 @@ public class LightShader {
 
                 "uniform float u_tileSizeInWorldSpace;\n" +
                 "uniform int u_widthOfMap;\n" +
-                "uniform float u_map["+byteMap.length+"];\n" +
+                //"uniform float u_map["+byteMap.length+"];\n" +
 
                 "const float timeScalar = 1.5;\n" +
 
@@ -209,10 +209,10 @@ public class LightShader {
                     "float intensity = 0.0;\n" +
                     "int intensity1 = u_widthOfMap;\n" +
 
-                    "if  (u_map[int(tilePos.x) + int(tilePos.y) * u_widthOfMap] == 0.0 || \n" +
-                        "(u_map[int(tilePos.x) + int(tilePos.y) * u_widthOfMap] == 1.0 && u_map[int(tilePos.x) + int(tilePos.y - 1.0) * u_widthOfMap] == 0.0)/* ||\n" +
-                        "(u_map[int(tilePos.x) + int(tilePos.y) * u_widthOfMap] == 1.0 && u_map[int(tilePos.x + 1.0) + int(tilePos.y) * u_widthOfMap] == 0.0) ||\n" +
-                        "(u_map[int(tilePos.x) + int(tilePos.y) * u_widthOfMap] == 1.0 && u_map[int(tilePos.x - 1.0) + int(tilePos.y) * u_widthOfMap] == 0.0)*/) {\n" +
+                    //"if  (u_map[int(tilePos.x) + int(tilePos.y) * u_widthOfMap] == 0.0 || \n" +
+                    //    "(u_map[int(tilePos.x) + int(tilePos.y) * u_widthOfMap] == 1.0 && u_map[int(tilePos.x) + int(tilePos.y - 1.0) * u_widthOfMap] == 0.0)/* ||\n" +
+                     //   "(u_map[int(tilePos.x) + int(tilePos.y) * u_widthOfMap] == 1.0 && u_map[int(tilePos.x + 1.0) + int(tilePos.y) * u_widthOfMap] == 0.0) ||\n" +
+                      //  "(u_map[int(tilePos.x) + int(tilePos.y) * u_widthOfMap] == 1.0 && u_map[int(tilePos.x - 1.0) + int(tilePos.y) * u_widthOfMap] == 0.0)*/) {\n" +
 
                         "vec3 preColour = vec3(colour);\n" +
 
@@ -259,7 +259,7 @@ public class LightShader {
                                 "}\n" +
                             "}\n" +
                         "}\n" +
-                    "}\n" +
+                    //"}\n" +
 
                     "if (illuminated) {\n" +
 

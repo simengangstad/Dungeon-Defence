@@ -916,7 +916,52 @@ public class Map {
     /**
      * Draws the map with the given batch. It will only draw the visible tiles.
      */
-    public void draw(SpriteBatch batch, float scaleFactor) {
+    public void drawFloor(SpriteBatch batch, float scaleFactor) {
+
+        for (int y = (int) (playerPosition.y + (Gdx.graphics.getHeight() / 2.0f) * scaleFactor) / TileSizeInPixelsInWorldSpace; y >= (playerPosition.y - (Gdx.graphics.getHeight() / 2.0f) * scaleFactor - TileSizeInPixelsInWorldSpace) / TileSizeInPixelsInWorldSpace; y--) {
+
+            for (int x = (int) (playerPosition.x - (Gdx.graphics.getWidth() / 2.0f) * scaleFactor) / TileSizeInPixelsInWorldSpace; x < (playerPosition.x + (Gdx.graphics.getWidth() / 2.0f) * scaleFactor) / TileSizeInPixelsInWorldSpace; x++) {
+
+                // Outside bounds
+                if (x < 0 || tileMap.length <= x || y < 0 || tileMap[0].length <= y) {
+
+                    continue;
+                }
+
+                switch (tileMap[x][y]) {
+
+                    case DummyTile:
+                    case Open:
+
+                        drawOpenTile(x, y, batch);
+
+                        break;
+                }
+            }
+        }
+
+        if (Game.DebubDraw) {
+
+            for (int y = (int) ((playerPosition.y + Gdx.graphics.getHeight() / 2.0f) / CellSize); y >= (playerPosition.y - Gdx.graphics.getHeight() / 2.0f - CellSize) / CellSize; y--) {
+
+                for (int x = (int) ((playerPosition.x - Gdx.graphics.getWidth() / 2.0f) / CellSize); x < playerPosition.x + (Gdx.graphics.getWidth() / 2.0f) / CellSize; x++) {
+
+                    // Outside bounds
+                    if (!cellIsValid(x, y)) {
+
+                        continue;
+                    }
+
+                    if (collidableMap[x][y] == ExpandedObstacle) {
+
+                        batch.draw(Game.SpriteSheet, x * CellSize, y * CellSize, CellSize, CellSize, 48, 80, 16, 16, false, false);
+                    }
+                }
+            }
+        }
+    }
+
+    public void drawWalls(SpriteBatch batch, float scaleFactor) {
 
         for (int y = (int) (playerPosition.y + (Gdx.graphics.getHeight() / 2.0f) * scaleFactor) / TileSizeInPixelsInWorldSpace; y >= (playerPosition.y - (Gdx.graphics.getHeight() / 2.0f) * scaleFactor - TileSizeInPixelsInWorldSpace) / TileSizeInPixelsInWorldSpace; y--) {
 
@@ -934,13 +979,6 @@ public class Map {
                 boolean outsideBoundsVerticallyLower = (y - 1) < 0;
 
                 switch (tileMap[x][y]) {
-
-                    case DummyTile:
-                    case Open:
-
-                        drawOpenTile(x, y, batch);
-
-                        break;
 
                     case SolidIntact:
                     case SolidSlightlyBroken:
@@ -960,6 +998,7 @@ public class Map {
                     case SpawnBroken:
                     case SpawnSlightlyBroken:
 
+                        drawOpenTile(x, y, batch);
                         drawSpawnTile(x, y, batch, outsideBoundsHorisontallyUpper, outsideBoundsHorisontallyLower, outsideBoundsVerticallyUpper, outsideBoundsVerticallyLower);
 
                         break;
@@ -1013,26 +1052,6 @@ public class Map {
                 }
             }
         }
-
-        if (Game.DebubDraw) {
-
-            for (int y = (int) ((playerPosition.y + Gdx.graphics.getHeight() / 2.0f) / CellSize); y >= (playerPosition.y - Gdx.graphics.getHeight() / 2.0f - CellSize) / CellSize; y--) {
-
-                for (int x = (int) ((playerPosition.x - Gdx.graphics.getWidth() / 2.0f) / CellSize); x < playerPosition.x + (Gdx.graphics.getWidth() / 2.0f) / CellSize; x++) {
-
-                    // Outside bounds
-                    if (!cellIsValid(x, y)) {
-
-                        continue;
-                    }
-
-                    if (collidableMap[x][y] == ExpandedObstacle) {
-
-                        batch.draw(Game.SpriteSheet, x * CellSize, y * CellSize, CellSize, CellSize, 48, 80, 16, 16, false, false);
-                    }
-                }
-            }
-        }
     }
 
     private void drawOpenTile(int x, int y, SpriteBatch batch) {
@@ -1042,7 +1061,10 @@ public class Map {
         // Shadows
         if (isSolid(x, y + 1) && isSolid(x - 1, y + 1) && isSolid(x + 1, y + 1)) {
 
-            batch.draw(Game.SpriteSheet, x * TileSizeInPixelsInWorldSpace, y * TileSizeInPixelsInWorldSpace, TileSizeInPixelsInWorldSpace, TileSizeInPixelsInWorldSpace, 48, 48, Game.SizeOfTileInPixelsInSpritesheet, Game.SizeOfTileInPixelsInSpritesheet, false, false);
+            if (get(x, y + 1) != SpawnIntact && get(x, y + 1) != SpawnSlightlyBroken && get(x, y + 1) != SpawnBroken) {
+
+                batch.draw(Game.SpriteSheet, x * TileSizeInPixelsInWorldSpace, y * TileSizeInPixelsInWorldSpace, TileSizeInPixelsInWorldSpace, TileSizeInPixelsInWorldSpace, 48, 48, Game.SizeOfTileInPixelsInSpritesheet, Game.SizeOfTileInPixelsInSpritesheet, false, false);
+            }
         }
 
         if (isSolid(x, y + 1) && !isSolid(x - 1, y + 1) && isSolid(x + 1, y + 1)) {
@@ -1057,7 +1079,10 @@ public class Map {
 
         if (isSolid(x - 1, y) && !isSolid(x, y + 1) && isSolid(x - 1, y + 1)) {
 
-            batch.draw(Game.SpriteSheet, x * TileSizeInPixelsInWorldSpace, y * TileSizeInPixelsInWorldSpace, TileSizeInPixelsInWorldSpace, TileSizeInPixelsInWorldSpace, 144, 48, Game.SizeOfTileInPixelsInSpritesheet, Game.SizeOfTileInPixelsInSpritesheet, false, false);
+            if ((get(x - 1, y) != SpawnIntact && get(x - 1, y) != SpawnSlightlyBroken && get(x - 1, y) != SpawnBroken) && (get(x - 1, y + 1) != SpawnIntact && get(x - 1, y + 1) != SpawnSlightlyBroken && get(x - 1, y + 1) != SpawnBroken)) {
+
+                batch.draw(Game.SpriteSheet, x * TileSizeInPixelsInWorldSpace, y * TileSizeInPixelsInWorldSpace, TileSizeInPixelsInWorldSpace, TileSizeInPixelsInWorldSpace, 144, 48, Game.SizeOfTileInPixelsInSpritesheet, Game.SizeOfTileInPixelsInSpritesheet, false, false);
+            }
         }
 
         if (isSolid(x - 1, y) && isSolid(x, y + 1) && isSolid(x - 1, y + 1)) {
@@ -1065,7 +1090,7 @@ public class Map {
             batch.draw(Game.SpriteSheet, x * TileSizeInPixelsInWorldSpace, y * TileSizeInPixelsInWorldSpace, TileSizeInPixelsInWorldSpace, TileSizeInPixelsInWorldSpace, 144, 64, Game.SizeOfTileInPixelsInSpritesheet, Game.SizeOfTileInPixelsInSpritesheet, false, false);
         }
 
-        if (isSolid(x - 1, y) && !isSolid(x - 1, y + 1)) {
+        if ((isSolid(x - 1, y) && !isSolid(x - 1, y + 1)) || (isSolid(x - 1, y) && (get(x - 1, y + 1) == SpawnIntact || get(x - 1, y + 1) == SpawnSlightlyBroken || get(x - 1, y + 1) == SpawnBroken))) {
 
             batch.draw(Game.SpriteSheet, x * TileSizeInPixelsInWorldSpace, y * TileSizeInPixelsInWorldSpace, TileSizeInPixelsInWorldSpace, TileSizeInPixelsInWorldSpace, 128, 48, Game.SizeOfTileInPixelsInSpritesheet, Game.SizeOfTileInPixelsInSpritesheet, false, false);
         }

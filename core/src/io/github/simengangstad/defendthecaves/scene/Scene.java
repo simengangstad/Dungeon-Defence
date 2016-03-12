@@ -2,13 +2,9 @@ package io.github.simengangstad.defendthecaves.scene;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
-import com.badlogic.gdx.ai.fsm.StackStateMachine;
 import com.badlogic.gdx.graphics.GL20;
-import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
-import com.badlogic.gdx.math.Vector3;
-import io.github.simengangstad.defendthecaves.Callback;
 import io.github.simengangstad.defendthecaves.Container;
 import io.github.simengangstad.defendthecaves.Game;
 import io.github.simengangstad.defendthecaves.GameObject;
@@ -17,7 +13,6 @@ import io.github.simengangstad.defendthecaves.procedural.MapGenerator;
 import io.github.simengangstad.defendthecaves.scene.entities.*;
 import io.github.simengangstad.defendthecaves.scene.items.*;
 
-import java.io.Closeable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -100,7 +95,7 @@ public class Scene extends Container {
 
         batch.setShader(lightShader.handle);
 
-        lightShader.setAmbientColour(1.1f, 1.1f, 1.1f);
+        lightShader.setAmbientColour(0.1f, 0.1f, 0.1f);
 
         lightShader.updateLights(lights.size());
 
@@ -391,6 +386,49 @@ public class Scene extends Container {
     }
 
     /**
+     * Damages every entity with the attack damage within the radius of the origin.
+     */
+    public void damage(int attackDamage, Vector2 origin, float radius) {
+
+        Vector2 direction = Game.vector2Pool.obtain();
+
+        for (GameObject gameObject : gameObjects) {
+
+            if (gameObject instanceof Entity) {
+
+                Entity entity = (Entity) gameObject;
+
+                float delta = radius + entity.size.x / 2.0f;
+                float xs = (entity.position.x - origin.x) * (entity.position.x - origin.x);
+                float ys = (entity.position.y - origin.y) * (entity.position.y - origin.y);
+                boolean onRightSide = origin.x < entity.position.x;
+
+                direction.set(entity.position.x - origin.x, entity.position.y - origin.y);
+
+                if (Math.sqrt(xs + ys) < delta) {
+
+                    entity.applyForce(direction.nor().scl(3.0f), false, 0.0f);
+
+                    if (entity.currentItem instanceof Shield && ((entity.flip() && onRightSide) || (!entity.flip() && !onRightSide))) {
+
+                        break;
+                    }
+
+                    entity.takeDamage(attackDamage);
+
+                    entity.paralyse();
+
+                    System.out.println("Damage" + "(" + attackDamage + ") applied to entity due to explosion: " + entity + " - current health: " + entity.health);
+
+                    break;
+                }
+            }
+        }
+
+        Game.vector2Pool.free(direction);
+    }
+
+    /**
      * Damages the entities inside the rect besides the excludables.
      */
     public void damage(int attackDamage, Vector2 attackDirection, float x, float y, float width, float height, Entity excludable) {
@@ -431,7 +469,7 @@ public class Scene extends Container {
 
                     entity.applyForce(attackDirection.nor().scl(3.0f), false, 0.0f);
 
-                    System.out.println("Damage applied to entity: " + entity + " - current health: " + entity.health);
+                    System.out.println("Damage" + "(" + attackDamage + ") applied to entity: " + entity + " - current health: " + entity.health);
 
                     break;
                 }
@@ -628,9 +666,7 @@ public class Scene extends Container {
 
         map.playerPosition = player.position;
 
-        map.draw(batch, scaleFactor);
-
-        player.draw(batch);
+        map.drawFloor(batch, scaleFactor);
 
         boolean inRangeOfPlacedItem = false;
 
@@ -640,7 +676,7 @@ public class Scene extends Container {
 
             gameObject.tick();
 
-            if (!(gameObject instanceof Player)) {
+            if (!(gameObject instanceof Player) || !(gameObject instanceof Explosion)) {
 
                 gameObject.draw(batch);
             }
@@ -697,6 +733,26 @@ public class Scene extends Container {
                         player.inRangeOfBarrier = false;
                     }
                 }
+            }
+            else if (gameObject instanceof Liquid) {
+
+                if (((Liquid) gameObject).getToxicity() > 0) {
+
+                    for (GameObject go : gameObjects) {
+
+                        if (go instanceof Entity) {
+
+                            if (gameObject.intersects(go)) {
+
+                                ((Entity) go).takeDamage((int) ((Liquid) gameObject).getToxicity() / 10, 0.5f);
+                            }
+                        }
+                    }
+                }
+            }
+            else if (gameObject instanceof Explosion) {
+
+                continue;
             }
             else if (gameObject instanceof Item) {
 
@@ -791,6 +847,24 @@ public class Scene extends Container {
                         }
                     }
                 }
+            }
+        }
+
+        map.drawWalls(batch, scaleFactor);
+
+        player.draw(batch);
+
+        for (Iterator<GameObject> iterator = gameObjects.iterator(); iterator.hasNext();) {
+
+            GameObject gameObject = iterator.next();
+
+            if (gameObject instanceof Explosion) {
+
+                gameObject.draw(batch);
+            }
+            else {
+
+                continue;
             }
         }
 

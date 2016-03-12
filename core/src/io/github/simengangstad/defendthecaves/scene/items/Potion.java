@@ -6,7 +6,10 @@ import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
 import io.github.simengangstad.defendthecaves.Game;
+import io.github.simengangstad.defendthecaves.scene.Entity;
+import io.github.simengangstad.defendthecaves.scene.Explosion;
 import io.github.simengangstad.defendthecaves.scene.Item;
+import io.github.simengangstad.defendthecaves.scene.Scene;
 
 import java.util.ArrayList;
 
@@ -22,14 +25,72 @@ public class Potion extends Item {
 
     private int stability = 0, toxicity = 0, flammability = 0;
 
+    private boolean broken = false;
+
     public Potion(Vector2 position) {
 
         super(position, new Vector2(Game.ItemSize, Game.ItemSize), new TextureRegion(Game.SpriteSheet, 32, 208, 16, 16), false);
     }
 
     @Override
-    public void interact(Vector2 direciton) {
+    public void interact(Vector2 direciton) {}
 
+    @Override
+    protected void collides(Entity entity) {
+
+        super.collides(entity);
+
+        if (toxicity > 0 && collided) {
+
+            System.out.println(entity + " taking damage from toxicity.");
+
+            entity.takeDamage(toxicity);
+        }
+
+        breakPotion();
+    }
+
+    @Override
+    protected void collides() {
+
+        super.collides();
+
+        breakPotion();
+    }
+
+    public void breakPotion() {
+
+        if (broken) {
+
+            return;
+        }
+
+
+        broken = true;
+
+        host.removeGameObject(this);
+
+        System.out.println(this + " broke!");
+
+        if (getStability() < -25.0f && getFlammability() > 25.0f) {
+
+            Explosion explosion = new Explosion(getFlammability() * 5.0f, getFlammability() / 5.0f, () -> {
+
+                ((Scene) host).damage((int) (getFlammability() * 1.5f), position, getFlammability() * 2.5f);
+            });
+
+            explosion.position = position.cpy();
+
+            explosion.start();
+
+            host.addGameObject(explosion);
+        }
+        else {
+
+            Liquid liquid = new Liquid(position.cpy(), this);
+
+            host.addGameObject(liquid);
+        }
     }
 
     public void addChemical(Chemical... chemicals) {
