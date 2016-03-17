@@ -11,6 +11,7 @@ import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import io.github.simengangstad.defendthecaves.Game;
+import io.github.simengangstad.defendthecaves.pathfinding.Coordinate;
 import io.github.simengangstad.defendthecaves.procedural.MapGenerator;
 import io.github.simengangstad.defendthecaves.scene.Entity;
 import io.github.simengangstad.defendthecaves.scene.Map;
@@ -59,9 +60,11 @@ public class Player extends Entity implements InputProcessor {
 
     private float miningTimer = 0.0f;
 
-    private static final float FirstBreak = 0.0f, SecondBreak = 4.0f, ThirdBreak = 8.0f;
+    private static final float BreakInterval = 4.0f;
 
     private final Vector2 lastPositionMined = new Vector2().set(-1, -1);
+
+    private int lastState = 0;
 
     /**
      * Initializes the player with a camera.
@@ -102,6 +105,7 @@ public class Player extends Entity implements InputProcessor {
         addItem(new Rock(new Vector2()));
         addItem(new Rock(new Vector2()));
         addItem(new Rock(new Vector2()));
+        addItem(new Key(new Vector2(), new Coordinate()));
 
         Potion potion = new Potion(new Vector2());
 
@@ -198,13 +202,20 @@ public class Player extends Entity implements InputProcessor {
 
         if (Gdx.input.isKeyJustPressed(Input.Keys.C) && currentItem != null) {
 
+            Vector3 vector3 = Game.vector3Pool.obtain();
             Vector2 vector = Game.vector2Pool.obtain();
 
-            vector.set(!flip() ? 1 : -1, 0.0f);
+            vector3.set(Gdx.input.getX(), Gdx.input.getY(), 0.0f);
+            camera.unproject(vector3, 0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+
+            vector.set(vector3.x - position.x, vector3.y - position.y).nor();
+
+            System.out.println(vector);
 
             currentItem.throwItem(vector);
 
             Game.vector2Pool.free(vector);
+            Game.vector3Pool.free(vector3);
 
             currentItem = null;
         }
@@ -311,6 +322,11 @@ public class Player extends Entity implements InputProcessor {
 
                 interact(tmpPosition);
 
+                if (currentItem instanceof Potion) {
+
+                    obtainItem((inventory.columns - 2) + currentItemPointer, 0);
+                }
+
                 tmpVec2.set(tmpVec.x, tmpVec.y);
 
                 int x, y;
@@ -329,34 +345,36 @@ public class Player extends Entity implements InputProcessor {
                     y = map.toTileCoordinate(position.y + tmpVec2.y * Map.TileSizeInPixelsInWorldSpace);
                 }
 
-                if (map.isSolid(x, y) && currentItem instanceof Axe && selectedSolid) {
+                if (map.isBreakable(x, y) && currentItem instanceof Axe && selectedSolid) {
 
                     if ((lastPositionMined.x != x || lastPositionMined.y != y) && (lastPositionMined.x != -1 && lastPositionMined.y != -1)) {
 
-                        map.set((int) lastPositionMined.x, (int) lastPositionMined.y, Map.SolidIntact);
+                        map.set((int) lastPositionMined.x, (int) lastPositionMined.y, lastState);
                     }
 
+                    lastState = map.get(x, y);
                     lastPositionMined.set(x, y);
 
-                    if (FirstBreak < miningTimer && miningTimer < SecondBreak) {
+                    if (BreakInterval < miningTimer) {
 
-                        map.set(x, y, Map.SolidSlightlyBroken);
-                    }
-                    else if (SecondBreak < miningTimer && miningTimer < ThirdBreak) {
+                        map.set(x, y, map.get(x, y) + 1);
 
-                        map.set(x, y, Map.SolidBroken);
-                    }
-                    else if (ThirdBreak < miningTimer) {
-
-                        map.set(x, y, Map.Open);
-
-                        lastPositionMined.set(-1, -1);
+                        System.out.println("Setting the state of breakable (" + x + ", " + y + ") to: " + map.get(x, y));
 
                         miningTimer = 0.0f;
 
-                        for (int i = 0; i < MathUtils.random(2, 4); i++) {
+                        if (map.get(x, y) == Map.SolidBroken + 1) {
 
-                            host.addGameObject(new Rock(new Vector2(x * Map.TileSizeInPixelsInWorldSpace + Map.TileSizeInPixelsInWorldSpace / 2.0f, y * Map.TileSizeInPixelsInWorldSpace + Map.TileSizeInPixelsInWorldSpace / 2.0f)));
+                            map.set(x, y, Map.Open);
+
+                            lastPositionMined.set(-1, -1);
+
+                            miningTimer = 0.0f;
+
+                            for (int i = 0; i < MathUtils.random(2, 4); i++) {
+
+                                host.addGameObject(new Rock(new Vector2(x * Map.TileSizeInPixelsInWorldSpace + Map.TileSizeInPixelsInWorldSpace / 2.0f, y * Map.TileSizeInPixelsInWorldSpace + Map.TileSizeInPixelsInWorldSpace / 2.0f)));
+                            }
                         }
                     }
 
@@ -366,7 +384,9 @@ public class Player extends Entity implements InputProcessor {
 
                     if (lastPositionMined.x != -1.0f && lastPositionMined.y != -1.0f) {
 
-                        map.set((int) lastPositionMined.x, (int) lastPositionMined.y, Map.SolidIntact);
+                        map.set((int) lastPositionMined.x, (int) lastPositionMined.y, lastState);
+
+                        lastPositionMined.set(-1.0f, -1.0f);
                     }
                 }
             }
@@ -374,7 +394,9 @@ public class Player extends Entity implements InputProcessor {
 
                 if (lastPositionMined.x != -1.0f && lastPositionMined.y != -1.0f) {
 
-                    map.set((int) lastPositionMined.x, (int) lastPositionMined.y, Map.SolidIntact);
+                    map.set((int) lastPositionMined.x, (int) lastPositionMined.y, lastState);
+
+                    lastPositionMined.set(-1.0f, -1.0f);
                 }
 
                 miningTimer = 0.0f;
@@ -422,26 +444,11 @@ public class Player extends Entity implements InputProcessor {
 
         tmpPosition.set(position);
 
-        if (currentItem != null) {
-
-            if (raiseItem) {
-
-                currentItem.walkingOffset = (size.y / 16.0f);
-            }
-            else {
-
-                currentItem.walkingOffset = 0.0f;
-            }
-        }
-
         super.draw(batch);
 
-        if (map.isSolid((int) (tmpVec.x / Map.TileSizeInPixelsInWorldSpace), (int) (tmpVec.y / Map.TileSizeInPixelsInWorldSpace))) {
+        if (map.isBreakable((int) (tmpVec.x / Map.TileSizeInPixelsInWorldSpace), (int) (tmpVec.y / Map.TileSizeInPixelsInWorldSpace))) {
 
-            if (map.get((int) (tmpVec.x / Map.TileSizeInPixelsInWorldSpace), (int) (tmpVec.y / Map.TileSizeInPixelsInWorldSpace)) < Map.SpawnIntact) {
-
-                selectedSolid = true;
-            }
+            selectedSolid = true;
         }
         else {
 

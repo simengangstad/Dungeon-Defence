@@ -1,6 +1,7 @@
 package io.github.simengangstad.defendthecaves.scene.items;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
@@ -61,5 +62,42 @@ public class Rock extends Item {
 
             //forceApplied.set(0.0f, 0.0f);
         }
+    }
+
+    @Override
+    public void draw(SpriteBatch batch) {
+
+        Vector2 tmpPosition = Game.vector2Pool.obtain();
+
+        tmpPosition.set(position);
+
+        if (parent != null) {
+
+            if (parent.currentItem == this) {
+
+                if (parent.flip()) {
+
+                    rotation = 20.0f;
+                    position.x += 12.5f;
+                }
+                else {
+
+                    rotation = -20.0f;
+                    position.x -= 12.5f;
+                }
+            }
+            else {
+
+                rotation = 0.0f;
+            }
+        }
+
+        position.y -= 20.0f;
+
+        super.draw(batch);
+
+        position.set(tmpPosition);
+
+        Game.vector2Pool.free(tmpPosition);
     }
 }

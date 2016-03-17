@@ -2,8 +2,10 @@ package io.github.simengangstad.defendthecaves.scene.crafting;
 
 import io.github.simengangstad.defendthecaves.scene.Item;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Set;
 
 /**
  * @author simengangstad
@@ -11,16 +13,39 @@ import java.util.Iterator;
  */
 public abstract class Recipe {
 
-    /**
-     * A reference to if the ingredients are added to the recipe.
-     */
-    private final HashMap<Class, Boolean> ingredients = new HashMap<>();
+    public final int id;
 
-    public Recipe(Class[] items) {
+    /**
+     * A reference to the ingredients (and the quantity of these ingredients) required for the recipe.
+     */
+    private final HashMap<Class, Integer> ingredients = new HashMap<>();
+
+    private final HashMap<Class, Integer> addedIngredients = new HashMap<>();
+
+    /**
+     * Reference to the actual items.
+     */
+    private final ArrayList<Item> items = new ArrayList<>();
+
+    /**
+     * See {@link Recipe#getIngredientsByType(Class)}
+     */
+    private final ArrayList<Item> tmpIngredients = new ArrayList<>();
+
+    public Recipe(int id, Class[] items) {
+
+        this.id = id;
 
         for (Class item : items) {
 
-            ingredients.put(item, false);
+            if (ingredients.get(item) == null) {
+
+                ingredients.put(item, 1);
+            }
+            else {
+
+                ingredients.put(item, ingredients.get(item) + 1);
+            }
         }
     }
 
@@ -28,6 +53,24 @@ public abstract class Recipe {
      * @return The result of the ingredients.
      */
     public abstract Item result();
+
+    /**
+     * @return The ingredients with the given type.
+     */
+    public ArrayList<Item> getIngredientsByType(Class type) {
+
+        tmpIngredients.clear();
+
+        items.forEach((item) -> {
+
+            if (item.getClass().equals(type)) {
+
+                tmpIngredients.add(item);
+            }
+        });
+
+        return tmpIngredients;
+    }
 
     /**
      * @return The amount of ingredients in the receipe.
@@ -42,11 +85,23 @@ public abstract class Recipe {
      *
      * @return True if the given ingredient wasn't already added.
      */
-    public boolean addIngredient(Class ingredient) {
+    public boolean addIngredient(Item ingredient) {
 
-        if (ingredients.get(ingredient) == false) {
+        if (ingredients.get(ingredient.getClass()) != null) {
 
-            ingredients.put(ingredient, true);
+            if (addedIngredients.get(ingredient.getClass()) == null) {
+
+                addedIngredients.put(ingredient.getClass(), 1);
+            }
+            else {
+
+                if (addedIngredients.get(ingredient.getClass()) < ingredients.get(ingredient.getClass())) {
+
+                    addedIngredients.put(ingredient.getClass(), addedIngredients.get(ingredient.getClass()) + 1);
+                }
+            }
+
+            items.add(ingredient);
 
             return true;
         }
@@ -59,7 +114,9 @@ public abstract class Recipe {
      */
     public void clear() {
 
-        ingredients.forEach((item, value) -> ingredients.put(item, false));
+        addedIngredients.forEach((item, value) -> addedIngredients.put(item, 0));
+
+        items.clear();
     }
 
     /**
@@ -67,11 +124,13 @@ public abstract class Recipe {
      */
     public boolean isFulfilled() {
 
-        Iterator<Boolean> iterator = ingredients.values().iterator();
+        Iterator<Class> iterator = ingredients.keySet().iterator();
 
         while (iterator.hasNext()) {
 
-            if (iterator.next() == false) {
+            Class key = iterator.next();
+
+            if (addedIngredients.get(key) != ingredients.get(key)) {
 
                 return false;
             }

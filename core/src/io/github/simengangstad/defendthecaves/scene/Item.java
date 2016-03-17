@@ -191,8 +191,6 @@ public abstract class Item extends Collidable {
 
         direction.nor();
 
-        direction.y = 0.2f;
-
         this.applyForce(direction.scl(ThrowingScalar), true, Float.MAX_VALUE);
 
         thrown = true;
@@ -282,7 +280,22 @@ public abstract class Item extends Collidable {
 
         }
 
-        super.draw(batch);
+        if (flip()) {
+
+            getTextureRegion().flip(true, false);
+        }
+
+        if (Game.DebubDraw) {
+
+            batch.draw(Game.debugDrawTexture, position.x - size.x / 2.0f, position.y - size.y / 2.0f + walkingOffset, size.x / 2.0f, size.y / 2.0f, size.x, size.y, 1.0f, 1.0f, rotation);
+        }
+
+        batch.draw(getTextureRegion(), position.x - size.x / 2.0f, position.y - size.y / 2.0f + walkingOffset, size.x / 2.0f, size.y / 2.0f, size.x, size.y, 1.0f, 1.0f, rotation);
+
+        if (flip()) {
+
+            getTextureRegion().flip(true, false);
+        }
     }
 
     @Override

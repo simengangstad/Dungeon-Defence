@@ -8,6 +8,7 @@ import io.github.simengangstad.defendthecaves.pathfinding.Coordinate;
 import io.github.simengangstad.defendthecaves.scene.Entity;
 import io.github.simengangstad.defendthecaves.scene.Map;
 import io.github.simengangstad.defendthecaves.scene.Scene;
+import io.github.simengangstad.defendthecaves.scene.items.Torch;
 
 import java.util.ArrayList;
 
@@ -19,8 +20,13 @@ public abstract class Enemy extends Entity {
 
     protected final Vector2 playerPositionReference, playerSizeReference;
 
+    private Player playerReference;
+
     private final Vector2 tmpVector = new Vector2();
 
+    /**
+     * Divided by two when player deoesn't have a torch lit.
+     */
     private final int coverageRadius;
 
     private final Coordinate destination = new Coordinate();
@@ -28,6 +34,8 @@ public abstract class Enemy extends Entity {
     private boolean followingPlayer = false;
 
     private Coordinate[][] cameFrom;
+
+    private Coordinate lastPlayerPos = new Coordinate();
 
     float scaleFactor = 0.9f;
 
@@ -47,12 +55,29 @@ public abstract class Enemy extends Entity {
 
         this.playerPositionReference = player.position;
         this.playerSizeReference = player.size;
+        playerReference = player;
 
         this.coverageRadius = coverageRadius;
 
         destination.set((int) (position.x / Map.TileSizeInPixelsInWorldSpace), (int) (position.y / Map.TileSizeInPixelsInWorldSpace));
 
         lastPosition.set(position);
+    }
+
+    @Override
+    public void create() {
+
+        super.create();
+
+        cameFrom = new Coordinate[((Scene) host).pathfindingGrid.width][((Scene) host).pathfindingGrid.height];
+
+        for (int x = 0; x < cameFrom.length; x++) {
+
+            for (int y = 0; y < cameFrom[0].length; y++) {
+
+                cameFrom[x][y] = new Coordinate();
+            }
+        }
     }
 
     protected abstract void hurtPlayer(Vector2 direction);
@@ -72,23 +97,9 @@ public abstract class Enemy extends Entity {
     @Override
     public void tick() {
 
-        if (cameFrom == null) {
-
-            cameFrom = new Coordinate[((Scene) host).pathfindingGrid.width][((Scene) host).pathfindingGrid.height];
-
-            for (int x = 0; x < cameFrom.length; x++) {
-
-                for (int y = 0; y < cameFrom[0].length; y++) {
-
-                    cameFrom[x][y] = new Coordinate();
-                }
-            }
-        }
-
         if (!isParalysed()) {
 
-            if (tmpVector.set(playerPositionReference.x - position.x, playerPositionReference.y - position.y).len() < coverageRadius * map.TileSizeInPixelsInWorldSpace) {
-
+            if (tmpVector.set(playerPositionReference.x - position.x, playerPositionReference.y - position.y).len() < coverageRadius * map.TileSizeInPixelsInWorldSpace / (playerReference.currentItem instanceof Torch ? 1 : 2)) {
 
                 if (tmpVector.len() < playerSizeReference.x) {
 
@@ -96,14 +107,88 @@ public abstract class Enemy extends Entity {
                 }
                 else {
 
-                    delta.set(tmpVector).nor().scl(scaleFactor);
+                    if ((int) (playerPositionReference.x / Map.TileSizeInPixelsInWorldSpace) != lastPlayerPos.x || (int) (playerPositionReference.y / Map.TileSizeInPixelsInWorldSpace) != lastPlayerPos.y) {
+
+                        // Re-construct path
+
+                        for (int xp = 0; xp < ((Scene) host).pathfindingGrid.width; xp++) {
+
+                            for (int yp = 0; yp < ((Scene) host).pathfindingGrid.height; yp++) {
+
+                                cameFrom[xp][yp].set(-1, -1);
+                            }
+                        }
+
+                        lastPlayerPos.set((int) (playerPositionReference.x / Map.TileSizeInPixelsInWorldSpace), (int) (playerPositionReference.y / Map.TileSizeInPixelsInWorldSpace));
+
+                        destination.set(lastPlayerPos);
+
+                        ((Scene) host).pathfindingGrid.performSearch((int) (position.x / Map.TileSizeInPixelsInWorldSpace), (int) (position.y / Map.TileSizeInPixelsInWorldSpace), destination.x, destination.y, cameFrom);
+
+                        path.clear();
+
+                        Coordinate coordinate = null;
+
+                        while (!destination.equals(coordinate)) {
+
+                            if (coordinate == null) {
+
+                                coordinate = cameFrom[(int) (position.x / Map.TileSizeInPixelsInWorldSpace)][(int) (position.y / Map.TileSizeInPixelsInWorldSpace)];
+                            }
+                            else {
+
+                                if (coordinate.x == -1 || coordinate.y == -1 || (cameFrom[coordinate.x][coordinate.y].x == -1 && cameFrom[coordinate.x][coordinate.y].y == -1)) {
+
+                                    System.err.println("Came from is null...");
+
+                                    break;
+                                }
+
+                                coordinate = cameFrom[coordinate.x][coordinate.y];
+                            }
+
+                            // TOOD: Temp solution because somehow the path turns recursive upon one coordinate
+                            if (path.size() > 0 && coordinate.equals(path.get(path.size() - 1))) {
+
+                                destination.set(coordinate);
+
+                                break;
+                            }
+
+                            path.add(coordinate);
+                        }
+
+                        lastPosition.set(position);
+                        currentIndex = 0;
+                    }
+
+                    // Get the next coordinate on the path, but this needs to change as the current position was the next coordinate
+                    // on the path, therefore we store a last position which is a reference to the last coordinate on the path
+                    Coordinate next = path.get(currentIndex);
+
+                    // Set the direction of movement to the next coordinate of the path
+                    delta.set(next.x * Map.TileSizeInPixelsInWorldSpace - lastPosition.x, next.y * Map.TileSizeInPixelsInWorldSpace - lastPosition.y).nor().scl(scaleFactor);
+
+                    //System.out.println(lastPosition + " -> " + (next.x * Map.TileSizeInPixelsInWorldSpace) + ", " + (next.y * Map.TileSizeInPixelsInWorldSpace) + ": " + delta);
+
+                    // If there's a next cooridnate
+                    if (currentIndex + 1 < path.size()) {
+
+                        float deltaX = next.x * Map.TileSizeInPixelsInWorldSpace - position.x;
+                        float deltaY = next.y * Map.TileSizeInPixelsInWorldSpace - position.y;
+
+                        float length = (float) Math.sqrt((deltaX * deltaX) + (deltaY * deltaY));
+
+                        if (length <= Map.TileSizeInPixelsInWorldSpace / 1.5f) {
+
+                            lastPosition.set(((int) (position.x / Map.TileSizeInPixelsInWorldSpace) + 0.5f) * Map.TileSizeInPixelsInWorldSpace, ((int) (position.y / Map.TileSizeInPixelsInWorldSpace) + 0.5f) * Map.TileSizeInPixelsInWorldSpace);
+
+                            currentIndex++;
+                        }
+                    }
 
                     noticedPlayer(tmpVector);
                 }
-
-                destination.set((int) (position.x / Map.TileSizeInPixelsInWorldSpace), (int) (position.y / Map.TileSizeInPixelsInWorldSpace));
-
-                lastPosition.set(position);
             }
             else {
 
@@ -120,7 +205,7 @@ public abstract class Enemy extends Entity {
 
                     timeLeftStationary = 0.0f;
 
-                    // TOOD: Cheeky solution, but I who cares?
+                    // TOOD: Cheeky solution, but who cares?
                     if (timePassedGoingInTheGivenDirection > 3.0f) {
 
                         destination.set((int) (position.x / Map.TileSizeInPixelsInWorldSpace), (int) (position.y / Map.TileSizeInPixelsInWorldSpace));
@@ -131,9 +216,14 @@ public abstract class Enemy extends Entity {
                     // If there's a next cooridnate
                     if (currentIndex + 1 < path.size()) {
 
-                        if ((int) (lastPosition.x / Map.TileSizeInPixelsInWorldSpace) != (int) ((position.x - Map.TileSizeInPixelsInWorldSpace / 2.0f) / Map.TileSizeInPixelsInWorldSpace) || (int) (lastPosition.y / Map.TileSizeInPixelsInWorldSpace) != (int) ((position.y + Map.TileSizeInPixelsInWorldSpace / 2.0f) / Map.TileSizeInPixelsInWorldSpace)) {
+                        float deltaX = next.x * Map.TileSizeInPixelsInWorldSpace - position.x;
+                        float deltaY = next.y * Map.TileSizeInPixelsInWorldSpace - position.y;
 
-                            lastPosition.set(((int) ((position.x - Map.TileSizeInPixelsInWorldSpace / 2.0f) / Map.TileSizeInPixelsInWorldSpace)) * Map.TileSizeInPixelsInWorldSpace, ((int) ((position.y + Map.TileSizeInPixelsInWorldSpace / 2.0f) / Map.TileSizeInPixelsInWorldSpace)) * Map.TileSizeInPixelsInWorldSpace);
+                        float length = (float) Math.sqrt((deltaX * deltaX) + (deltaY * deltaY));
+
+                        if (length <= Map.TileSizeInPixelsInWorldSpace / 1.5f) {
+
+                            lastPosition.set(((int) (position.x / Map.TileSizeInPixelsInWorldSpace) + 0.5f) * Map.TileSizeInPixelsInWorldSpace, ((int) (position.y / Map.TileSizeInPixelsInWorldSpace) + 0.5f) * Map.TileSizeInPixelsInWorldSpace);
 
                             currentIndex++;
 
@@ -183,7 +273,7 @@ public abstract class Enemy extends Entity {
                                     }
                                 }
 
-                                if (!((Scene) host).pathfindingGrid.performSearch((int) (position.x / Map.TileSizeInPixelsInWorldSpace), (int) (position.y / Map.TileSizeInPixelsInWorldSpace), (int) destination.x, (int) destination.y, cameFrom)) {
+                                if (!((Scene) host).pathfindingGrid.performSearch((int) (position.x / Map.TileSizeInPixelsInWorldSpace), (int) (position.y / Map.TileSizeInPixelsInWorldSpace), destination.x, destination.y, cameFrom)) {
 
                                     foundDestination = false;
 

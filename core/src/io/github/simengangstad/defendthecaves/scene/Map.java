@@ -328,10 +328,10 @@ public class Map {
                             SolidIntact = 1,
                             SolidSlightlyBroken = 2,
                             SolidBroken = 3,
-                            SolidUnbreakable = MapGenerator.Unbreakable,
                             SpawnIntact = 10,
                             SpawnSlightlyBroken = 11,
                             SpawnBroken = 12,
+                            SolidUnbreakable = MapGenerator.Unbreakable,
                             Door = MapGenerator.Door,
                             DoorUnlocked = MapGenerator.Door + 1,
                             DummyTile = 1001;
@@ -680,6 +680,14 @@ public class Map {
         }
 
         return tileMap[x][y] >= SolidIntact && tileMap[x][y] != DoorUnlocked && tileMap[x][y] != DummyTile;
+    }
+
+    /**
+     * @return If a given tile is breakable.
+     */
+    public boolean isBreakable(int x, int y) {
+
+        return isSolid(x, y) && tileMap[x][y] < SpawnIntact;
     }
 
     /**

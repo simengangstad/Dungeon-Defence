@@ -36,13 +36,13 @@ public class Container implements Disposable, InputProcessor {
     /**
      * The game objects in the container.
      */
-    protected List<GameObject> gameObjects = new ArrayList<>();
+    protected ArrayList<GameObject> gameObjects = new ArrayList<>();
 
     /**
      * Game objects requested to be added to the main array. This is to prevent modifying the array list whilst
      * in a tick.
      */
-    protected List<GameObject> buffer = new ArrayList<>(), removeBuffer = new ArrayList<>();
+    protected ArrayList<GameObject> buffer = new ArrayList<>(), removeBuffer = new ArrayList<>();
 
     /**
      * Initializes the container.

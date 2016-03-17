@@ -57,7 +57,9 @@ public class Scene extends Container {
     /**
      * A list of the amount of enemies behind each barrier breaking the barrier down.
      */
-    private final HashMap<Barrier, ArrayList<Enemy>> enemiesAtHold = new HashMap<>();
+    private HashMap<Barrier, ArrayList<Enemy>> enemiesAtHold = new HashMap<>();
+
+    private int enemiesInScene;
 
     /**
      * A reference to the keys which open the locked rooms in the map.
@@ -68,6 +70,8 @@ public class Scene extends Container {
      * The maximum amount one can zoom out of the map.
      */
     private final int MaxZoom = 400;
+
+    final WaveSystem waveSystem;
 
     /**
      * Tmp
@@ -95,7 +99,7 @@ public class Scene extends Container {
 
         batch.setShader(lightShader.handle);
 
-        lightShader.setAmbientColour(0.1f, 0.1f, 0.1f);
+        lightShader.setAmbientColour(1.1f, 1.1f, 1.1f);
 
         lightShader.updateLights(lights.size());
 
@@ -104,6 +108,11 @@ public class Scene extends Container {
         lightShader.handle.end();
         batch.setShader(lightShader.handle);
         recompileShader = false;
+
+        enemiesInScene = 10;
+
+        waveSystem = new WaveSystem(enemiesInScene, 3, 10, map, player, gameObjects, keys, barriers, enemiesAtHold1 -> this.enemiesAtHold = enemiesAtHold1);
+        waveSystem.requestWave();
     }
 
     /**
@@ -231,8 +240,10 @@ public class Scene extends Container {
 
             stage.addActor(barriers[i].progressBar);
 
-            enemiesAtHold.put(barriers[i], new ArrayList<>());
+            //enemiesAtHold.put(barriers[i], new ArrayList<>());
         }
+
+        /*
 
         Spawner<Barrier> spawner = new Spawner<>(barriers);
 
@@ -275,19 +286,19 @@ public class Scene extends Container {
 
                 case 0:
 
-                    enemyToAdd = new HumanLikeEnemy(positionOfEnemy, new Vector2(Game.EntitySize, Game.EntitySize), 6, player);
+                    enemyToAdd = new HumanLikeEnemy(positionOfEnemy, new Vector2(Game.EntitySize, Game.EntitySize), player);
 
                     break;
 
                 case 1:
 
-                    enemyToAdd = new Snake(positionOfEnemy, new Vector2(Game.EntitySize * 2, Game.EntitySize), 4, player);
+                    enemyToAdd = new Snake(positionOfEnemy, new Vector2(Game.EntitySize * 2, Game.EntitySize), player);
 
                     break;
 
                 case 2:
 
-                    enemyToAdd = new Caterpillar(positionOfEnemy, new Vector2(Game.EntitySize, Game.EntitySize), 5, player, gameObjects);
+                    enemyToAdd = new Caterpillar(positionOfEnemy, new Vector2(Game.EntitySize, Game.EntitySize), player, gameObjects);
 
                     break;
             }
@@ -314,6 +325,7 @@ public class Scene extends Container {
 
             enemiesAtHold.get(barrier).add(enemyToAdd);
         });
+        */
      }
 
     private void updatePathfindingGrid() {
@@ -356,6 +368,49 @@ public class Scene extends Container {
         }
 
         super.addGameObject(gameObject);
+    }
+
+    public void addExplosion(Explosion explosion) {
+
+        addGameObject(explosion);
+
+        explosion.setExplosionCallback(() -> {
+
+            damage((int) explosion.intensity, explosion.position, explosion.radius);
+
+            int originX = (int) (explosion.position.x / Map.TileSizeInPixelsInWorldSpace);
+            int originY = (int) (explosion.position.y / Map.TileSizeInPixelsInWorldSpace);
+            int radius = (int) (explosion.radius / Map.TileSizeInPixelsInWorldSpace);
+
+            for (int x = originX - radius; x <= originX + radius; x++) {
+
+                for (int y = originY - radius; y <= originY + radius; y++) {
+
+                    if (map.isBreakable(x, y)) {
+
+                        System.out.println("1: " + x + ", " + y + " - " + map.get(x, y));
+
+                        if (map.get(x, y) == Map.SolidIntact) {
+
+                            map.set(x, y, map.get(x, y) + 2);
+                        }
+                        else if (map.get(x, y) > Map.SolidIntact) {
+
+                            map.set(x, y, Map.Open);
+
+                            for (int i = 0; i < MathUtils.random(2, 4); i++) {
+
+                                addGameObject(new Rock(new Vector2(x * Map.TileSizeInPixelsInWorldSpace + Map.TileSizeInPixelsInWorldSpace / 2.0f, y * Map.TileSizeInPixelsInWorldSpace + Map.TileSizeInPixelsInWorldSpace / 2.0f)));
+                            }
+                        }
+
+                        System.out.println("2: " + x + ", " + y + " - " + map.get(x, y));
+                    }
+                }
+            }
+        });
+
+        explosion.start();
     }
 
     @Override
@@ -411,7 +466,7 @@ public class Scene extends Container {
 
                     if (entity.currentItem instanceof Shield && ((entity.flip() && onRightSide) || (!entity.flip() && !onRightSide))) {
 
-                        break;
+                        continue;
                     }
 
                     entity.takeDamage(attackDamage);
@@ -419,8 +474,6 @@ public class Scene extends Container {
                     entity.paralyse();
 
                     System.out.println("Damage" + "(" + attackDamage + ") applied to entity due to explosion: " + entity + " - current health: " + entity.health);
-
-                    break;
                 }
             }
         }
@@ -526,7 +579,7 @@ public class Scene extends Container {
 
             recompileShader = false;
 
-            System.out.println("Recompiling shader!");
+            System.out.println("<---- Recompiling shader! ----");
         }
 
         if (!buffer.isEmpty()) {
@@ -542,7 +595,6 @@ public class Scene extends Container {
 
             removeBuffer.clear();
         }
-
 
         if (player.inRangeOfBarrier && Gdx.input.isKeyPressed(Input.Keys.F)) {
 
@@ -620,6 +672,8 @@ public class Scene extends Container {
             rebuilding = false;
         }
 
+        waveSystem.tick();
+
         enemiesAtHold.forEach((barrier, array) -> {
 
             if (barrier.getState() <= 0) {
@@ -668,6 +722,32 @@ public class Scene extends Container {
 
         map.drawFloor(batch, scaleFactor);
 
+        // Behind the entities
+        for (GameObject gameObject : gameObjects) {
+
+            if (gameObject instanceof StepTrap) {
+
+                gameObject.draw(batch);
+
+                for (GameObject gameObjectToCheckAgainst : gameObjects) {
+
+                    if (gameObjectToCheckAgainst instanceof Entity) {
+
+                        Entity entity = ((Entity) gameObjectToCheckAgainst);
+
+                        if (entity.intersects(gameObject)) {
+
+                            ((StepTrap) gameObject).step();
+                        }
+                    }
+                }
+            }
+            else {
+
+                continue;
+            }
+        }
+
         boolean inRangeOfPlacedItem = false;
 
         for (Iterator<GameObject> iterator = gameObjects.iterator(); iterator.hasNext();) {
@@ -676,7 +756,7 @@ public class Scene extends Container {
 
             gameObject.tick();
 
-            if (!(gameObject instanceof Player) || !(gameObject instanceof Explosion)) {
+            if (!(gameObject instanceof Player) && !(gameObject instanceof Explosion) && !(gameObject instanceof StepTrap)) {
 
                 gameObject.draw(batch);
             }
@@ -692,6 +772,15 @@ public class Scene extends Container {
                         // TODO: Game over
 
                         //continue;
+                    }
+                    else {
+
+                        enemiesInScene--;
+
+                        if (enemiesInScene == 0) {
+
+                            waveSystem.requestWave();
+                        }
                     }
 
                     entity.die();
@@ -852,11 +941,12 @@ public class Scene extends Container {
 
         map.drawWalls(batch, scaleFactor);
 
+        player.displayMessage("Time: " + waveSystem.getRemainingTime());
+
         player.draw(batch);
 
-        for (Iterator<GameObject> iterator = gameObjects.iterator(); iterator.hasNext();) {
 
-            GameObject gameObject = iterator.next();
+        for (GameObject gameObject : gameObjects) {
 
             if (gameObject instanceof Explosion) {
 

@@ -28,11 +28,11 @@ public class Caterpillar extends Enemy {
 
     private List<GameObject> gameObjectList;
 
-    public Caterpillar(Vector2 position, Vector2 size, int coverageRadius, Player player, List<GameObject> gameObjectList) {
+    public Caterpillar(Vector2 position, Vector2 size, Player player, List<GameObject> gameObjectList) {
 
         super(position,
                 player,
-                coverageRadius,
+                5,
                 size,
                 TextureUtil.getAnimation(Game.CaterpillarStationary, 16, 0.2f, Animation.PlayMode.NORMAL),
                 TextureUtil.getAnimation(Game.CaterpillarMoving, 16, 0.2f, Animation.PlayMode.NORMAL));

@@ -14,11 +14,11 @@ import io.github.simengangstad.defendthecaves.scene.items.Cudgel;
  */
 public class HumanLikeEnemy extends Enemy {
 
-    public HumanLikeEnemy(Vector2 position, Vector2 size, int coverageRadius, Player player) {
+    public HumanLikeEnemy(Vector2 position, Vector2 size, Player player) {
 
         super(position,
                 player,
-                coverageRadius,
+                5,
                 size,
                 TextureUtil.getAnimation(Game.OrcStationary, 16, 0.2f, Animation.PlayMode.NORMAL),
                 TextureUtil.getAnimation(Game.OrcMoving, 16, 0.075f, Animation.PlayMode.NORMAL));
@@ -29,7 +29,7 @@ public class HumanLikeEnemy extends Enemy {
 
         super.create();
 
-        addItemAtLocation(1, 0, new Cudgel(() -> {}));
+        addItemAtLocation(0, 0, new Cudgel(null));
     }
 
     @Override
@@ -43,18 +43,6 @@ public class HumanLikeEnemy extends Enemy {
 
     @Override
     public void draw(SpriteBatch batch) {
-
-        if (currentItem != null) {
-
-            if (raiseItem) {
-
-                currentItem.walkingOffset = size.y / 16.0f;
-            }
-            else {
-
-                currentItem.walkingOffset = 0.0f;
-            }
-        }
 
         if (currentItem instanceof RotatableWeapon) {
 

@@ -21,7 +21,6 @@ import io.github.simengangstad.defendthecaves.scene.entities.Player;
 public class Game extends ApplicationAdapter {
 
     public static Texture SpriteSheet;
-    public static Texture GUISheet;
 
     public static Texture PlayerStationary;
     public static Texture PlayerMoving;
@@ -77,7 +76,6 @@ public class Game extends ApplicationAdapter {
 	public void create () {
 
         SpriteSheet = new Texture("assets/spritesheet.png");
-        GUISheet = new Texture("assets/gui_sheet.png");
 
         PlayerStationary = new Texture("assets/animations/PlayerStationary.png");
         PlayerMoving = new Texture("assets/animations/PlayerWalking.png");

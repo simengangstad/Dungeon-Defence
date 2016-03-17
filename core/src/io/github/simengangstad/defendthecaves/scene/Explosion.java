@@ -6,6 +6,7 @@ import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import io.github.simengangstad.defendthecaves.Callback;
 import io.github.simengangstad.defendthecaves.Game;
 import io.github.simengangstad.defendthecaves.GameObject;
+import jdk.nashorn.internal.codegen.CompilerConstants;
 
 /**
  * @author simengangstad
@@ -27,10 +28,14 @@ public class Explosion extends GameObject {
 
     private boolean firedCallback = false;
 
-    public Explosion(float radius, float intensity, Callback explosionCallback) {
+    public Explosion(float radius, float intensity) {
 
         this.intensity = intensity;
         this.radius = radius;
+    }
+
+    public void setExplosionCallback(Callback explosionCallback) {
+
         this.explosionCallback = explosionCallback;
     }
 
@@ -61,7 +66,7 @@ public class Explosion extends GameObject {
                 processedStarted = false;
             }
 
-            if (animation.getKeyFrameIndex(stateTime) == 1 && !firedCallback) {
+            if (animation.getKeyFrameIndex(stateTime) == 1 && !firedCallback && explosionCallback != null) {
 
                 explosionCallback.callback();
 

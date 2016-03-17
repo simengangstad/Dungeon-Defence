@@ -3,6 +3,7 @@ package io.github.simengangstad.defendthecaves.scene.crafting;
 import com.badlogic.gdx.math.Vector2;
 import io.github.simengangstad.defendthecaves.scene.Item;
 import io.github.simengangstad.defendthecaves.scene.items.*;
+import sun.jvm.hotspot.debugger.cdbg.PointerType;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -19,7 +20,7 @@ public class CraftingSystem {
 
     static {
 
-        recipes.add(new Recipe(new Class[] {
+        recipes.add(new Recipe(0, new Class[] {
 
                 Coal.class,
                 Wood.class
@@ -29,6 +30,20 @@ public class CraftingSystem {
             public Item result() {
 
                 return new Torch(new Vector2());
+            }
+        });
+
+        recipes.add(new Recipe(1, new Class[] {
+
+                Wood.class,
+                Wood.class,
+                Wood.class,
+                Potion.class
+        }) {
+
+            @Override
+            public Item result() {
+                return new StepTrap(new Vector2());
             }
         });
     }
@@ -74,7 +89,7 @@ public class CraftingSystem {
 
                         Item next = (Item) itemIterator.next();
 
-                        if (recipe.addIngredient(next.getClass())) {
+                        if (recipe.addIngredient(next)) {
 
                             itemIterator.remove();
                         }
@@ -82,7 +97,16 @@ public class CraftingSystem {
 
                     if (recipe.isFulfilled()) {
 
-                        product.items.add(recipe.result());
+                        Item result = recipe.result();
+
+                        if (recipe.id == 1) {
+
+                            Potion potion = (Potion) recipe.getIngredientsByType(Potion.class).get(0);
+
+                            ((StepTrap) result).potion = potion;
+                        }
+
+                        product.items.add(result);
 
                         addedItems = true;
                     }

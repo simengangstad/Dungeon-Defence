@@ -17,11 +17,11 @@ public class Snake extends Enemy {
 
     public int attackDamage = 30;
 
-    public Snake(Vector2 position, Vector2 size, int coverageRadius, Player player) {
+    public Snake(Vector2 position, Vector2 size, Player player) {
 
         super(position,
                 player,
-                coverageRadius,
+                5,
                 size,
                 TextureUtil.getAnimation(Game.SnakeStationary, 32, 0.4f, Animation.PlayMode.NORMAL),
                 TextureUtil.getAnimation(Game.SnakeMoving, 32, 0.08f, Animation.PlayMode.NORMAL));

@@ -99,13 +99,23 @@
 - [x] Toxic potions apply damage once leaked
 - [x] Explosions
 
+# 0018
+- [x] Make mining not reset based - if the player mines to two states of one rock it stays at that state.
+- [x] Health potions
+
+# 0019
+- [x] Step trap
+- [x] Fix bug where you can craft a step trap with only one wood and one potion after crafting another one
+- [x] Better AI
+    - [x] Finds paths to the player
+    - [x] Attracted by light
+- [x] Wave system
+
 # To be implemented
-- [ ] Traps and bombs
-- [ ] Better AI
-    - Finds paths to the player
-    - Attracted by light
-- [ ] Health potions
+
+- [ ] Item bar
 - [ ] Screen shaking
+- [ ] Timer that displays the seconds remaining until the next wave
 
 - [ ] Add functionality for reversing the process of crafting; retrieving components from a crafted item
 - [ ] Solve bug where the player sometimes ends up in rooms withuot entries.

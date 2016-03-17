@@ -137,7 +137,7 @@ public abstract class Weapon extends Item {
                 // Hurt the entities that are in boundaries of the weapon if hit
                 ((Scene) parent.host).damage(attackDamage, direction, parent.position.x + (flip() ? size.x / 2.0f : -size.x / 2.0f), parent.position.y, size.x, size.y, parent);
 
-                callback.callback();
+                if (callback != null) callback.callback();
             }
         }
     }
@@ -151,7 +151,7 @@ public abstract class Weapon extends Item {
         tmpPosition.set(position);
         tmpSize.set(size);
 
-        position.set(position.x + xOffset() + size.x / 2.0f, position.y + yOffset() + size.y / 2.0f + walkingOffset);
+        position.set(position.x + xOffset() + size.x / 2.0f, position.y + yOffset() + size.y / 2.0f);
         size.set(size.x * 2, size.y * 2);
 
         super.draw(batch);

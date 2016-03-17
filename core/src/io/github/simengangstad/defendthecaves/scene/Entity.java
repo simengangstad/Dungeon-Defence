@@ -35,12 +35,12 @@ public abstract class Entity extends Collidable {
     /**
      * Reference to the item the entity is currently holding.
      */
-    private int currentItemPointer = 0;
+    protected int currentItemPointer = 0;
 
     /**
      * The current item.
      */
-    protected Item currentItem = null, lastItem = null;
+    public Item currentItem = null;
 
     /**
      * The maximum health an entity can have.
@@ -280,7 +280,7 @@ public abstract class Entity extends Collidable {
 
         item.create();
 
-        if (x == (inventory.columns - 2) + currentItemPointer && y == 0) {
+        if (x == currentItemPointer && y == 0) {
 
             currentItem = item;
         }
@@ -313,7 +313,7 @@ public abstract class Entity extends Collidable {
      */
     public void shuffleItem() {
 
-        ArrayList<Item> list = inventory.getItemList((inventory.columns - 2) + currentItemPointer, 0);
+        ArrayList<Item> list = inventory.getItemList(currentItemPointer, 0);
 
         Item lastItem;
 
@@ -333,7 +333,7 @@ public abstract class Entity extends Collidable {
 
         currentItemPointer = (currentItemPointer + 1) % 2;
 
-        ArrayList<Item> newList = inventory.getItemList((inventory.columns - 2) + currentItemPointer, 0);
+        ArrayList<Item> newList = inventory.getItemList(currentItemPointer, 0);
 
         Item nextItem;
 
@@ -351,7 +351,7 @@ public abstract class Entity extends Collidable {
             ((Torch) nextItem).light.enabled = true;
         }
 
-        System.out.println("Set current pointer for current item to: " + ((inventory.columns - 2) + currentItemPointer));
+        System.out.println("Set current pointer for current item to: " + currentItemPointer);
     }
 
     public void interact(Vector2 interactionDirection) {
@@ -594,7 +594,7 @@ public abstract class Entity extends Collidable {
             timeLeftBeforeBeginAbleToInteract = 0.0f;
         }
 
-        ArrayList<Item> list = inventory.getItemList((inventory.columns - 2) + currentItemPointer, 0);
+        ArrayList<Item> list = inventory.getItemList(currentItemPointer, 0);
 
         if (0 < list.size()) {
 
@@ -668,6 +668,14 @@ public abstract class Entity extends Collidable {
 
         if (currentItem != null) {
 
+            if (raiseItem) {
+
+                currentItem.walkingOffset = size.y / 16.0f;
+            }
+            else {
+
+                currentItem.walkingOffset = 0.0f;
+            }
             if (currentItem instanceof Weapon || currentItem instanceof Shield) {
 
                 currentItem.position.set(position.x - size.x / 2.0f, position.y - size.y / 2.0f);
@@ -689,6 +697,19 @@ public abstract class Entity extends Collidable {
         }
 
         if (flip()) getTextureRegion().flip(true, false);
+    }
+
+
+    public void drinkPotion(Potion potion) {
+
+        if (potion.getToxicity() > 0) {
+
+            takeDamage(potion.getToxicity());
+        }
+        else {
+
+            adjustHealth(-potion.getToxicity());
+        }
     }
 
     @Override

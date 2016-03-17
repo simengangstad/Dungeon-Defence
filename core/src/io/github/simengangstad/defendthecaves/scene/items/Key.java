@@ -1,5 +1,6 @@
 package io.github.simengangstad.defendthecaves.scene.items;
 
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Vector2;
 import io.github.simengangstad.defendthecaves.Game;
@@ -26,5 +27,48 @@ public class Key extends Item {
     @Override
     public void interact(Vector2 direciton) {
 
+    }
+
+    @Override
+    public boolean flip() {
+
+        return !super.flip();
+    }
+
+    @Override
+    public void draw(SpriteBatch batch) {
+
+        Vector2 tmpPosition = Game.vector2Pool.obtain();
+
+        tmpPosition.set(position);
+
+        if (parent != null) {
+
+            if (parent.currentItem == this) {
+
+                if (!parent.flip()) {
+
+                    rotation = 20.0f;
+                    position.x -= 30.0f;
+                }
+                else {
+
+                    rotation = -20.0f;
+                    position.x += 30.0f;
+                }
+
+                position.y -= 25.0f;
+            }
+            else {
+
+                rotation = 0.0f;
+            }
+        }
+
+        super.draw(batch);
+
+        position.set(tmpPosition);
+
+        Game.vector2Pool.free(tmpPosition);
     }
 }
