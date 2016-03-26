@@ -42,6 +42,8 @@ public class Explosion extends GameObject {
     public void start() {
 
         processedStarted = true;
+
+        ((Scene) host).scheduleScreenShake(1.0f, 60);
     }
 
     public void reset() {

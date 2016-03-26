@@ -18,7 +18,7 @@ public class StringItem extends Item {
 
         super(position, new Vector2(Game.ItemSize, Game.ItemSize), textureRegion, true);
 
-        information = "Strangle those bastards with these fella";
+        information = "Strangle those bastards with this fella";
     }
 
     @Override

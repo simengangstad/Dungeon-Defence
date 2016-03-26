@@ -89,21 +89,22 @@ public abstract class Recipe {
 
         if (ingredients.get(ingredient.getClass()) != null) {
 
-            if (addedIngredients.get(ingredient.getClass()) == null) {
+            if (addedIngredients.get(ingredient.getClass()) == null || addedIngredients.get(ingredient.getClass()) == 0) {
 
                 addedIngredients.put(ingredient.getClass(), 1);
+
+                items.add(ingredient);
+
+                return true;
             }
-            else {
+            else if (addedIngredients.get(ingredient.getClass()) < ingredients.get(ingredient.getClass())) {
 
-                if (addedIngredients.get(ingredient.getClass()) < ingredients.get(ingredient.getClass())) {
+                addedIngredients.put(ingredient.getClass(), addedIngredients.get(ingredient.getClass()) + 1);
 
-                    addedIngredients.put(ingredient.getClass(), addedIngredients.get(ingredient.getClass()) + 1);
-                }
+                items.add(ingredient);
+
+                return true;
             }
-
-            items.add(ingredient);
-
-            return true;
         }
 
         return false;

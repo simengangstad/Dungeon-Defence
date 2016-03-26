@@ -87,7 +87,7 @@ public class Inventory extends Table {
     protected SpeechBubble speechBubble = new SpeechBubble();
 
     /**
-     * The grafical style of the inventory; its background and slots..
+     * The grafical style of the inventory; its background and slots.
      */
     protected InventoryStyle style;
 
@@ -441,6 +441,7 @@ public class Inventory extends Table {
 
                     labels[x][y].setPosition(getX() + x * width + width - 15.0f, getY() + y * height + 10.0f);
                     labels[x][y].setVisible(true);
+                    labels[x][y].setFontScale(0.3f);
 
                     stringBuilder.setLength(0);
                     stringBuilder.append(getItemList(x, y).size());

@@ -111,12 +111,16 @@
     - [x] Attracted by light
 - [x] Wave system
 
+# 0020
+- [x] Timer that displays the seconds remaining until the next wave
+- [x] Item bar
+- [x] Scroll background for labels
+- [x] Screen shaking
+
 # To be implemented
 
-- [ ] Item bar
-- [ ] Screen shaking
-- [ ] Timer that displays the seconds remaining until the next wave
-
+- [ ] Overlay of current item in item bar
+- [ ] Improve AI further
 - [ ] Add functionality for reversing the process of crafting; retrieving components from a crafted item
 - [ ] Solve bug where the player sometimes ends up in rooms withuot entries.
 - [ ] Clean up crafting inventory -> remove duplicated code.

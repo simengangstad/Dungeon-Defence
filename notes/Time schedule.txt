@@ -25,9 +25,9 @@
 
 # By the end of March 2016
 
-- [ ] Better AI
+- [x] Better AI
     - Finds paths to the player
     - Attracted by light
-- [ ] Screen shaking
-- [ ] Traps and bombs
-- [ ] Health potions
+- [x] Screen shaking
+- [x] Traps and bombs
+- [x] Health potions

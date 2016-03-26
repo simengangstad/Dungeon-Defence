@@ -81,6 +81,12 @@ public class Scene extends Container {
     private int distanceToBarrierInOrderToRebuild = 2;
     private Barrier closestsBarrier = null;
 
+    private Vector2 screenShake = new Vector2();
+
+    private float shakeTime = 0.0f;
+
+    private int shakeIntensity = 0;
+
     /**
      * Instantiates the scene with a player.
      */
@@ -440,6 +446,12 @@ public class Scene extends Container {
         recompileShader = true;
     }
 
+    public void scheduleScreenShake(float shakeTime, int shakeIntensity) {
+
+        this.shakeTime = shakeTime;
+        this.shakeIntensity = shakeIntensity;
+    }
+
     /**
      * Damages every entity with the attack damage within the radius of the origin.
      */
@@ -582,6 +594,22 @@ public class Scene extends Container {
             System.out.println("<---- Recompiling shader! ----");
         }
 
+        if (0.0f < shakeTime) {
+
+            float x = (MathUtils.random(shakeIntensity) - shakeIntensity / 2);
+            float y = (MathUtils.random(shakeIntensity) - shakeIntensity / 2);
+
+            screenShake.set(x, y);
+
+            shakeTime -= Gdx.graphics.getDeltaTime();
+        }
+        else {
+
+            screenShake.set(0.0f, 0.0f);
+            shakeIntensity = 0;
+            shakeTime = 0.0f;
+        }
+
         if (!buffer.isEmpty()) {
 
             gameObjects.addAll(buffer);
@@ -595,6 +623,8 @@ public class Scene extends Container {
 
             removeBuffer.clear();
         }
+
+        batch.getTransformMatrix().setToTranslation(screenShake.x, screenShake.y, 0.0f);
 
         if (player.inRangeOfBarrier && Gdx.input.isKeyPressed(Input.Keys.F)) {
 
@@ -877,8 +907,6 @@ public class Scene extends Container {
 
                                         item.forceApplied.set(0.0f, 0.0f);
 
-                                        System.out.println("Item timer: " + item.getTimer());
-
                                         if (entity.inventory.sufficientPlaceForItem(item)) {
 
                                             entity.addItem(item);
@@ -941,7 +969,7 @@ public class Scene extends Container {
 
         map.drawWalls(batch, scaleFactor);
 
-        player.displayMessage("Time: " + waveSystem.getRemainingTime());
+        if (Game.DebubDraw) player.displayMessage("Time: " + waveSystem.getRemainingTime());
 
         player.draw(batch);
 

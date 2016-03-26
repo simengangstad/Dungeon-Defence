@@ -6,6 +6,7 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.utils.Drawable;
+import com.badlogic.gdx.utils.Align;
 import io.github.simengangstad.defendthecaves.Game;
 
 /**
@@ -21,6 +22,9 @@ public class SpeechBubble extends Table {
     public SpeechBubble() {
 
         setStyle(Game.UISkin.get(SpeechBubbleStyle.class));
+
+        label.setFontScale(0.3f);
+        label.setAlignment(Align.center);
     }
 
     public void setText(CharSequence text) {

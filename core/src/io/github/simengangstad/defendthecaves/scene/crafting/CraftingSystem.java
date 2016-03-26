@@ -77,6 +77,8 @@ public class CraftingSystem {
 
                 while (!noMoreResultingItems) {
 
+                    noMoreResultingItems = true;
+
                     // Grab the ingredients in the list and look for the other corresponding
                     // ingredients for the recipe
                     recipe.clear();
@@ -92,28 +94,30 @@ public class CraftingSystem {
                         if (recipe.addIngredient(next)) {
 
                             itemIterator.remove();
+
+                            if (recipe.isFulfilled()) {
+
+                                Item result = recipe.result();
+
+                                if (recipe.id == 1) {
+
+                                    Potion potion = (Potion) recipe.getIngredientsByType(Potion.class).get(0);
+
+                                    ((StepTrap) result).potion = potion;
+                                }
+
+                                product.items.add(result);
+
+                                addedItems = true;
+
+                                noMoreResultingItems = false;
+
+                                break;
+                            }
                         }
                     }
 
-                    if (recipe.isFulfilled()) {
-
-                        Item result = recipe.result();
-
-                        if (recipe.id == 1) {
-
-                            Potion potion = (Potion) recipe.getIngredientsByType(Potion.class).get(0);
-
-                            ((StepTrap) result).potion = potion;
-                        }
-
-                        product.items.add(result);
-
-                        addedItems = true;
-                    }
-                    else {
-
-                        noMoreResultingItems = true;
-                    }
+                    System.out.println("Something crafting system");
                 }
 
                 // If we added items with this recipe, don't look for other combinations

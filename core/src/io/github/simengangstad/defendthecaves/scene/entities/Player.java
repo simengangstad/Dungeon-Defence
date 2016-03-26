@@ -14,6 +14,7 @@ import io.github.simengangstad.defendthecaves.Game;
 import io.github.simengangstad.defendthecaves.pathfinding.Coordinate;
 import io.github.simengangstad.defendthecaves.procedural.MapGenerator;
 import io.github.simengangstad.defendthecaves.scene.Entity;
+import io.github.simengangstad.defendthecaves.scene.ItemBar;
 import io.github.simengangstad.defendthecaves.scene.Map;
 import io.github.simengangstad.defendthecaves.scene.items.RotatableWeapon;
 import io.github.simengangstad.defendthecaves.scene.TextureUtil;
@@ -66,6 +67,8 @@ public class Player extends Entity implements InputProcessor {
 
     private int lastState = 0;
 
+    private ItemBar itemBar;
+
     /**
      * Initializes the player with a camera.
      */
@@ -116,6 +119,11 @@ public class Player extends Entity implements InputProcessor {
         host.addInputProcessor(this);
 
         host.stage.addActor(inventory);
+
+        itemBar = new ItemBar((CraftingInventory) inventory);
+
+        itemBar.setPosition(Gdx.graphics.getWidth() / 2.0f - CraftingInventory.slotSize * inventory.columns / 2.0f, 0.0f);
+        host.stage.addActor(itemBar);
     }
 
     @Override
@@ -324,7 +332,7 @@ public class Player extends Entity implements InputProcessor {
 
                 if (currentItem instanceof Potion) {
 
-                    obtainItem((inventory.columns - 2) + currentItemPointer, 0);
+                    obtainItem(currentItemPointer, 0);
                 }
 
                 tmpVec2.set(tmpVec.x, tmpVec.y);
@@ -458,6 +466,7 @@ public class Player extends Entity implements InputProcessor {
         batch.draw(overlayTextureRegion, ((int) (tmpVec.x / Map.TileSizeInPixelsInWorldSpace)) * Map.TileSizeInPixelsInWorldSpace, ((int) (tmpVec.y / Map.TileSizeInPixelsInWorldSpace)) * Map.TileSizeInPixelsInWorldSpace, Map.TileSizeInPixelsInWorldSpace, Map.TileSizeInPixelsInWorldSpace);
 
         inventory.setVisible(displayingInventory);
+        itemBar.setVisible(!displayingInventory);
 /*
         if (unlockButton.visible) {
 

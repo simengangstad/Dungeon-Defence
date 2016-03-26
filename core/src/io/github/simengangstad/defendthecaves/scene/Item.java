@@ -69,7 +69,7 @@ public abstract class Item extends Collidable {
     /**
      * If the item is stackable in an inventory or not.
      */
-    public final boolean stackable;
+    public boolean stackable;
 
     /**
      * If we're timing; if the item is in the scene.

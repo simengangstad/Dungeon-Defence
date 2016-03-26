@@ -76,6 +76,7 @@ public class Potion extends Item {
 
             Explosion explosion = new Explosion(getFlammability() * -getStability() / 5.0f, getFlammability() * 3.0f);
 
+            explosion.host = this.host;
             explosion.position = position.cpy();
 
             ((Scene) host).addExplosion(explosion);

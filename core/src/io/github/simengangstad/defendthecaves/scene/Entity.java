@@ -331,7 +331,7 @@ public abstract class Entity extends Collidable {
             ((Torch) lastItem).light.enabled = false;
         }
 
-        currentItemPointer = (currentItemPointer + 1) % 2;
+        currentItemPointer = (currentItemPointer + 1) % inventory.columns;
 
         ArrayList<Item> newList = inventory.getItemList(currentItemPointer, 0);
 

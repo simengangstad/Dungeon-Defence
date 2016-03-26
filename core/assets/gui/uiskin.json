@@ -1,5 +1,7 @@
 {
 	com.badlogic.gdx.graphics.g2d.BitmapFont: { default-font: { file: default.fnt } },
+	com.badlogic.gdx.graphics.g2d.BitmapFont: { hobbit-font: { file: font.txt } },
+
 	com.badlogic.gdx.graphics.Color: {
 		green: { a: 1, b: 0, g: 1, r: 0 },
 		white: { a: 1, b: 1, g: 1, r: 1 },
@@ -62,7 +64,7 @@
 		default: { background: default-pane, slot: default-rect }
 	}
 	io.github.simengangstad.defendthecaves.scene.gui.SpeechBubble$SpeechBubbleStyle: {
-		default: { background: speech-bubble, extra: speech-bubble-extra, font: default-font, fontColor: white}
+		default: { background: scroll, extra: speech-bubble-extra, font: hobbit-font, fontColor: white}
 	}
 	io.github.simengangstad.defendthecaves.scene.gui.ProgressBar$ProgressBarStyle: {
 

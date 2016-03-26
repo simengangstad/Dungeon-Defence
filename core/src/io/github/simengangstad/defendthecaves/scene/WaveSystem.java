@@ -1,8 +1,11 @@
 package io.github.simengangstad.defendthecaves.scene;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.List;
 import io.github.simengangstad.defendthecaves.Game;
 import io.github.simengangstad.defendthecaves.GameObject;
@@ -57,6 +60,10 @@ public class WaveSystem {
     private WaveCallback callback;
 
 
+    private int state = 0;
+
+    private Label countdownLabel = new Label("", new Label.LabelStyle(new BitmapFont(Gdx.files.internal("assets/gui/font.txt"), Gdx.files.internal("assets/gui/font.png"), false), new Color(Color.BLACK)));
+
     public WaveSystem(int startAmount, int difference, int intervalBetweenWaves, Map map, Player player, ArrayList<GameObject> gameObjects, ArrayList<Key> keys, Barrier[] barriers, WaveCallback callback) {
 
         this.startAmount = startAmount;
@@ -68,6 +75,10 @@ public class WaveSystem {
         this.keys = keys;
         this.barriers = barriers;
         this.callback = callback;
+
+        countdownLabel.setVisible(true);
+
+        player.host.stage.addActor(countdownLabel);
 
         for (Barrier barrier : barriers) {
 
@@ -93,9 +104,48 @@ public class WaveSystem {
 
             timer -= Gdx.graphics.getDeltaTime();
 
-            if (timer < 0.0f) {
+            if (0.0f < timer && timer <= 5.0f) {
 
-                timer = 0.0f;
+                int value = (int) Math.ceil(timer);
+
+                float delta = 1 - (value - timer);
+
+                if (state != value) {
+
+                    countdownLabel.setVisible(true);
+
+                    countdownLabel.setText(value + "");
+
+                    state = value;
+                }
+
+                countdownLabel.setPosition(Gdx.graphics.getWidth() - countdownLabel.getPrefWidth() - 20, 70);
+                countdownLabel.setColor(1.0f, 1.0f, 1.0f, delta);
+            }
+            else if (-1 < timer && timer <= 0) {
+
+                float delta = 1 - (0 - timer);
+
+                if (state != 0) {
+
+                    countdownLabel.setVisible(true);
+
+                    countdownLabel.setText("New wave incoming!");
+
+                    state = 0;
+                }
+
+                countdownLabel.setPosition(Gdx.graphics.getWidth() / 2.0f - countdownLabel.getPrefWidth() / 2.0f, Gdx.graphics.getHeight() / 2.0f);
+                countdownLabel.setColor(1.0f, 1.0f, 1.0f, delta);
+            }
+            else {
+
+                countdownLabel.setVisible(false);
+            }
+
+            if (timer < -1.0f) {
+
+                timer = -1.0f;
 
                 requestedNewWave = false;
 

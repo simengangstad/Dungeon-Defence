@@ -224,3 +224,10 @@ progress2
   orig: 1, 8
   offset: 0, 0
   index: -1
+scroll
+  rotate: false
+  xy: 112, 1
+  size: 20, 10
+  orig: 20, 10
+  offset: 0, 0
+  index: -1

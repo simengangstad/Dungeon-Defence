@@ -21,7 +21,7 @@ public class CraftingInventory extends Inventory {
 
     public ArrayList<Item> result = new ArrayList<>();
 
-    private final int widthOfGap;
+    public final int widthOfGap;
 
     private ArrayList<Item> items = new ArrayList<>();
 
@@ -31,7 +31,7 @@ public class CraftingInventory extends Inventory {
 
     private final Vector2 lastPosition = new Vector2();
 
-    private int slotSize = 70, offset = 50;
+    public static int slotSize = 70, offset = 50;
 
     private final int MaxAmount = 8;
 
@@ -93,8 +93,9 @@ public class CraftingInventory extends Inventory {
 
         // Label
         label.setText("Places left: " + (MaxAmount - items.size()));
-        label.setPosition(posXCraftingArea + sizeXCraftingArea / 2.0f - label.getPrefWidth() / 2.0f, posYCraftingArea - 30.0f);
+        label.setPosition(posXCraftingArea + sizeXCraftingArea / 2.0f - label.getPrefWidth() / 2.0f, posYCraftingArea - 140.0f);
         label.draw(batch, parentAlpha);
+        label.setFontScale(0.3f);
 
         // Result
         float posXResult = getX() + offset + slotSize;
@@ -112,8 +113,9 @@ public class CraftingInventory extends Inventory {
             stringBuilder.append(result.size());
             resultLabel.setText(stringBuilder);
 
-            resultLabel.setPosition(posXResult + slotSize - resultLabel.getPrefWidth() - 3.0f, posYResult + 10.0f);
+            resultLabel.setPosition(posXResult + slotSize - resultLabel.getPrefWidth() - 3.0f, posYResult + 16.0f);
             resultLabel.setVisible(true);
+            resultLabel.setFontScale(0.3f);
 
             resultLabel.draw(batch, parentAlpha);
         }
@@ -150,8 +152,9 @@ public class CraftingInventory extends Inventory {
                             false
                     );
 
-                    labels[x][y].setPosition(posXInventory + x * slotSize + slotSize - labels[x][y].getPrefWidth() - 3.0f, posYInventory + y * slotSize + 10.0f);
+                    labels[x][y].setPosition(posXInventory + x * slotSize + slotSize - labels[x][y].getPrefWidth() - 3.0f, posYInventory + y * slotSize + 16.0f);
                     labels[x][y].setVisible(true);
+                    labels[x][y].setFontScale(0.3f);
 
                     stringBuilder.setLength(0);
                     stringBuilder.append(getItemList(x, y).size());
