@@ -33,7 +33,7 @@ public abstract class Weapon extends Item {
     /**
      * The callback called when the attack has finished.
      */
-    private final Callback callback;
+    protected Callback callback;
 
     /**
      * The attack damage.
@@ -156,7 +156,7 @@ public abstract class Weapon extends Item {
 
         super.draw(batch);
 
-        if (Game.DebubDraw) {
+        if (Game.Debug) {
 
             batch.draw(Game.debugDrawTexture, parent.position.x - (flip() ? -size.x : 0), parent.position.y - size.y / 2.0f, size.x, size.y);
             batch.draw(Game.debugDrawTexture, parent.position.x - (flip() ? -this.size.x : 0), parent.position.y - this.size.y / 2.0f, this.size.x, this.size.y);

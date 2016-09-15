@@ -9,6 +9,7 @@ import io.github.simengangstad.defendthecaves.Game;
 import io.github.simengangstad.defendthecaves.scene.Item;
 import io.github.simengangstad.defendthecaves.scene.Map;
 import io.github.simengangstad.defendthecaves.scene.TextureUtil;
+import io.github.simengangstad.defendthecaves.scene.crafting.Recipe;
 import io.github.simengangstad.defendthecaves.scene.entities.Player;
 
 /**
@@ -17,9 +18,12 @@ import io.github.simengangstad.defendthecaves.scene.entities.Player;
  */
 public class StepTrap extends Item {
 
+    public static final String Information = "Booby trap - surprise, surprise!\nDamage: lethal";
+    public static final String CraftInformation = "Booby trap - surprise, surprise! Made from:\n3 wood\n1 explosive potion\nDamage: lethal";
+
     public static final Animation animation = TextureUtil.getAnimation(Game.SpriteSheet, 0, 464, 16 * 2, 16, 16, 0.40f, Animation.PlayMode.NORMAL);
 
-    public Potion potion;
+    private Potion potion;
 
     private float stateTime = 0.0f;
 
@@ -30,6 +34,11 @@ public class StepTrap extends Item {
     public StepTrap(Vector2 position) {
 
         super(position, new Vector2(Game.ItemSize, Game.ItemSize), animation.getKeyFrame(0.0f), true);
+
+        information = Information;
+        craftInformation = CraftInformation;
+
+        potion = new ExplosivePotion(this.position.cpy());
     }
 
     public void step() {
@@ -50,6 +59,8 @@ public class StepTrap extends Item {
         if (!triggered && animation.getKeyFrameIndex(stateTime) == 1 && stateTime > animation.getAnimationDuration()) {
 
             potion.position = position.cpy();
+            potion.host = this.host;
+            potion.map = this.map;
 
             potion.breakPotion();
 
@@ -60,7 +71,7 @@ public class StepTrap extends Item {
     }
 
     @Override
-    public void interact(Vector2 direciton) {
+    public void interact(Vector2 direction) {
 
         Vector3 vec = Game.vector3Pool.obtain();
 
@@ -89,5 +100,11 @@ public class StepTrap extends Item {
     public TextureRegion getTextureRegion() {
 
         return animation.getKeyFrame(stateTime);
+    }
+
+    @Override
+    public TextureRegion getSlotTextureRegion() {
+
+        return animation.getKeyFrame(0.0f);
     }
 }

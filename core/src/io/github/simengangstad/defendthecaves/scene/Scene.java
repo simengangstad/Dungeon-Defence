@@ -2,16 +2,38 @@ package io.github.simengangstad.defendthecaves.scene;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
+import com.badlogic.gdx.audio.Music;
+import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.Cursor;
 import com.badlogic.gdx.graphics.GL20;
+import com.badlogic.gdx.graphics.OrthographicCamera;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.MathUtils;
+import com.badlogic.gdx.math.Vector;
 import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.math.Vector3;
+import com.badlogic.gdx.scenes.scene2d.Actor;
+import com.badlogic.gdx.scenes.scene2d.Stage;
+import com.badlogic.gdx.scenes.scene2d.ui.Button;
+import com.badlogic.gdx.scenes.scene2d.ui.Label;
+import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
+import com.sun.istack.internal.NotNull;
+import com.sun.istack.internal.Nullable;
 import io.github.simengangstad.defendthecaves.Container;
 import io.github.simengangstad.defendthecaves.Game;
 import io.github.simengangstad.defendthecaves.GameObject;
+import io.github.simengangstad.defendthecaves.audio.MusicFader;
 import io.github.simengangstad.defendthecaves.pathfinding.PathfindingGrid;
 import io.github.simengangstad.defendthecaves.procedural.MapGenerator;
-import io.github.simengangstad.defendthecaves.scene.entities.*;
+import io.github.simengangstad.defendthecaves.scene.entities.Enemy;
+import io.github.simengangstad.defendthecaves.scene.entities.Player;
+import io.github.simengangstad.defendthecaves.scene.gui.Pointer;
+import io.github.simengangstad.defendthecaves.scene.gui.ProgressBar;
+import io.github.simengangstad.defendthecaves.scene.gui.SlotItem;
+import io.github.simengangstad.defendthecaves.scene.gui.SpeechBubble;
 import io.github.simengangstad.defendthecaves.scene.items.*;
+import io.github.simengangstad.defendthecaves.startscreen.StartScreen;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -27,7 +49,7 @@ public class Scene extends Container {
     /**
      * The map that hosts the game objects.
      */
-    private Map map;
+    public Map map;
 
     /**
      * The shader of the scene.
@@ -47,7 +69,7 @@ public class Scene extends Container {
     /**
      * The player which interacts with the map.
      */
-    public Player player;
+    private Player player;
 
     /**
      * The barriers; where the enemies spawn.
@@ -58,8 +80,6 @@ public class Scene extends Container {
      * A list of the amount of enemies behind each barrier breaking the barrier down.
      */
     private HashMap<Barrier, ArrayList<Enemy>> enemiesAtHold = new HashMap<>();
-
-    private int enemiesInScene;
 
     /**
      * A reference to the keys which open the locked rooms in the map.
@@ -79,6 +99,7 @@ public class Scene extends Container {
     private final Vector2 tmp = new Vector2();
 
     private int distanceToBarrierInOrderToRebuild = 2;
+
     private Barrier closestsBarrier = null;
 
     private Vector2 screenShake = new Vector2();
@@ -88,37 +109,133 @@ public class Scene extends Container {
     private int shakeIntensity = 0;
 
     /**
+     * Stage for items that are supposedly in the scene (health bars etc.)
+     */
+    public Stage sceneStage = new Stage();
+
+    private Pointer pointer;
+
+    private boolean resetted = false;
+
+
+    private boolean freeze = false;
+
+    private int score = 0;
+
+    private Label scoreLabel = new Label("", new Label.LabelStyle(new BitmapFont(Gdx.files.internal("assets/gui/font.txt"), Gdx.files.internal("assets/gui/font.png"), false), new Color(Color.WHITE)));
+
+    private SpeechBubble dieLabel = new SpeechBubble();
+
+    private TextButton exitButton = new TextButton("Exit", Game.UISkin);
+    private TextButton backButton = new TextButton("Back", Game.UISkin);
+
+    public static Music defaultMusic, newWaveMusic;
+
+    /**
      * Instantiates the scene with a player.
      */
-    public Scene(Player player) {
+    public Scene() {
 
         super();
 
         // TODO: Why must we do this here as well???
         Gdx.input.setInputProcessor(inputMultiplexer);
 
-        this.player = player;
+        this.player = new Player(new OrthographicCamera(Gdx.graphics.getWidth(), Gdx.graphics.getHeight()));
 
-        initialiseMap();
+        Gdx.input.setCursorCatched(true);
+
+        dieLabel.setText("Dammit, you died! Press enter to try again.");
+        dieLabel.setVisible(false);
+        dieLabel.setWidth(200.0f);
+
+        scoreLabel.setFontScale(0.45f);
+        scoreLabel.setPosition(10, Gdx.graphics.getHeight() - 20);
+
+        exitButton.setHeight(50.0f);
+        exitButton.setWidth(100.0f);
+        exitButton.setVisible(false);
+        exitButton.setPosition(Gdx.graphics.getWidth() / 2.0f - exitButton.getWidth() / 2.0f - 70, Gdx.graphics.getHeight() / 2.0f - exitButton.getHeight() / 2.0f + 50);
+
+
+        backButton.setHeight(50.0f);
+        backButton.setWidth(100.0f);
+        backButton.setVisible(false);
+        backButton.setPosition(Gdx.graphics.getWidth() / 2.0f - backButton.getWidth() / 2.0f + 70, Gdx.graphics.getHeight() / 2.0f - backButton.getHeight() / 2.0f + 50);
+
+        defaultMusic = Gdx.audio.newMusic(Gdx.files.internal("assets/music/aehlers/twists.mp3"));
+        defaultMusic.setLooping(true);
+        defaultMusic.setVolume(0.25f);
+
+        newWaveMusic = Gdx.audio.newMusic(Gdx.files.internal("assets/music/aehlers/devil.mp3"));
+        newWaveMusic.setLooping(false);
+        newWaveMusic.setVolume(0.25f);
+
+        init();
+
+        waveSystem = new WaveSystem(10, 5, 40, map, player, keys, barriers, enemiesAtHold1 -> this.enemiesAtHold = enemiesAtHold1);
+        waveSystem.requestWave();
 
         lightShader = new LightShader(Map.TileSizeInPixelsInWorldSpace / Game.SizeOfTileInPixelsInSpritesheet / 2, map.getWidth(), map.getHeight());
-
-        batch.setShader(lightShader.handle);
-
-        lightShader.setAmbientColour(1.1f, 1.1f, 1.1f);
-
+        lightShader.setAmbientColour(0.0f, 0.0f, 0.0f);
         lightShader.updateLights(lights.size());
-
         lightShader.handle.begin();
         lightShader.updateMap(map);
         lightShader.handle.end();
         batch.setShader(lightShader.handle);
         recompileShader = false;
 
-        enemiesInScene = 10;
+        addInputProcessor(sceneStage);
 
-        waveSystem = new WaveSystem(enemiesInScene, 3, 10, map, player, gameObjects, keys, barriers, enemiesAtHold1 -> this.enemiesAtHold = enemiesAtHold1);
-        waveSystem.requestWave();
+        pointer = new Pointer();
+        pointer.size.set(Map.TileSizeInPixelsInWorldSpace / 2.0f, Map.TileSizeInPixelsInWorldSpace / 2.0f);
+    }
+
+    private void init() {
+
+        stage.clear();
+        sceneStage.clear();
+
+        sceneStage.addActor(dieLabel);
+        sceneStage.addActor(exitButton);
+        sceneStage.addActor(backButton);
+        scoreLabel.setText("Score: 0");
+        sceneStage.addActor(scoreLabel);
+
+        if (resetted) {
+
+            for (GameObject gameObject : gameObjects) {
+
+                removeGameObject(gameObject);
+            }
+        }
+
+        super.clearBuffers();
+
+        score = 0;
+
+        enemiesAtHold.clear();
+        keys.clear();
+        lights.clear();
+        initialiseMap();
+        player.map = map;
+        addGameObject(player);
+        player.initialise();
+
+        if (!resetted) {
+
+            resetted = true;
+        }
+        else {
+
+            waveSystem.barriers = barriers;
+            waveSystem.reset();
+            waveSystem.requestWave();
+        }
+
+        newWaveMusic.stop();
+        defaultMusic.stop();
+        defaultMusic.play();
     }
 
     /**
@@ -126,7 +243,7 @@ public class Scene extends Container {
      * the amount of random loot plus the required items.
      *
      * @param amountOfRandomLoot The amount of loot to be added.
-     * @param requiredItems The required items which will be added regardless.
+     * @param requiredItems      The required items which will be added regardless.
      */
     private void addRandomLootInRoom(MapGenerator.Room room, int amountOfRandomLoot, Item... requiredItems) {
 
@@ -134,28 +251,54 @@ public class Scene extends Container {
 
         for (int i = 0; i < amountOfRandomLoot + requiredItems.length; i++) {
 
-            Item itemToAdd;
+            Item itemToAdd = null;
 
-            Vector2 position = new Vector2(
-
-                    MathUtils.random((float) (room.centreX - Math.floor((room.width - 2) / 2.0f) + 0.5f), (float) (room.centreX + Math.ceil((room.width - 2) / 2.0f) - 0.5f)),
-                    MathUtils.random((float) (room.centreY - Math.floor((room.height - 2) / 2.0f) + 0.5f), (float) (room.centreY + Math.ceil((room.height - 2) / 2.0f) - 0.5f))
-            ).scl(Map.TileSizeInPixelsInWorldSpace);
+            Vector2 position = new Vector2(MathUtils.random((float) (room.centreX - Math.floor((room.width - 2) / 2.0f) + 0.5f), (float) (room.centreX + Math.ceil((room.width - 2) / 2.0f) - 0.5f)), MathUtils.random((float) (room.centreY - Math.floor((room.height - 2) / 2.0f) + 0.5f), (float) (room.centreY + Math.ceil((room.height - 2) / 2.0f) - 0.5f))).scl(Map.TileSizeInPixelsInWorldSpace);
 
             if (i < requiredItems.length) {
 
-               itemToAdd = requiredItems[i];
+                itemToAdd = requiredItems[i];
             }
             else {
 
-                Potion potion = new Potion(position);
+                switch (MathUtils.random(5)) {
 
-                for (int j = 0; j < MathUtils.random(1, 5); j++) {
+                    case 0:
 
-                    potion.addChemical(new Chemical());
+                        itemToAdd = new HealthPotion(position);
+
+                        break;
+
+                    case 1:
+
+                        itemToAdd = new ToxicPotion(position);
+
+                        break;
+
+                    case 2:
+
+                        itemToAdd = new ExplosivePotion(position);
+
+                        break;
+
+                    case 3:
+
+                        itemToAdd = new StringItem(position);
+
+                        break;
+
+                    case 4:
+
+                        itemToAdd = new Coal(position);
+
+                        break;
+
+                    case 5:
+
+                        itemToAdd = new Wood(position);
+
+                        break;
                 }
-
-                itemToAdd = potion;
             }
 
             System.out.println("Placing random loot (" + itemToAdd + ") at position: " + "(" + (position.x / Map.TileSizeInPixelsInWorldSpace) + ", " + (position.y / Map.TileSizeInPixelsInWorldSpace) + ")" + " inside room: " + room);
@@ -169,9 +312,25 @@ public class Scene extends Container {
         System.out.println("---- Finished adding random loot ----\n");
     }
 
+    public void fillLockedRoomsWithLoot(boolean addKeys) {
+
+        for (MapGenerator.Room room : map.getRooms()) {
+
+            if (room.isLocked()) {
+
+                if (addKeys) keys.add(room.getKey());
+
+                addRandomLootInRoom(room, (room.width) * (room.height));
+            }
+        }
+    }
+
     private void initialiseMap() {
 
-        map = new Map(30, 30, 3, 5, 11, 323123, player.size, 1, 3);
+        int width = 30;
+        int height = 30;
+
+        map = new Map(width, height, (width * height) / (width + height), 3, 9, 757, player.size, 7, 7);
 
         map.changeCallback = () -> {
 
@@ -192,17 +351,7 @@ public class Scene extends Container {
 
         updatePathfindingGrid();
 
-        addGameObject(player);
-
-        for (MapGenerator.Room room : map.getRooms()) {
-
-            if (room.isLocked()) {
-
-                keys.add(room.getKey());
-
-                addRandomLootInRoom(room, (int) Math.sqrt((room.width - 2) * (room.height - 2)));
-            }
-        }
+        fillLockedRoomsWithLoot(true);
 
         boolean spawnPositionFound = false;
 
@@ -218,7 +367,7 @@ public class Scene extends Container {
 
                             if (!map.isSolid(x, y) && MathUtils.random(100) < 50) {
 
-                                player.position.set(x * map.TileSizeInPixelsInWorldSpace + player.size.x / 2.0f, y * map.TileSizeInPixelsInWorldSpace + player.size.y / 2.0f);
+                                player.position.set(x * Map.TileSizeInPixelsInWorldSpace + player.size.x / 2.0f, y * map.TileSizeInPixelsInWorldSpace + player.size.y / 2.0f);
                                 player.updateCameraPosition();
 
                                 spawnPositionFound = true;
@@ -245,94 +394,8 @@ public class Scene extends Container {
             barriers[i] = new Barrier(spawnPoints[i], map, player);
 
             stage.addActor(barriers[i].progressBar);
-
-            //enemiesAtHold.put(barriers[i], new ArrayList<>());
         }
-
-        /*
-
-        Spawner<Barrier> spawner = new Spawner<>(barriers);
-
-        spawner.spawn(1, 4000, item -> {
-
-            Barrier barrier = (Barrier) item;
-
-            Vector2 position = barrier.position.cpy();
-
-            boolean horisontal = map.isSolid((int) barrier.position.x - 1, (int) barrier.position.y) && map.isSolid((int) barrier.position.x + 1, (int) barrier.position.y);
-
-            if (horisontal) {
-
-                if (map.isSolid((int) barrier.position.x, (int) barrier.position.y + 1)) {
-
-                    position.y -= 1;
-                }
-                else {
-
-                    position.y += 1;
-                }
-            }
-            else {
-
-                if (map.isSolid((int) barrier.position.x + 1, (int) barrier.position.y)) {
-
-                    position.x -= 1;
-                }
-                else {
-
-                    position.x += 1;
-                }
-            }
-
-            Vector2 positionOfEnemy = position.cpy().scl(Map.TileSizeInPixelsInWorldSpace);
-
-            Enemy enemyToAdd = null;
-
-            switch (MathUtils.random(2)) {
-
-                case 0:
-
-                    enemyToAdd = new HumanLikeEnemy(positionOfEnemy, new Vector2(Game.EntitySize, Game.EntitySize), player);
-
-                    break;
-
-                case 1:
-
-                    enemyToAdd = new Snake(positionOfEnemy, new Vector2(Game.EntitySize * 2, Game.EntitySize), player);
-
-                    break;
-
-                case 2:
-
-                    enemyToAdd = new Caterpillar(positionOfEnemy, new Vector2(Game.EntitySize, Game.EntitySize), player, gameObjects);
-
-                    break;
-            }
-
-            Potion potion = new Potion(positionOfEnemy);
-
-            for (int j = 0; j < MathUtils.random(1, 5); j++) {
-
-                potion.addChemical(new Chemical());
-            }
-
-            enemyToAdd.map = this.map;
-
-            enemyToAdd.addItem(potion);
-
-            if (!keys.isEmpty()) {
-
-                Key key = keys.get(keys.size() - 1);
-
-                key.map = this.map;
-
-                enemyToAdd.addItem(key);
-            }
-
-            enemiesAtHold.get(barrier).add(enemyToAdd);
-        });
-        */
-     }
+    }
 
     private void updatePathfindingGrid() {
 
@@ -376,21 +439,60 @@ public class Scene extends Container {
         super.addGameObject(gameObject);
     }
 
-    public void addExplosion(Explosion explosion) {
+    public void addExplosion(Explosion explosion, GameObject sender) {
 
         addGameObject(explosion);
+
+        System.out.println("Adding explosion!");
 
         explosion.setExplosionCallback(() -> {
 
             damage((int) explosion.intensity, explosion.position, explosion.radius);
 
-            int originX = (int) (explosion.position.x / Map.TileSizeInPixelsInWorldSpace);
-            int originY = (int) (explosion.position.y / Map.TileSizeInPixelsInWorldSpace);
-            int radius = (int) (explosion.radius / Map.TileSizeInPixelsInWorldSpace);
+            int originX = (int) (explosion.position.x);
+            int originY = (int) (explosion.position.y);
+            int radius = (int) (explosion.radius);
 
-            for (int x = originX - radius; x <= originX + radius; x++) {
+            Iterator iterator = gameObjects.iterator();
 
-                for (int y = originY - radius; y <= originY + radius; y++) {
+            while (iterator.hasNext()) {
+
+                GameObject gameObject = (GameObject) iterator.next();
+
+                if (!(gameObject instanceof Entity) && !gameObject.equals(sender) && !(gameObject instanceof Explosion)) {
+
+                    float delta = radius + gameObject.size.x / 2.0f;
+                    float xs = (gameObject.position.x - originX) * (gameObject.position.x - originX);
+                    float ys = (gameObject.position.y - originY) * (gameObject.position.y - originY);
+
+                    if (Math.sqrt(xs + ys) < delta) {
+
+                        /*if (gameObject instanceof Potion) {
+
+                            ((Potion) gameObject).breakPotion();
+                        }
+                        else if (gameObject instanceof StepTrap) {
+
+                            ((StepTrap) gameObject).step();a
+                        }
+                        else {
+
+                            removeGameObject(gameObject);
+                        }*/
+
+                        if (gameObject instanceof Torch) {
+
+                            removeLight(((Torch) gameObject).light);
+                        }
+
+                        removeGameObject(gameObject);
+                    }
+                }
+            }
+
+            for (int x = (originX - radius) / Map.TileSizeInPixelsInWorldSpace; x <= (originX + radius) / Map.TileSizeInPixelsInWorldSpace; x++) {
+
+                for (int y = (originY - radius) / Map.TileSizeInPixelsInWorldSpace; y <= (originY + radius) / Map.TileSizeInPixelsInWorldSpace; y++) {
 
                     if (map.isBreakable(x, y)) {
 
@@ -453,7 +555,7 @@ public class Scene extends Container {
     }
 
     /**
-     * Damages every entity with the attack damage within the radius of the origin.
+     * Damages every entity with the attack damage of the explosion within the radius of the origin.
      */
     public void damage(int attackDamage, Vector2 origin, float radius) {
 
@@ -481,7 +583,14 @@ public class Scene extends Container {
                         continue;
                     }
 
-                    entity.takeDamage(attackDamage);
+                    float scaleFactor = 1.0f;
+
+                    if (gameObject instanceof Player) {
+
+                        scaleFactor = 1.0f / 3.0f;
+                    }
+
+                    entity.takeDamage((int) (attackDamage * scaleFactor));
 
                     entity.paralyse();
 
@@ -516,7 +625,7 @@ public class Scene extends Container {
 
                 Entity entity = (Entity) gameObject;
 
-                if (entity == excludable ) {
+                if (entity == excludable) {
 
                     continue;
                 }
@@ -527,6 +636,8 @@ public class Scene extends Container {
 
                         break;
                     }
+
+                    Axe.Hit.play();
 
                     entity.takeDamage(attackDamage);
 
@@ -547,9 +658,9 @@ public class Scene extends Container {
      */
     public boolean intersect(float x1, float y1, float w1, float h1, float x2, float y2, float w2, float h2) {
 
-        if(Math.abs(x1 - x2) < w1 / 2.0f + w2 / 2.0f) {
+        if (Math.abs(x1 - x2) < w1 / 2.0f + w2 / 2.0f) {
 
-            if(Math.abs(y1 - y2) < h1 / 2.0f + h2 / 2.0f) {
+            if (Math.abs(y1 - y2) < h1 / 2.0f + h2 / 2.0f) {
 
                 return true;
             }
@@ -568,63 +679,33 @@ public class Scene extends Container {
         scaleFactor = Math.round(MathUtils.clamp(scaleFactor, 1.0f, MaxZoom));
 
         player.camera.zoom = Math.max(scaleFactor / 4.0f, 1.0f);
+        ((OrthographicCamera) sceneStage.getCamera()).zoom = player.camera.zoom;
 
         return true;
     }
 
-    @Override
-    /**
-     * Updates the state of the scene.
-     */
-    public void tick() {
+    public void pushEntities(Entity sender, Vector2 origin, float radius, Vector2 direction, float scalar) {
 
-        Gdx.gl.glClearColor(0, 0, 0, 1);
-        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
+        direction = direction.nor();
 
-        if (recompileShader) {
+        for (GameObject gameObject : gameObjects) {
 
-            lightShader.handle.begin();
-            lightShader.updateLights(lights.size());
-            lightShader.handle.end();
+            if (!(gameObject instanceof Entity) || gameObject == sender) {
 
-            batch.setShader(lightShader.handle);
+                continue;
+            }
 
-            recompileShader = false;
+            Entity entity = (Entity) gameObject;
 
-            System.out.println("<---- Recompiling shader! ----");
+            if (Math.sqrt((gameObject.position.x - origin.x) * (gameObject.position.x - origin.x) + (gameObject.position.y - origin.y) * (gameObject.position.y - origin.y)) < radius) {
+
+                entity.applyForce(direction.scl(scalar), false, 3.0f);
+            }
         }
 
-        if (0.0f < shakeTime) {
+    }
 
-            float x = (MathUtils.random(shakeIntensity) - shakeIntensity / 2);
-            float y = (MathUtils.random(shakeIntensity) - shakeIntensity / 2);
-
-            screenShake.set(x, y);
-
-            shakeTime -= Gdx.graphics.getDeltaTime();
-        }
-        else {
-
-            screenShake.set(0.0f, 0.0f);
-            shakeIntensity = 0;
-            shakeTime = 0.0f;
-        }
-
-        if (!buffer.isEmpty()) {
-
-            gameObjects.addAll(buffer);
-
-            buffer.clear();
-        }
-
-        if (!removeBuffer.isEmpty()) {
-
-            gameObjects.removeAll(removeBuffer);
-
-            removeBuffer.clear();
-        }
-
-        batch.getTransformMatrix().setToTranslation(screenShake.x, screenShake.y, 0.0f);
+    private void fetchItems() {
 
         if (player.inRangeOfBarrier && Gdx.input.isKeyPressed(Input.Keys.F)) {
 
@@ -661,7 +742,7 @@ public class Scene extends Container {
 
                         for (int y = 0; y < player.inventory.rows; y++) {
 
-                            List<Item> items = player.inventory.getItemList(x, y);
+                            List<SlotItem> items = player.inventory.getItemList(x, y);
 
                             if (items.isEmpty()) {
 
@@ -701,14 +782,15 @@ public class Scene extends Container {
             rebuildingTimer = 0.0f;
             rebuilding = false;
         }
+    }
 
-        waveSystem.tick();
+    private void updateStateOfBarriers() {
 
         enemiesAtHold.forEach((barrier, array) -> {
 
             if (barrier.getState() <= 0) {
 
-                array.forEach((enemy -> addGameObject(enemy)));
+                array.forEach(this::addGameObject);
 
                 array.clear();
             }
@@ -727,7 +809,7 @@ public class Scene extends Container {
 
                 map.set((int) barrier.position.x, (int) barrier.position.y, Map.SpawnIntact);
             }
-            else if ((1.5f/3.0f <= barrier.getState() / barrier.TimeToDemolishBarrier && barrier.getState() / barrier.TimeToDemolishBarrier < 3.0f/3.0f) && map.get((int) barrier.position.x, (int) barrier.position.y) != Map.SpawnSlightlyBroken) {
+            else if ((1.5f / 3.0f <= barrier.getState() / barrier.TimeToDemolishBarrier && barrier.getState() / barrier.TimeToDemolishBarrier < 3.0f / 3.0f) && map.get((int) barrier.position.x, (int) barrier.position.y) != Map.SpawnSlightlyBroken) {
 
                 map.set((int) barrier.position.x, (int) barrier.position.y, Map.SpawnSlightlyBroken);
 
@@ -741,16 +823,9 @@ public class Scene extends Container {
             }
 
         });
+    }
 
-        batch.setProjectionMatrix(player.camera.combined);
-
-        batch.begin();
-
-        lightShader.uploadUniforms(lights);
-
-        map.playerPosition = player.position;
-
-        map.drawFloor(batch, scaleFactor);
+    private void updateStateOfGameObjects() {
 
         // Behind the entities
         for (GameObject gameObject : gameObjects) {
@@ -765,26 +840,47 @@ public class Scene extends Container {
 
                         Entity entity = ((Entity) gameObjectToCheckAgainst);
 
-                        if (entity.intersects(gameObject)) {
+                        if (entity.intersects((Collidable) gameObject, false)) {
 
                             ((StepTrap) gameObject).step();
                         }
                     }
                 }
             }
-            else {
-
-                continue;
-            }
         }
 
         boolean inRangeOfPlacedItem = false;
 
-        for (Iterator<GameObject> iterator = gameObjects.iterator(); iterator.hasNext();) {
+        for (Iterator<GameObject> iterator = gameObjects.iterator(); iterator.hasNext(); ) {
 
             GameObject gameObject = iterator.next();
 
-            gameObject.tick();
+            if (!freeze) {
+
+                if (gameObject instanceof Collidable) {
+
+                    Collidable collidable = (Collidable) gameObject;
+
+                    try {
+
+                        collidable.tick();
+                    }
+                    catch (RuntimeException runtimeException) {
+
+                        runtimeException.printStackTrace();
+                        System.err.println("Map was not set for collidable: " + collidable + ". Setting!");
+
+                        collidable.map = map;
+                        collidable.host = this;
+
+                        collidable.tick();
+                    }
+                }
+                else {
+
+                    gameObject.tick();
+                }
+            }
 
             if (!(gameObject instanceof Player) && !(gameObject instanceof Explosion) && !(gameObject instanceof StepTrap)) {
 
@@ -799,18 +895,17 @@ public class Scene extends Container {
 
                     if (entity instanceof Player) {
 
-                        // TODO: Game over
+                        dieLabel.setVisible(true);
 
-                        //continue;
+                        return;
                     }
                     else {
 
-                        enemiesInScene--;
+                        score++;
 
-                        if (enemiesInScene == 0) {
+                        scoreLabel.setText("Score: " + score);
 
-                            waveSystem.requestWave();
-                        }
+                        waveSystem.addDeadEnemy();
                     }
 
                     entity.die();
@@ -838,7 +933,7 @@ public class Scene extends Container {
                             closestsBarrier = barrier;
                             closestsBarrier.progressBar.setVisible(true);
 
-                            player.displayMessage("If only I had some stones to block out those bastards (f).");
+                            player.displayMessage("If only I had some stones to block out those bastards.");
 
                             player.inRangeOfBarrier = true;
 
@@ -861,7 +956,7 @@ public class Scene extends Container {
 
                         if (go instanceof Entity) {
 
-                            if (gameObject.intersects(go)) {
+                            if (((Collidable) gameObject).intersects((Collidable) go, false)) {
 
                                 ((Entity) go).takeDamage((int) ((Liquid) gameObject).getToxicity() / 10, 0.5f);
                             }
@@ -892,44 +987,47 @@ public class Scene extends Container {
                                     continue;
                                 }
 
-                                if (entity.intersects(item)) {
+                                if (entity.intersects(item, false)) {
 
                                     item.collides(entity);
                                 }
                             }
                             else {
 
-                                float length = map.lengthBetweenCoordinates(item.position, entity.position);
+                                if (item.canBePickedUp) {
 
-                                if (item.getTimer() > 0.75f) {
+                                    float length = map.lengthBetweenCoordinates(item.position, entity.position);
 
-                                    if (length < 0.5) {
+                                    if (item.getTimer() > 0.75f) {
 
-                                        item.forceApplied.set(0.0f, 0.0f);
+                                        if (length < 0.5) {
 
-                                        if (entity.inventory.sufficientPlaceForItem(item)) {
+                                            item.forceApplied.set(0.0f, 0.0f);
 
-                                            entity.addItem(item);
+                                            if (entity.inventory.sufficientPlaceForItem(item)) {
 
-                                            System.out.println("Entity (" + entity + ") picked up item: " + item);
+                                                entity.addItem(item);
 
-                                            removeGameObject(item);
+                                                System.out.println("Entity (" + entity + ") picked up item: " + item);
+
+                                                removeGameObject(item);
+                                            }
                                         }
-                                    }
-                                    else if (length < 2) {
+                                        else if (length < 2) {
 
-                                        if (entity.inventory.sufficientPlaceForItem(item) && item.forceApplied.x == 0.0f && item.forceApplied.y == 0.0f) {
+                                            if (entity.inventory.sufficientPlaceForItem(item) && item.forceApplied.x == 0.0f && item.forceApplied.y == 0.0f) {
 
-                                            System.out.println("Item (" + item + ") in range of entity (" + entity + "), applying force.");
+                                                System.out.println("Item (" + item + ") in range of entity (" + entity + "), applying force.");
 
-                                            Vector2 vector = Game.vector2Pool.obtain();
+                                                Vector2 vector = Game.vector2Pool.obtain();
 
-                                            vector.set(entity.position).sub(item.position);
-                                            vector.scl(0.05f);
+                                                vector.set(entity.position).sub(item.position);
+                                                vector.scl(0.05f);
 
-                                            item.applyForce(vector, false, 0.0f);
+                                                item.applyForce(vector, false, 0.0f);
 
-                                            Game.vector2Pool.free(vector);
+                                                Game.vector2Pool.free(vector);
+                                            }
                                         }
                                     }
                                 }
@@ -945,7 +1043,7 @@ public class Scene extends Container {
 
                         inRangeOfPlacedItem = true;
 
-                        player.displayMessage("This might come handy (f)");
+                        player.displayMessage("This might come handy");
 
                         if (Gdx.input.isKeyJustPressed(Input.Keys.F)) {
 
@@ -967,12 +1065,125 @@ public class Scene extends Container {
             }
         }
 
+        player.inRangeOfStationaryItem = inRangeOfPlacedItem;
+    }
+
+    @Override
+    /**
+     * Updates the state of the scene.
+     */
+    public void tick() {
+
+        Gdx.gl.glClearColor(0, 0, 0, 1);
+        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
+
+        if (exitButton.isPressed()) {
+
+            Gdx.app.exit();
+
+            return;
+        }
+        else if (backButton.isPressed()) {
+
+            Game.container = new StartScreen();
+
+            defaultMusic.stop();
+            newWaveMusic.stop();
+
+            return;
+        }
+
+        if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE) && !player.isDisplayingInventory()) {
+
+            freeze = !freeze;
+
+            exitButton.setVisible(freeze);
+            backButton.setVisible(freeze);
+        }
+
+        if (freeze) {
+
+            batch.setColor(0.2f, 0.2f, 0.2f, 1.0f);
+        }
+        else {
+
+            batch.setColor(1.0f, 1.0f, 1.0f, 1.0f);
+        }
+
+        if (recompileShader) {
+
+            lightShader.handle.begin();
+            lightShader.updateLights(lights.size());
+            lightShader.handle.end();
+
+            batch.setShader(lightShader.handle);
+
+            recompileShader = false;
+
+            System.out.println("<---- Recompiling shader! ---->");
+        }
+
+        if (0.0f < shakeTime) {
+
+            float x = (MathUtils.random(shakeIntensity) - shakeIntensity / 2);
+            float y = (MathUtils.random(shakeIntensity) - shakeIntensity / 2);
+
+            screenShake.set(x, y);
+
+            shakeTime -= Gdx.graphics.getDeltaTime();
+        }
+        else {
+
+            screenShake.set(0.0f, 0.0f);
+            shakeIntensity = 0;
+            shakeTime = 0.0f;
+        }
+
+        super.clearBuffers();
+
+        batch.getTransformMatrix().setToTranslation(screenShake.x, screenShake.y, 0.0f);
+
+        if (Gdx.input.isKeyPressed(Input.Keys.I)) {
+
+            scrolled(1);
+        }
+        else if (Gdx.input.isKeyPressed(Input.Keys.K)) {
+
+            scrolled(-1);
+        }
+
+        fetchItems();
+        if (player.health != 0 && !freeze) waveSystem.tick();
+        updateStateOfBarriers();
+
+        batch.setProjectionMatrix(player.camera.combined);
+        batch.begin();
+        lightShader.uploadUniforms(lights);
+
+        map.playerPosition = player.position;
+
+        map.drawFloor(batch, scaleFactor);
         map.drawWalls(batch, scaleFactor);
 
-        if (Game.DebubDraw) player.displayMessage("Time: " + waveSystem.getRemainingTime());
+        updateStateOfGameObjects();
+
+        if (Game.Debug) player.displayMessage("Time: " + waveSystem.getRemainingTime());
+/*
+        if (waveSystem.getRemainingTime() < 10) {
+
+            defaultMusic.stop();
+
+            //if (!newWaveMusic.isPlaying()) newWaveMusic.play();
+        }
+        else {
+
+            if (!newWaveMusic.isPlaying() && !defaultMusic.isPlaying()) {
+
+                //defaultMusic.play();
+            }
+        }*/
 
         player.draw(batch);
-
 
         for (GameObject gameObject : gameObjects) {
 
@@ -980,17 +1191,41 @@ public class Scene extends Container {
 
                 gameObject.draw(batch);
             }
-            else {
-
-                continue;
-            }
         }
-
-        player.inRangeOfStationaryItem = inRangeOfPlacedItem;
 
         batch.end();
 
+        sceneStage.draw();
         stage.draw();
+
+        if (dieLabel.isVisible()) {
+
+            dieLabel.setPosition(Gdx.graphics.getWidth() / 2.0f - dieLabel.getWidth() / 2.0f, Gdx.graphics.getHeight() / 2.0f - dieLabel.getHeight() / 2.0f);
+
+            if (Gdx.input.isKeyJustPressed(Input.Keys.ENTER)) {
+
+                init();
+
+                dieLabel.setVisible(false);
+            }
+        }
+
+        pointer.position.set(Gdx.input.getX(), -(Gdx.input.getY() - (Gdx.graphics.getHeight() - 1)));
+
+        stage.getBatch().begin();
+        dieLabel.draw(stage.getBatch(), 1.0f);
+        pointer.draw((SpriteBatch) stage.getBatch());
+        stage.getBatch().end();
+    }
+
+    public void inWorldSpace(Vector3 screenCoords) {
+
+        player.camera.unproject(screenCoords, 0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+    }
+
+    public void inScreenSpace(Vector3 worldCoords) {
+
+        player.camera.project(worldCoords, 0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
     }
 
     float totalTimer = 0.0f;
@@ -1003,6 +1238,7 @@ public class Scene extends Container {
 
         super.dispose();
 
+        sceneStage.dispose();
         player.dispose();
     }
 }

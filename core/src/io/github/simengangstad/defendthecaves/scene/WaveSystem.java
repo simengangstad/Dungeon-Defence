@@ -6,13 +6,10 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
-import com.badlogic.gdx.scenes.scene2d.ui.List;
 import io.github.simengangstad.defendthecaves.Game;
 import io.github.simengangstad.defendthecaves.GameObject;
 import io.github.simengangstad.defendthecaves.scene.entities.*;
-import io.github.simengangstad.defendthecaves.scene.items.Chemical;
-import io.github.simengangstad.defendthecaves.scene.items.Key;
-import io.github.simengangstad.defendthecaves.scene.items.Potion;
+import io.github.simengangstad.defendthecaves.scene.items.*;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -51,27 +48,28 @@ public class WaveSystem {
 
     private Player player;
 
-    private ArrayList<GameObject> gameObjects;
+    private int enemiesLeft = 0;
 
     private ArrayList<Key> keys;
 
-    private Barrier[] barriers;
+    public Barrier[] barriers;
 
     private WaveCallback callback;
 
 
     private int state = 0;
 
-    private Label countdownLabel = new Label("", new Label.LabelStyle(new BitmapFont(Gdx.files.internal("assets/gui/font.txt"), Gdx.files.internal("assets/gui/font.png"), false), new Color(Color.BLACK)));
+    private Label countdownLabel = new Label("", new Label.LabelStyle(new BitmapFont(Gdx.files.internal("assets/gui/font.txt"), Gdx.files.internal("assets/gui/font.png"), false), new Color(Color.WHITE)));
 
-    public WaveSystem(int startAmount, int difference, int intervalBetweenWaves, Map map, Player player, ArrayList<GameObject> gameObjects, ArrayList<Key> keys, Barrier[] barriers, WaveCallback callback) {
+    private Label currentLabel = new Label("Current wave: 1", Game.UISkin);
+
+    public WaveSystem(int startAmount, int difference, int intervalBetweenWaves, Map map, Player player, ArrayList<Key> keys, Barrier[] barriers, WaveCallback callback) {
 
         this.startAmount = startAmount;
         this.difference = difference;
         this.intervalBetweenWaves = intervalBetweenWaves;
         this.map = map;
         this.player = player;
-        this.gameObjects = gameObjects;
         this.keys = keys;
         this.barriers = barriers;
         this.callback = callback;
@@ -84,6 +82,28 @@ public class WaveSystem {
 
             enemiesAtHold.put(barrier, new ArrayList<>());
         }
+
+        currentLabel.setFontScale(0.45f);
+        currentLabel.setPosition(10, -100);
+        player.host.stage.addActor(currentLabel);
+    }
+
+    public void reset() {
+
+        wave = 1;
+        timer = 0.0f;
+        requestedNewWave = false;
+        state = 0;
+
+        enemiesAtHold.clear();
+
+        for (Barrier barrier : barriers) {
+
+            enemiesAtHold.put(barrier, new ArrayList<>());
+        }
+
+        player.host.stage.addActor(countdownLabel);
+        player.host.stage.addActor(currentLabel);
     }
 
     public float getRemainingTime() {
@@ -98,13 +118,24 @@ public class WaveSystem {
         timer = intervalBetweenWaves;
     }
 
+    public void addDeadEnemy() {
+
+        enemiesLeft--;
+
+        if (enemiesLeft == 0) {
+
+            requestWave();
+        }
+
+    }
+
     public void tick() {
 
         if (requestedNewWave) {
 
             timer -= Gdx.graphics.getDeltaTime();
 
-            if (0.0f < timer && timer <= 5.0f) {
+            if (0.0f < timer && timer <= 10.0f) {
 
                 int value = (int) Math.ceil(timer);
 
@@ -154,6 +185,18 @@ public class WaveSystem {
                 deployEnemies();
 
                 wave++;
+
+                if (wave % 10 == 0) {
+
+                    ((Scene) player.host).fillLockedRoomsWithLoot(false);
+
+                    countdownLabel.setText("New wave incoming! Rooms refilled with loot!");
+                }
+
+                if (wave > 1) {
+
+                    currentLabel.setText("Current wave: " + (wave - 1));
+                }
             }
         }
     }
@@ -161,6 +204,10 @@ public class WaveSystem {
     private void deployEnemies() {
 
         Vector2 positionOfBarrier = Game.vector2Pool.obtain();
+
+        enemiesLeft = (startAmount + difference * (wave - 1));
+
+        ArrayList<Item> items = new ArrayList<>();
 
         for (int enemyIndex = 0; enemyIndex < (startAmount + difference * (wave - 1)); enemyIndex++) {
 
@@ -185,7 +232,13 @@ public class WaveSystem {
 
                 case 0:
 
-                    enemyToAdd = new HumanLikeEnemy(positionOfEnemy, new Vector2(Game.EntitySize, Game.EntitySize), player);
+                    enemyToAdd = new Orc(positionOfEnemy, new Vector2(Game.EntitySize, Game.EntitySize), player);
+
+                    Cudgel cudgel = new Cudgel(null);
+
+                    enemyToAdd.addItemAtLocation(0, 0, cudgel);
+
+                    cudgel.map = map;
 
                     break;
 
@@ -197,32 +250,67 @@ public class WaveSystem {
 
                 case 2:
 
-                    enemyToAdd = new Caterpillar(positionOfEnemy, new Vector2(Game.EntitySize, Game.EntitySize), player, gameObjects);
+                    enemyToAdd = new Caterpillar(positionOfEnemy, new Vector2(Game.EntitySize, Game.EntitySize), player);
 
                     break;
             }
 
+            items.clear();
 
-            // TODO: Add random loot to enemy
+            for (int i = 0; i < 2; i++) {
 
-            Potion potion = new Potion(positionOfEnemy);
+                switch (MathUtils.random(5)) {
 
-            for (int j = 0; j < MathUtils.random(1, 5); j++) {
+                    case 0:
 
-                potion.addChemical(new Chemical());
+                        items.add(new HealthPotion(positionOfEnemy));
+
+                        break;
+
+                    case 1:
+
+                        items.add(new ToxicPotion(positionOfEnemy));
+
+                        break;
+
+                    case 2:
+
+                        items.add(new ExplosivePotion(positionOfEnemy));
+
+                        break;
+
+                    case 3:
+
+                        items.add(new StringItem(positionOfEnemy));
+
+                        break;
+
+                    case 4:
+
+                        items.add(new Coal(positionOfEnemy));
+
+                        break;
+
+                    case 5:
+
+                        items.add(new Wood(positionOfEnemy));
+
+                        break;
+                }
             }
 
-            enemyToAdd.map = this.map;
+            enemyToAdd.map = map;
+            items.forEach(enemyToAdd::addItem);
 
-            enemyToAdd.addItemAtLocation(2, 0, potion);
-
-            if (!keys.isEmpty()) {
+            if (!keys.isEmpty() && MathUtils.random(100) < 15) {
 
                 Key key = keys.get(keys.size() - 1);
 
                 key.map = this.map;
 
                 enemyToAdd.addItemAtLocation(1, 0, key);
+
+                keys.remove(key);
             }
 
             enemiesAtHold.get(barrier).add(enemyToAdd);

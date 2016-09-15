@@ -1,7 +1,11 @@
 package io.github.simengangstad.defendthecaves.scene.entities;
 
+import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.audio.Sound;
+import com.badlogic.gdx.graphics.Cursor;
 import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
 import io.github.simengangstad.defendthecaves.Game;
 import io.github.simengangstad.defendthecaves.scene.Scene;
@@ -14,6 +18,12 @@ import io.github.simengangstad.defendthecaves.scene.TextureUtil;
 public class Snake extends Enemy {
 
     private static final Animation BiteAnimation = TextureUtil.getAnimation(Game.SnakeBiting, 32, 0.025f, Animation.PlayMode.NORMAL);
+
+    public static Sound hiss = Gdx.audio.newSound(Gdx.files.internal("assets/sfx/snake-hiss.mp3"));
+    public static Sound bite = Gdx.audio.newSound(Gdx.files.internal("assets/sfx/snake-bite.wav"));
+
+    private float timeToNextStep = 0.0f;
+    private float timeToNextAttack = 0.0f;
 
     public int attackDamage = 30;
 
@@ -36,18 +46,43 @@ public class Snake extends Enemy {
     @Override
     protected void hurtPlayer(Vector2 tmpVector) {
 
-        requestAnimation(BiteAnimation, () -> ((Scene) host).damage(attackDamage, tmpVector, position.x + (!flip() ? size.x / 2.0f : -size.x / 2.0f), position.y, size.x, size.y, Snake.this));
+        timeToNextAttack -= Gdx.graphics.getDeltaTime();
+
+        if (timeToNextAttack <= 0) {
+
+            bite.play(0.25f);
+
+            requestAnimation(BiteAnimation, () -> ((Scene) host).damage(attackDamage, tmpVector, position.x + (!flip() ? size.x / 2.0f : -size.x / 2.0f), position.y, size.x, size.y, Snake.this));
+
+            while (timeToNextAttack < 0) {
+
+                timeToNextAttack += 0.5f;
+            }
+        }
     }
 
     @Override
-    protected void noticedPlayer(Vector2 direction) {}
+    protected void noticedPlayer(Vector2 direction) {
+
+        timeToNextStep -= Gdx.graphics.getDeltaTime();
+
+        if (timeToNextStep < 0) {
+
+            if (MathUtils.random(100) < 60) hiss.play(0.25f);
+
+            while (timeToNextStep < 0) {
+
+                timeToNextStep += 5.0f;
+            }
+        }
+    }
 
     @Override
     public void draw(SpriteBatch batch) {
 
         super.draw(batch);
 
-        if (Game.DebubDraw) {
+        if (Game.Debug) {
 
             batch.draw(Game.debugDrawTexture, position.x + (!flip() ? 0 : -size.x), position.y - size.y / 2.0f, size.x, size.y);
         }

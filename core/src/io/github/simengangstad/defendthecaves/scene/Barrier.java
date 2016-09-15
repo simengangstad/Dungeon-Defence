@@ -23,7 +23,7 @@ public class Barrier {
 
     private float state = TimeToDemolishBarrier;
 
-    public ProgressBar progressBar = new ProgressBar((int) TimeToDemolishBarrier);
+    public ProgressBar progressBar = new ProgressBar((int)TimeToDemolishBarrier, (int) TimeToDemolishBarrier);
 
     public float lastState = TimeToDemolishBarrier;
 

@@ -1,6 +1,7 @@
 package io.github.simengangstad.defendthecaves.scene;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
@@ -11,13 +12,13 @@ import io.github.simengangstad.defendthecaves.Callback;
 import io.github.simengangstad.defendthecaves.Game;
 import io.github.simengangstad.defendthecaves.scene.gui.ProgressBar;
 import io.github.simengangstad.defendthecaves.scene.crafting.Inventory;
+import io.github.simengangstad.defendthecaves.scene.gui.SlotItem;
 import io.github.simengangstad.defendthecaves.scene.gui.SpeechBubble;
-import io.github.simengangstad.defendthecaves.scene.items.Potion;
-import io.github.simengangstad.defendthecaves.scene.items.Shield;
-import io.github.simengangstad.defendthecaves.scene.items.Torch;
-import io.github.simengangstad.defendthecaves.scene.items.Weapon;
+import io.github.simengangstad.defendthecaves.scene.items.*;
 
 import java.util.ArrayList;
+import java.util.Timer;
+import java.util.TimerTask;
 
 /**
  * Represents every livable entity the game.
@@ -30,7 +31,7 @@ public abstract class Entity extends Collidable {
     /**
      * The inventory of the entity.
      */
-    protected Inventory inventory = new Inventory(new Vector2(0.0f, 0.0f), new Vector2(300.0f, 400.0f), 3, 4);
+    public Inventory inventory = new Inventory(new Vector2(0.0f, 0.0f), new Vector2(300.0f, 400.0f), 3, 4);
 
     /**
      * Reference to the item the entity is currently holding.
@@ -51,11 +52,6 @@ public abstract class Entity extends Collidable {
      * The current health of the item.
      */
     public int health = MaxHealth;
-
-    /**
-     * Pixels/second.
-     */
-    public int speed = 300;
 
     /**
      * The interval between the interactions of item. This can be the attack of a weapon or throwing a stone.
@@ -170,7 +166,7 @@ public abstract class Entity extends Collidable {
     /**
      * The progress bar showing health.
      */
-    private ProgressBar healthBar = new ProgressBar(MaxHealth);
+    private ProgressBar healthBar = new ProgressBar(health, MaxHealth);
 
     /**
      * Is set to true when the entity is near an item in its {@link Item#placed} state.
@@ -203,8 +199,7 @@ public abstract class Entity extends Collidable {
     @Override
     public void create() {
 
-        host.stage.addActor(speechBubble);
-        host.stage.addActor(healthBar);
+        ((Scene) host).sceneStage.addActor(speechBubble);
     }
 
     /**
@@ -257,6 +252,7 @@ public abstract class Entity extends Collidable {
         item.rotation = 0.0f;
         item.placed = false;
         item.overwriteFlip = false;
+        item.timer = 0.0f;
 
         item.create();
     }
@@ -308,18 +304,23 @@ public abstract class Entity extends Collidable {
         item.parent = null;
     }
 
+    public void shuffleItemToNextIndex() {
+
+        shuffleItem((currentItemPointer + 1) % inventory.columns);
+    }
+
     /**
      * Shuffles the item in hand.
      */
-    public void shuffleItem() {
+    public void shuffleItem(int index) {
 
-        ArrayList<Item> list = inventory.getItemList(currentItemPointer, 0);
+        ArrayList<SlotItem> list = inventory.getItemList(currentItemPointer, 0);
 
         Item lastItem;
 
         if (0 < list.size()) {
 
-            lastItem = list.get(list.size() - 1);
+            lastItem = (Item) list.get(list.size() - 1);
         }
         else {
 
@@ -331,15 +332,15 @@ public abstract class Entity extends Collidable {
             ((Torch) lastItem).light.enabled = false;
         }
 
-        currentItemPointer = (currentItemPointer + 1) % inventory.columns;
+        currentItemPointer = index % inventory.columns;
 
-        ArrayList<Item> newList = inventory.getItemList(currentItemPointer, 0);
+        ArrayList<SlotItem> newList = inventory.getItemList(currentItemPointer, 0);
 
         Item nextItem;
 
         if (0 < newList.size()) {
 
-            nextItem = newList.get(newList.size() - 1);
+            nextItem = (Item) newList.get(newList.size() - 1);
         }
         else {
 
@@ -435,7 +436,7 @@ public abstract class Entity extends Collidable {
             }
         }
 
-        host.stage.getActors().removeValue(healthBar, true);
+        ((Scene) host).sceneStage.getActors().removeValue(healthBar, true);
     }
 
     /**
@@ -462,15 +463,13 @@ public abstract class Entity extends Collidable {
 
         super.tick();
 
-        Vector3 vector = Game.vector3Pool.obtain();
+        checkCollsion();
 
-        vector.set(position.x, position.y, 0.0f);
-
-        ((Scene) host).player.camera.project(vector, 0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+        healthBar.setPosition(position.x - healthBar.getWidth() / 2.0f, position.y + Game.EntitySize / 2.0f + 5.0f);
 
         if (speechBubble.isVisible()) {
 
-            speechBubble.setPosition(vector.x - speechBubble.getWidth() / 2.0f, vector.y + Game.EntitySize / 2.0f + 30.0f);
+            speechBubble.setPosition(Gdx.graphics.getWidth() - speechBubble.getWidth() - 10, Gdx.graphics.getHeight() - speechBubble.getHeight() - 10);
 
             if (0.0f < speechBubbleVisibilityDuration) {
 
@@ -493,10 +492,6 @@ public abstract class Entity extends Collidable {
             }
         }
 
-
-        healthBar.setPosition(vector.x - healthBar.getWidth() / 2.0f, vector.y + Game.EntitySize / 2.0f + 5.0f);
-
-        Game.vector3Pool.free(vector);
 
         if (delta.x != 0.0f || delta.y != 0.0f) {
 
@@ -523,11 +518,6 @@ public abstract class Entity extends Collidable {
             else {
 
                 goingBackwards = false;
-            }
-
-            if (map.resolveCollision(position, delta, speed)) {
-
-                collides();
             }
         }
         else {
@@ -594,11 +584,11 @@ public abstract class Entity extends Collidable {
             timeLeftBeforeBeginAbleToInteract = 0.0f;
         }
 
-        ArrayList<Item> list = inventory.getItemList(currentItemPointer, 0);
+        ArrayList<SlotItem> list = inventory.getItemList(currentItemPointer, 0);
 
         if (0 < list.size()) {
 
-            currentItem = list.get(list.size() - 1);
+            currentItem = (Item) list.get(list.size() - 1);
 
             if (currentItem instanceof Torch) {
 
@@ -606,7 +596,7 @@ public abstract class Entity extends Collidable {
 
                 for (int i = 0; i < list.size() - 1; i++) {
 
-                    Item item = list.get(i);
+                    Item item = (Item) list.get(i);
 
                     ((Torch) item).light.enabled = false;
                 }
@@ -619,11 +609,6 @@ public abstract class Entity extends Collidable {
             currentItem = null;
         }
     }
-
-    /**
-     * Gets called when the entity collides with a solid tile within the map.
-     */
-    protected abstract void collides();
 
     public boolean flip() {
 
@@ -638,6 +623,8 @@ public abstract class Entity extends Collidable {
     public void draw(SpriteBatch batch) {
 
         healthBar.setColor(batch.getColor());
+        healthBar.draw(batch, 1.0f);
+        speechBubble.draw(batch, 1.0f);
 
         // Set the uniform location of the white overlay if not previous set.
         if (uniformLocation == -1) uniformLocation = batch.getShader().getUniformLocation("u_flash");
@@ -646,7 +633,7 @@ public abstract class Entity extends Collidable {
 
         if (flip()) getTextureRegion().flip(true, false);
 
-        if (Game.DebubDraw) {
+        if (Game.Debug) {
 
             batch.draw(Game.debugDrawTexture, position.x - size.x / 2.0f, position.y - size.y / 2.0f, size.x, size.y);
         }
@@ -699,7 +686,6 @@ public abstract class Entity extends Collidable {
         if (flip()) getTextureRegion().flip(true, false);
     }
 
-
     public void drinkPotion(Potion potion) {
 
         if (potion.getToxicity() > 0) {
@@ -710,6 +696,22 @@ public abstract class Entity extends Collidable {
 
             adjustHealth(-potion.getToxicity());
         }
+
+        Potion.Drinking.play();
+
+        new Timer().schedule(new TimerTask() {
+
+            @Override
+            public void run() {
+
+                if (MathUtils.random(100) < 15) {
+
+                    Potion.Burp.play();
+                }
+            }
+        }, 500);
+
+        removeItem(potion);
     }
 
     @Override

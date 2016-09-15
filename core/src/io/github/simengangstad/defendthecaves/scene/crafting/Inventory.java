@@ -2,21 +2,24 @@ package io.github.simengangstad.defendthecaves.scene.crafting;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
+import com.badlogic.gdx.InputProcessor;
+import com.badlogic.gdx.audio.Sound;
+import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.Cursor;
 import com.badlogic.gdx.graphics.g2d.Batch;
-import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
-import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.WidgetGroup;
-import com.badlogic.gdx.scenes.scene2d.utils.Drawable;
 import com.badlogic.gdx.utils.StringBuilder;
 import io.github.simengangstad.defendthecaves.Game;
 import io.github.simengangstad.defendthecaves.scene.Entity;
 import io.github.simengangstad.defendthecaves.scene.Item;
+import io.github.simengangstad.defendthecaves.scene.gui.SlotItem;
+import io.github.simengangstad.defendthecaves.scene.gui.SlotView;
 import io.github.simengangstad.defendthecaves.scene.gui.SpeechBubble;
-import io.github.simengangstad.defendthecaves.scene.items.Weapon;
 import io.github.simengangstad.defendthecaves.scene.items.Key;
-import io.github.simengangstad.defendthecaves.scene.items.Shield;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -29,22 +32,12 @@ import java.util.List;
  * @author simengangstad
  * @since 17/01/16
  */
-public class Inventory extends Table {
+public class Inventory extends SlotView implements InputProcessor {
 
     /**
      * The entity which carries the inventory.
      */
     public Entity host;
-
-    /**
-     * The dimension of the inventory.
-     */
-    public int columns, rows;
-
-    /**
-     * The items in the inventory.
-     */
-    private final ArrayList<Item>[][] items;
 
     /**
      * The maximum amount of items that can be stacked together in one slot.
@@ -82,34 +75,27 @@ public class Inventory extends Table {
     protected StringBuilder stringBuilder = new StringBuilder();
 
     /**
-     * A label showing {@link Item#getInformation()} about the items.
+     * The texture region for the slot item that can be used for removing items from the inventory.
      */
-    protected SpeechBubble speechBubble = new SpeechBubble();
+    private final TextureRegion trashTextureRegion = new TextureRegion(Game.SpriteSheet, 112, 208, 16, 16);
+
+    public static final Sound Trashing = Gdx.audio.newSound(Gdx.files.internal("assets/sfx/rpg/misc/random6.ogg"));
 
     /**
-     * The grafical style of the inventory; its background and slots.
+     * A label showing {@link Item#getInformation()} about the items.
      */
-    protected InventoryStyle style;
+    public SpeechBubble speechBubble = null;
+
+    private ArrayList<Item> tmpList = new ArrayList<>();
+
+    public Label label = null;
 
     /**
      * Initialises the inventory with a origin and a size used for drawing the inventory.
      */
     public Inventory(Vector2 origin, Vector2 size, int columns, int rows) {
 
-        if (origin != null && size != null) super.setBounds(origin.x, origin.y, size.x, size.y);
-
-        this.columns = columns;
-        this.rows = rows;
-
-        items = new ArrayList[columns][rows];
-
-        for (int x = 0;  x < columns; x++) {
-
-            for (int y = 0; y < rows; y++) {
-
-                items[x][y] = new ArrayList<>();
-            }
-        }
+        super(origin, size, columns, rows);
 
         labels = new Label[columns][rows];
 
@@ -120,26 +106,6 @@ public class Inventory extends Table {
                 labels[x][y] = new Label("", Game.UISkin);
             }
         }
-
-        speechBubble.setWidth(160.0f);
-
-        setStyle(Game.UISkin.get(InventoryStyle.class));
-    }
-
-    public InventoryStyle getStyle() {
-
-        return style;
-    }
-
-    public void setStyle (InventoryStyle style) {
-
-        if (style == null) throw new IllegalArgumentException("style cannot be null.");
-
-        this.style = style;
-
-        Drawable background = style.background;
-
-        setBackground(background);
     }
 
     /**
@@ -147,12 +113,7 @@ public class Inventory extends Table {
      */
     public boolean isFull() {
 
-        return size == rows * columns - 1;
-    }
-
-    public boolean isValidPosition(int x, int y) {
-
-        return 0 <= x && x < columns && 0 <= y && y < rows;
+        return size == rows * columns;
     }
 
     public boolean containsKeys() {
@@ -201,7 +162,7 @@ public class Inventory extends Table {
 
             getItemList(x, y).add(item);
 
-            System.out.println("Inventory: Placing item (" + item + ") at position (" + x + ", " + y + ")");
+            // System.out.println("Inventory: Placing item (" + item + ") at position (" + x + ", " + y + ")");
 
             return true;
         }
@@ -276,7 +237,7 @@ public class Inventory extends Table {
 
                     getItemList(x, y).add(item);
 
-                    System.out.println("Inventory: Placing item (" + item + ") at position (" + x + ", " + y + ")");
+                    if (Game.Debug) System.out.println("Inventory: Placing item (" + item + ") at position (" + x + ", " + y + ")");
 
                     foundPlace = true;
 
@@ -293,7 +254,7 @@ public class Inventory extends Table {
         return foundPlace;
     }
 
-    public ArrayList<Item> getItemList(int x, int y) {
+    public ArrayList<SlotItem> getItemList(int x, int y) {
 
         if (!isValidPosition(x, y)) {
 
@@ -327,6 +288,8 @@ public class Inventory extends Table {
      */
     public void getAllItemsByType(Class type, List<Object> list) {
 
+        list.clear();
+
         for (int x = 0; x < items.length; x++) {
 
             for (int y = 0; y < items[0].length; y++) {
@@ -350,7 +313,7 @@ public class Inventory extends Table {
 
                 if (getItemType(x, y) == item.getClass()) {
 
-                    ArrayList<Item> items = getItemList(x, y);
+                    ArrayList<SlotItem> items = getItemList(x, y);
 
                     Iterator iterator = items.iterator();
 
@@ -397,7 +360,7 @@ public class Inventory extends Table {
 
         for (int i = amount - 1; i >= 0; i--) {
 
-            newItems.add(items[x][y].get(i));
+            newItems.add((Item) items[x][y].get(i));
 
             items[x][y].remove(i);
         }
@@ -413,35 +376,49 @@ public class Inventory extends Table {
     @Override
     public void draw(Batch batch, float parentAlpha) {
 
+        if (label == null) {
+
+            label = new Label("Inventory", new Label.LabelStyle(new BitmapFont(Gdx.files.internal("assets/gui/font.txt"), Gdx.files.internal("assets/gui/font.png"), false), new Color(Color.WHITE)));
+            label.setFontScale(0.3f);
+            label.setPosition(getX() + getWidth() / 2.0f - label.getPrefWidth() / 2.0f, getY() + 300);
+            label.toFront();
+
+            getStage().addActor(label);
+        }
+
+        if (speechBubble == null) {
+
+            speechBubble = new SpeechBubble();
+            speechBubble.setWidth(160.0f);
+            speechBubble.toFront();
+
+            getStage().addActor(speechBubble);
+        }
+
+        style.slot.draw(batch, Gdx.graphics.getWidth() - slotWidth, 0.0f, slotWidth, slotHeight);
+
+        float width = slotWidth - (slotWidth / style.slot.getMinWidth()) * 2;
+        float height = slotHeight - (slotHeight / style.slot.getMinHeight()) * 2;
+
+        batch.draw(trashTextureRegion, Gdx.graphics.getWidth() - slotWidth + (slotWidth / style.slot.getMinWidth()), (slotHeight / style.slot.getMinHeight()), width, height);
+
+        label.setVisible(true);
+
+        // ----- DRAWING THE LABELS -----
+
         super.draw(batch, parentAlpha);
 
         for (int x = 0; x < columns; x++) {
 
             for (int y = 0; y < rows; y++) {
 
-                style.slot.draw(batch, getX() + x * (getWidth() / columns), getY() + y * (getHeight() / rows), getWidth() / columns, getHeight() / rows);
-
                 labels[x][y].setVisible(false);
 
                 if (!getItemList(x, y).isEmpty()) {
 
-                    float width = getWidth() / columns - (getWidth() / columns / style.slot.getMinWidth()) * 2;
-                    float height = getHeight() / rows - (getHeight() / rows / style.slot.getMinHeight()) * 2;
-
-                    Item item = getItemList(x, y).get(0);
-
-                    item.draw(
-                            (SpriteBatch) batch,
-                            getX() + x * (getWidth() / columns) + (getWidth() / columns / style.slot.getMinWidth()),
-                            getY() + y * (getHeight() / rows) + (getHeight() / columns / style.slot.getMinHeight()),
-                            width,
-                            height,
-                            false
-                    );
-
-                    labels[x][y].setPosition(getX() + x * width + width - 15.0f, getY() + y * height + 10.0f);
+                    labels[x][y].setPosition(getX() + x * slotWidth + slotWidth - labels[x][y].getPrefWidth() - 4.0f, getY() + y * slotHeight + 10.0f);
                     labels[x][y].setVisible(true);
-                    labels[x][y].setFontScale(0.3f);
+                    labels[x][y].toFront();
 
                     stringBuilder.setLength(0);
                     stringBuilder.append(getItemList(x, y).size());
@@ -452,107 +429,159 @@ public class Inventory extends Table {
             }
         }
 
+        // ----- MOVING THE ITEMS -----
+
+        speechBubble.setVisible(false);
+
+
         int x = Gdx.input.getX();
         int y = Math.abs(Gdx.input.getY() - (Gdx.graphics.getHeight() - 1));
 
-        int column = (int) ((x - getX()) / (getWidth() / columns));
-        int row = (int) ((y - getY()) / (getHeight() / rows));
+        int column = (int) ((x - getX()) / slotWidth);
+        int row = (int) ((y - getY()) / slotHeight);
 
-        if (getX() <= x && x < getX() + getWidth() && getY() <= y && y < getY() + getHeight()) {
+        if (isValidPosition(column, row) && x >= getX() && x < getX() + getWidth() && y >= getY() && y < getY() + getHeight()) {
 
+            if (!getItemList(column, row).isEmpty() && currentItems.isEmpty()) {
 
-/*
-            batch.draw(
-                    overlayTextureRegion,
-                    getX() + column * (getWidth() / columns) + (getWidth() / columns / 16) * 1,
-                    getY() + row * (getHeight() / rows) + (getHeight() / rows / 16) * 1,
-                    getWidth() / columns - (getWidth() / columns / 16) * 2,
-                    getHeight() / rows - (getHeight() / rows / 16) * 2);
-*/
-            if (!getItemList(column, row).isEmpty()) {
-
-                speechBubble.setVisible(true);
+                if (isVisible()) speechBubble.setVisible(true);
 
                 stringBuilder.setLength(0);
-                stringBuilder.append(getItemList(column, row).get(0).getInformation());
+                stringBuilder.append(((Item) getItemList(column, row).get(0)).getInformation());
 
                 speechBubble.setText(stringBuilder);
+            }
 
-                if (currentItems.isEmpty() && Gdx.input.isButtonPressed(0)) {
+            lastColumn = column;
+            lastRow = row;
+        }
+
+        if (!currentItems.isEmpty()) {
+
+            float scale = 1.25f;
+
+            currentItems.get(0).draw(
+                    batch,
+                    x - slotWidth * scale / 2.0f,
+                    y - slotHeight * scale / 2.0f,
+                    slotWidth * scale,
+                    slotHeight * scale);
+        }
+
+        speechBubble.setPosition(x - speechBubble.getWidth() / 2.0f, y + 15.0f);
+    }
+
+    @Override
+    public boolean keyDown(int keycode) {
+        return false;
+    }
+
+    @Override
+    public boolean keyUp(int keycode) {
+        return false;
+    }
+
+    @Override
+    public boolean keyTyped(char character) {
+        return false;
+    }
+
+    @Override
+    public boolean touchDown(int screenX, int screenY, int pointer, int button) {
+
+        if (button == Input.Buttons.LEFT) {
+
+            int x = screenX;
+            int y = Math.abs(screenY - (Gdx.graphics.getHeight() - 1));
+
+            int column = (int) ((x - getX()) / slotWidth);
+            int row = (int) ((y - getY()) / slotHeight);
+
+            if (isValidPosition(column, row)) {
+
+                if (currentItems.isEmpty()) {
 
                     if (Gdx.input.isKeyPressed(Input.Keys.SHIFT_LEFT)) {
 
-                        currentItems.addAll(obtainItem(column, row, getItemList(column, row).size()));
+                        // Adds the top item in the slot to the current items held by the mouse
+                        currentItems.add(obtainItem(column, row, 1).get(0));
                     }
                     else {
 
-                        currentItems.add(obtainItem(column, row, 1).get(0));
+                        // Adds all the items in the slot to the current items held by the mouse
+                        currentItems.addAll(obtainItem(column, row, getItemList(column, row).size()));
                     }
-
-                    lastColumn = column;
-                    lastRow = row;
                 }
+                else {
+
+                    if (getItemType(column, row) == currentItems.get(0).getClass() && currentItems.get(0).stackable) {
+
+                        if (getItemList(column, row).size() + currentItems.size() > MaxAmountOfItemsInSlot) {
+
+                            for (int i = getItemList(column, row).size(); i < MaxAmountOfItemsInSlot; i++) {
+
+                                tmpList.add(currentItems.get(currentItems.size() - 1));
+                                currentItems.remove(currentItems.size() - 1);
+                            }
+                        }
+                        else {
+
+                            tmpList.addAll(currentItems);
+                            currentItems.clear();
+                        }
+
+                        placeItems(column, row, tmpList);
+                        tmpList.clear();
+                    }
+                    else if (getItemType(column, row) == null) {
+
+                        placeItems(column, row, currentItems);
+                        currentItems.clear();
+                    }
+                    else {
+
+
+                        // Switches the items held by the mouse with the ones in the slot
+                        tmpList.addAll(obtainItem(column, row, getItemList(column, row).size()));
+
+                        placeItems(column, row, currentItems);
+
+                        currentItems.clear();
+                        currentItems.addAll(tmpList);
+
+                        tmpList.clear();
+                    }
+                }
+
+                return true;
+            }
+            else if (Gdx.graphics.getWidth() - slotWidth < x && x < Gdx.graphics.getWidth() && 0.0f < y && y < slotHeight) {
+
+                Trashing.play();
+                currentItems.clear();
             }
         }
 
-        if (!currentItems.isEmpty() && !Gdx.input.isButtonPressed(0)) {
-
-            if (isValidPosition(column, row) && ((currentItems.get(0).stackable && getItemType(column, row) == currentItems.get(0).getClass() && getItemList(column, row).size() < MaxAmountOfItemsInSlot) || getItemType(column, row) == null)) {
-
-                placeItems(column, row, currentItems);
-            }
-            else {
-
-                placeItems(lastColumn, lastRow, currentItems);
-            }
-
-            currentItems.clear();
-        }
-
-        if (currentItems.isEmpty()) {
-
-            float width = getWidth() / columns - (getWidth() / columns / 20) * 2;
-            float height = getHeight() / rows - (getHeight() / rows / 20) * 2;
-
-            int scale = 1;
-
-            if (currentItems.get(0) instanceof Weapon || currentItems.get(0) instanceof Shield) {
-
-                width -= (getWidth() / columns / 20) * 2;
-                height -= (getHeight() / rows / 20) * 2;
-
-                scale = 2;
-            }
-
-
-
-            currentItems.get(0).draw(
-                    (SpriteBatch) batch,
-                    x + (getWidth() / columns / 20) * 1 - (width / 2.0f) * scale,
-                    y + (getHeight() / rows / 20) * 1 - (height / 2.0f) * scale,
-                    width * scale,
-                    height * scale,
-                    false
-            );
-        }
-
-        // Speech bubble
-        speechBubble.setPosition(x, y);
-        speechBubble.draw(batch, parentAlpha);
+        return false;
     }
 
-    public static class InventoryStyle {
+    @Override
+    public boolean touchUp(int screenX, int screenY, int pointer, int button) {
+        return false;
+    }
 
-        public Drawable background, slot;
+    @Override
+    public boolean touchDragged(int screenX, int screenY, int pointer) {
+        return false;
+    }
 
-        public InventoryStyle() {
+    @Override
+    public boolean mouseMoved(int screenX, int screenY) {
+        return false;
+    }
 
-        }
-
-        public InventoryStyle(Drawable background, Drawable slot) {
-
-            this.background = background;
-            this.slot = slot;
-        }
+    @Override
+    public boolean scrolled(int amount) {
+        return false;
     }
 }

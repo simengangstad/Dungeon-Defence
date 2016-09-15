@@ -1,6 +1,9 @@
 package io.github.simengangstad.defendthecaves.scene.items;
 
+import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.MathUtils;
@@ -14,7 +17,7 @@ import java.util.ArrayList;
  * @author simengangstad
  * @since 23/01/16
  */
-public class Potion extends Item {
+public class  Potion extends Item {
 
     private final TextureRegion fill = new TextureRegion(Game.SpriteSheet, 48, 208, 16, 16);
 
@@ -24,13 +27,18 @@ public class Potion extends Item {
 
     private boolean broken = false;
 
+    public static final Sound Breaking = Gdx.audio.newSound(Gdx.files.internal("assets/sfx/breaking.ogg")), Drinking = Gdx.audio.newSound(Gdx.files.internal("assets/sfx/rpg/inventory/bottle.ogg")), Burp = Gdx.audio.newSound(Gdx.files.internal("assets/sfx/burp.wav"));
+
     public Potion(Vector2 position) {
 
         super(position, new Vector2(Game.ItemSize, Game.ItemSize), new TextureRegion(Game.SpriteSheet, 32, 208, 16, 16), true);
+
+        //super.tiledCollisionTests = true;
+        //super.computeTiledCollisionMaps(new TextureRegion[] {getTextureRegion()}, 16, 16);
     }
 
     @Override
-    public void interact(Vector2 direciton) {
+    public void interact(Vector2 direction) {
 
         parent.drinkPotion(this);
     }
@@ -46,8 +54,6 @@ public class Potion extends Item {
 
             entity.takeDamage(toxicity);
         }
-
-        host.removeGameObject(this);
 
         breakPotion();
     }
@@ -67,6 +73,7 @@ public class Potion extends Item {
             return;
         }
 
+        Breaking.play();
 
         broken = true;
 
@@ -74,12 +81,12 @@ public class Potion extends Item {
 
         if (getStability() < -25.0f && getFlammability() > 25.0f) {
 
-            Explosion explosion = new Explosion(getFlammability() * -getStability() / 5.0f, getFlammability() * 3.0f);
+            Explosion explosion = new Explosion(getFlammability() * -getStability() / 5.0f, getFlammability() * 2.0f);
 
             explosion.host = this.host;
             explosion.position = position.cpy();
 
-            ((Scene) host).addExplosion(explosion);
+            ((Scene) host).addExplosion(explosion, this);
         }
         else {
 
@@ -87,6 +94,8 @@ public class Potion extends Item {
 
             host.addGameObject(liquid);
         }
+
+        host.removeGameObject(this);
     }
 
     public void addChemical(Chemical... chemicals) {
@@ -124,15 +133,15 @@ public class Potion extends Item {
     }
 
     @Override
-    public void draw(SpriteBatch batch, float centreX, float centreY, float width, float height, boolean flipAutomatically) {
+    public void draw(Batch batch, float x, float y, float width, float height) {
 
         batch.setColor(Math.abs(getToxicity() + Chemical.UpperBoundary - 100) / 100f, Math.abs(getStability() + Chemical.UpperBoundary - 100) / 100f, (getFlammability() + Chemical.UpperBoundary) / 100f, 1.0f);
 
-        batch.draw(fill, centreX, centreY, width, height);
+        batch.draw(fill, x, y, width, height);
 
         batch.setColor(Color.WHITE);
 
-        super.draw(batch, centreX, centreY, width, height, flipAutomatically);
+        super.draw(batch, x, y, width, height);
     }
 
     @Override
@@ -176,6 +185,12 @@ public class Potion extends Item {
         position.set(tmpPosition);
 
         Game.vector2Pool.free(tmpPosition);
+    }
+
+    @Override
+    public TextureRegion getSlotTextureRegion() {
+
+        return super.getTextureRegion();
     }
 
     @Override

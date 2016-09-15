@@ -18,11 +18,11 @@ public class StringItem extends Item {
 
         super(position, new Vector2(Game.ItemSize, Game.ItemSize), textureRegion, true);
 
-        information = "Strangle those bastards with this fella";
+        information = "String of finest linen";
     }
 
     @Override
-    public void interact(Vector2 direciton) {
+    public void interact(Vector2 direction) {
 
     }
 
@@ -62,5 +62,11 @@ public class StringItem extends Item {
         position.set(tmpPosition);
 
         Game.vector2Pool.free(tmpPosition);
+    }
+
+    @Override
+    public TextureRegion getSlotTextureRegion() {
+
+        return super.getTextureRegion();
     }
 }

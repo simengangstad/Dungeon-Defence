@@ -15,6 +15,8 @@ public abstract class Recipe {
 
     public final int id;
 
+    private final int count;
+
     /**
      * A reference to the ingredients (and the quantity of these ingredients) required for the recipe.
      */
@@ -47,6 +49,16 @@ public abstract class Recipe {
                 ingredients.put(item, ingredients.get(item) + 1);
             }
         }
+
+        count = items.length;
+    }
+
+    /**
+     * @return If the given type is an ingredient of the recipe.
+     */
+    public boolean isIngredientInRecipe(Class type) {
+
+        return ingredients.get(type) != null;
     }
 
     /**
@@ -78,6 +90,14 @@ public abstract class Recipe {
     public int amountOfIngredients() {
 
         return ingredients.size();
+    }
+
+    /**
+     * @return The total amount of all the quantities of each ingredient added togheter.
+     */
+    public int amountOfQuantities() {
+
+        return count;
     }
 
     /**

@@ -16,6 +16,8 @@ public class Light {
 
     public final float range;
 
+    public boolean flicker = true;
+
     public boolean enabled = true;
 
     public Light(Vector2 position, Vector3 colour, float range) {

@@ -1,17 +1,15 @@
 package io.github.simengangstad.defendthecaves.scene;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.badlogic.gdx.maps.tiled.TiledMapTileLayer;
 import com.badlogic.gdx.math.MathUtils;
-import com.badlogic.gdx.math.Vector;
 import com.badlogic.gdx.math.Vector2;
 import io.github.simengangstad.defendthecaves.Callback;
 import io.github.simengangstad.defendthecaves.Game;
 import io.github.simengangstad.defendthecaves.pathfinding.Coordinate;
 import io.github.simengangstad.defendthecaves.procedural.MapGenerator;
 
-import java.sql.SQLSyntaxErrorException;
 import java.util.ArrayList;
 
 /**
@@ -19,8 +17,6 @@ import java.util.ArrayList;
  * @since 13/11/15
  */
 public class Map {
-
-    // TODO: Can be turned into a game object.
 
     /**
      * Coordinates for the different types of tiles within the sprite sheet. These coordinates
@@ -357,7 +353,7 @@ public class Map {
     public final int Subdivision;
 
     /**
-     * The tile size divided by the subdivision..
+     * The tile size divided by the subdivision.
      */
     public final float CellSize;
 
@@ -392,6 +388,8 @@ public class Map {
     public Callback changeCallback;
 
     private final MapGenerator.Room[] rooms;
+
+    private final Texture SpriteSheet = Game.SpriteSheet;
 
     /**
      * Tmp values.
@@ -732,6 +730,42 @@ public class Map {
         return tileMap[0].length;
     }
 
+    private Vector2[] vectors = new Vector2[4];
+
+    /**
+     * Without speed and delta time division.
+     */
+    public boolean collides(Vector2 position, Vector2 size, Vector2 direction) {
+
+        if (vectors[0] == null) {
+
+            for (int i = 0; i < 4; i++) {
+
+                vectors[i] = new Vector2(0.0f, 0.0f);
+            }
+        }
+
+        tmpTargetPosition.set(position).add(direction);
+
+        vectors[0].set(tmpTargetPosition.x - size.x / 2.0f, tmpTargetPosition.y + size.y / 2.0f).scl(1.0f / Map.TileSizeInPixelsInWorldSpace);
+        vectors[1].set(tmpTargetPosition.x - size.x / 2.0f, tmpTargetPosition.y - size.y / 2.0f).scl(1.0f / Map.TileSizeInPixelsInWorldSpace);
+        vectors[2].set(tmpTargetPosition.x + size.x / 2.0f, tmpTargetPosition.y + size.y / 2.0f).scl(1.0f / Map.TileSizeInPixelsInWorldSpace);
+        vectors[3].set(tmpTargetPosition.x + size.x / 2.0f, tmpTargetPosition.y - size.y / 2.0f).scl(1.0f / Map.TileSizeInPixelsInWorldSpace);
+
+        for (int i = 0; i < 4; i++) {
+
+            if (isValidTile((int) vectors[i].x, (int) vectors[i].y) && isSolid((int) vectors[i].x, (int) vectors[i].y)) {
+
+                return true;
+            }
+        }
+
+        position.set(tmpTargetPosition);
+
+        return false;
+    }
+
+
     /**
      * Without speed and delta time division.
      */
@@ -948,7 +982,7 @@ public class Map {
             }
         }
 
-        if (Game.DebubDraw) {
+        if (Game.Debug) {
 
             for (int y = (int) ((playerPosition.y + Gdx.graphics.getHeight() / 2.0f) / CellSize); y >= (playerPosition.y - Gdx.graphics.getHeight() / 2.0f - CellSize) / CellSize; y--) {
 
@@ -962,7 +996,7 @@ public class Map {
 
                     if (collidableMap[x][y] == ExpandedObstacle) {
 
-                        batch.draw(Game.SpriteSheet, x * CellSize, y * CellSize, CellSize, CellSize, 48, 80, 16, 16, false, false);
+                        batch.draw(SpriteSheet, x * CellSize, y * CellSize, CellSize, CellSize, 48, 80, 16, 16, false, false);
                     }
                 }
             }
@@ -1017,19 +1051,19 @@ public class Map {
 
                         if (get(x, y + 1) == DummyTile) {
 
-                            batch.draw(Game.SpriteSheet, x * TileSizeInPixelsInWorldSpace, y * TileSizeInPixelsInWorldSpace, TileSizeInPixelsInWorldSpace, TileSizeInPixelsInWorldSpace, 0, 320, Game.SizeOfTileInPixelsInSpritesheet, Game.SizeOfTileInPixelsInSpritesheet, false, false);
+                            batch.draw(SpriteSheet, x * TileSizeInPixelsInWorldSpace, y * TileSizeInPixelsInWorldSpace, TileSizeInPixelsInWorldSpace, TileSizeInPixelsInWorldSpace, 0, 320, Game.SizeOfTileInPixelsInSpritesheet, Game.SizeOfTileInPixelsInSpritesheet, false, false);
                         }
                         else if (get(x, y - 1) == DummyTile) {
 
-                            batch.draw(Game.SpriteSheet, x * TileSizeInPixelsInWorldSpace, y * TileSizeInPixelsInWorldSpace, TileSizeInPixelsInWorldSpace, TileSizeInPixelsInWorldSpace, 16, 320, Game.SizeOfTileInPixelsInSpritesheet, Game.SizeOfTileInPixelsInSpritesheet, false, false);
+                            batch.draw(SpriteSheet, x * TileSizeInPixelsInWorldSpace, y * TileSizeInPixelsInWorldSpace, TileSizeInPixelsInWorldSpace, TileSizeInPixelsInWorldSpace, 16, 320, Game.SizeOfTileInPixelsInSpritesheet, Game.SizeOfTileInPixelsInSpritesheet, false, false);
                         }
                         else if (get(x + 1, y) == DummyTile) {
 
-                            batch.draw(Game.SpriteSheet, x * TileSizeInPixelsInWorldSpace, y * TileSizeInPixelsInWorldSpace, TileSizeInPixelsInWorldSpace, TileSizeInPixelsInWorldSpace, 32, 320, Game.SizeOfTileInPixelsInSpritesheet, Game.SizeOfTileInPixelsInSpritesheet, false, false);
+                            batch.draw(SpriteSheet, x * TileSizeInPixelsInWorldSpace, y * TileSizeInPixelsInWorldSpace, TileSizeInPixelsInWorldSpace, TileSizeInPixelsInWorldSpace, 32, 320, Game.SizeOfTileInPixelsInSpritesheet, Game.SizeOfTileInPixelsInSpritesheet, false, false);
                         }
                         else if (get(x - 1, y) == DummyTile) {
 
-                            batch.draw(Game.SpriteSheet, x * TileSizeInPixelsInWorldSpace, y * TileSizeInPixelsInWorldSpace, TileSizeInPixelsInWorldSpace, TileSizeInPixelsInWorldSpace, 48, 320, Game.SizeOfTileInPixelsInSpritesheet, Game.SizeOfTileInPixelsInSpritesheet, false, false);
+                            batch.draw(SpriteSheet, x * TileSizeInPixelsInWorldSpace, y * TileSizeInPixelsInWorldSpace, TileSizeInPixelsInWorldSpace, TileSizeInPixelsInWorldSpace, 48, 320, Game.SizeOfTileInPixelsInSpritesheet, Game.SizeOfTileInPixelsInSpritesheet, false, false);
                         }
 
 
@@ -1041,19 +1075,19 @@ public class Map {
 
                         if (get(x, y + 1) == DummyTile) {
 
-                            batch.draw(Game.SpriteSheet, x * TileSizeInPixelsInWorldSpace, y * TileSizeInPixelsInWorldSpace, TileSizeInPixelsInWorldSpace, TileSizeInPixelsInWorldSpace, 0, 336, Game.SizeOfTileInPixelsInSpritesheet, Game.SizeOfTileInPixelsInSpritesheet, false, false);
+                            batch.draw(SpriteSheet, x * TileSizeInPixelsInWorldSpace, y * TileSizeInPixelsInWorldSpace, TileSizeInPixelsInWorldSpace, TileSizeInPixelsInWorldSpace, 0, 336, Game.SizeOfTileInPixelsInSpritesheet, Game.SizeOfTileInPixelsInSpritesheet, false, false);
                         }
                         else if (get(x, y - 1) == DummyTile) {
 
-                            batch.draw(Game.SpriteSheet, x * TileSizeInPixelsInWorldSpace, y * TileSizeInPixelsInWorldSpace, TileSizeInPixelsInWorldSpace, TileSizeInPixelsInWorldSpace, 16, 336, Game.SizeOfTileInPixelsInSpritesheet, Game.SizeOfTileInPixelsInSpritesheet, false, false);
+                            batch.draw(SpriteSheet, x * TileSizeInPixelsInWorldSpace, y * TileSizeInPixelsInWorldSpace, TileSizeInPixelsInWorldSpace, TileSizeInPixelsInWorldSpace, 16, 336, Game.SizeOfTileInPixelsInSpritesheet, Game.SizeOfTileInPixelsInSpritesheet, false, false);
                         }
                         else if (get(x + 1, y) == DummyTile) {
 
-                            batch.draw(Game.SpriteSheet, x * TileSizeInPixelsInWorldSpace, y * TileSizeInPixelsInWorldSpace, TileSizeInPixelsInWorldSpace, TileSizeInPixelsInWorldSpace, 32, 336, Game.SizeOfTileInPixelsInSpritesheet, Game.SizeOfTileInPixelsInSpritesheet, false, false);
+                            batch.draw(SpriteSheet, x * TileSizeInPixelsInWorldSpace, y * TileSizeInPixelsInWorldSpace, TileSizeInPixelsInWorldSpace, TileSizeInPixelsInWorldSpace, 32, 336, Game.SizeOfTileInPixelsInSpritesheet, Game.SizeOfTileInPixelsInSpritesheet, false, false);
                         }
                         else if (get(x - 1, y) == DummyTile) {
 
-                            batch.draw(Game.SpriteSheet, x * TileSizeInPixelsInWorldSpace, y * TileSizeInPixelsInWorldSpace, TileSizeInPixelsInWorldSpace, TileSizeInPixelsInWorldSpace, 48, 336, Game.SizeOfTileInPixelsInSpritesheet, Game.SizeOfTileInPixelsInSpritesheet, false, false);
+                            batch.draw(SpriteSheet, x * TileSizeInPixelsInWorldSpace, y * TileSizeInPixelsInWorldSpace, TileSizeInPixelsInWorldSpace, TileSizeInPixelsInWorldSpace, 48, 336, Game.SizeOfTileInPixelsInSpritesheet, Game.SizeOfTileInPixelsInSpritesheet, false, false);
                         }
 
                         break;
@@ -1064,64 +1098,65 @@ public class Map {
 
     private void drawOpenTile(int x, int y, SpriteBatch batch) {
 
-        batch.draw(Game.SpriteSheet, x * TileSizeInPixelsInWorldSpace, y * TileSizeInPixelsInWorldSpace, TileSizeInPixelsInWorldSpace, TileSizeInPixelsInWorldSpace, 0, 0, Game.SizeOfTileInPixelsInSpritesheet, Game.SizeOfTileInPixelsInSpritesheet, false, false);
+        batch.draw(SpriteSheet, x * TileSizeInPixelsInWorldSpace, y * TileSizeInPixelsInWorldSpace, TileSizeInPixelsInWorldSpace, TileSizeInPixelsInWorldSpace, (int) Tiles[Floor].x * Game.SizeOfTileInPixelsInSpritesheet, (int) Tiles[Floor].y * Game.SizeOfTileInPixelsInSpritesheet, Game.SizeOfTileInPixelsInSpritesheet, Game.SizeOfTileInPixelsInSpritesheet, false, false);
 
+        /*
         // Shadows
         if (isSolid(x, y + 1) && isSolid(x - 1, y + 1) && isSolid(x + 1, y + 1)) {
 
             if (get(x, y + 1) != SpawnIntact && get(x, y + 1) != SpawnSlightlyBroken && get(x, y + 1) != SpawnBroken) {
 
-                batch.draw(Game.SpriteSheet, x * TileSizeInPixelsInWorldSpace, y * TileSizeInPixelsInWorldSpace, TileSizeInPixelsInWorldSpace, TileSizeInPixelsInWorldSpace, 48, 48, Game.SizeOfTileInPixelsInSpritesheet, Game.SizeOfTileInPixelsInSpritesheet, false, false);
+                batch.draw(SpriteSheet, x * TileSizeInPixelsInWorldSpace, y * TileSizeInPixelsInWorldSpace, TileSizeInPixelsInWorldSpace, TileSizeInPixelsInWorldSpace, 48, 48, Game.SizeOfTileInPixelsInSpritesheet, Game.SizeOfTileInPixelsInSpritesheet, false, false);
             }
         }
 
         if (isSolid(x, y + 1) && !isSolid(x - 1, y + 1) && isSolid(x + 1, y + 1)) {
 
-            batch.draw(Game.SpriteSheet, x * TileSizeInPixelsInWorldSpace, y * TileSizeInPixelsInWorldSpace, TileSizeInPixelsInWorldSpace, TileSizeInPixelsInWorldSpace, 32, 48, Game.SizeOfTileInPixelsInSpritesheet, Game.SizeOfTileInPixelsInSpritesheet, false, false);
+            batch.draw(SpriteSheet, x * TileSizeInPixelsInWorldSpace, y * TileSizeInPixelsInWorldSpace, TileSizeInPixelsInWorldSpace, TileSizeInPixelsInWorldSpace, 32, 48, Game.SizeOfTileInPixelsInSpritesheet, Game.SizeOfTileInPixelsInSpritesheet, false, false);
         }
 
         if (isSolid(x, y + 1) && !isSolid(x - 1, y + 1) && isSolid(x + 1, y + 1)) {
 
-            batch.draw(Game.SpriteSheet, x * TileSizeInPixelsInWorldSpace, y * TileSizeInPixelsInWorldSpace, TileSizeInPixelsInWorldSpace, TileSizeInPixelsInWorldSpace, 208, 48, Game.SizeOfTileInPixelsInSpritesheet, Game.SizeOfTileInPixelsInSpritesheet, false, false);
+            batch.draw(SpriteSheet, x * TileSizeInPixelsInWorldSpace, y * TileSizeInPixelsInWorldSpace, TileSizeInPixelsInWorldSpace, TileSizeInPixelsInWorldSpace, 208, 48, Game.SizeOfTileInPixelsInSpritesheet, Game.SizeOfTileInPixelsInSpritesheet, false, false);
         }
 
         if (isSolid(x - 1, y) && !isSolid(x, y + 1) && isSolid(x - 1, y + 1)) {
 
             if ((get(x - 1, y) != SpawnIntact && get(x - 1, y) != SpawnSlightlyBroken && get(x - 1, y) != SpawnBroken) && (get(x - 1, y + 1) != SpawnIntact && get(x - 1, y + 1) != SpawnSlightlyBroken && get(x - 1, y + 1) != SpawnBroken)) {
 
-                batch.draw(Game.SpriteSheet, x * TileSizeInPixelsInWorldSpace, y * TileSizeInPixelsInWorldSpace, TileSizeInPixelsInWorldSpace, TileSizeInPixelsInWorldSpace, 144, 48, Game.SizeOfTileInPixelsInSpritesheet, Game.SizeOfTileInPixelsInSpritesheet, false, false);
+                batch.draw(SpriteSheet, x * TileSizeInPixelsInWorldSpace, y * TileSizeInPixelsInWorldSpace, TileSizeInPixelsInWorldSpace, TileSizeInPixelsInWorldSpace, 144, 48, Game.SizeOfTileInPixelsInSpritesheet, Game.SizeOfTileInPixelsInSpritesheet, false, false);
             }
         }
 
         if (isSolid(x - 1, y) && isSolid(x, y + 1) && isSolid(x - 1, y + 1)) {
 
-            batch.draw(Game.SpriteSheet, x * TileSizeInPixelsInWorldSpace, y * TileSizeInPixelsInWorldSpace, TileSizeInPixelsInWorldSpace, TileSizeInPixelsInWorldSpace, 144, 64, Game.SizeOfTileInPixelsInSpritesheet, Game.SizeOfTileInPixelsInSpritesheet, false, false);
+            batch.draw(SpriteSheet, x * TileSizeInPixelsInWorldSpace, y * TileSizeInPixelsInWorldSpace, TileSizeInPixelsInWorldSpace, TileSizeInPixelsInWorldSpace, 144, 64, Game.SizeOfTileInPixelsInSpritesheet, Game.SizeOfTileInPixelsInSpritesheet, false, false);
         }
 
         if ((isSolid(x - 1, y) && !isSolid(x - 1, y + 1)) || (isSolid(x - 1, y) && (get(x - 1, y + 1) == SpawnIntact || get(x - 1, y + 1) == SpawnSlightlyBroken || get(x - 1, y + 1) == SpawnBroken))) {
 
-            batch.draw(Game.SpriteSheet, x * TileSizeInPixelsInWorldSpace, y * TileSizeInPixelsInWorldSpace, TileSizeInPixelsInWorldSpace, TileSizeInPixelsInWorldSpace, 128, 48, Game.SizeOfTileInPixelsInSpritesheet, Game.SizeOfTileInPixelsInSpritesheet, false, false);
+            batch.draw(SpriteSheet, x * TileSizeInPixelsInWorldSpace, y * TileSizeInPixelsInWorldSpace, TileSizeInPixelsInWorldSpace, TileSizeInPixelsInWorldSpace, 128, 48, Game.SizeOfTileInPixelsInSpritesheet, Game.SizeOfTileInPixelsInSpritesheet, false, false);
         }
 
         if (isSolid(x, y + 1) && !isSolid(x + 1, y + 1) && isSolid(x - 1, y + 1)) {
 
-            batch.draw(Game.SpriteSheet, x * TileSizeInPixelsInWorldSpace, y * TileSizeInPixelsInWorldSpace, TileSizeInPixelsInWorldSpace, TileSizeInPixelsInWorldSpace, 64, 64, Game.SizeOfTileInPixelsInSpritesheet, Game.SizeOfTileInPixelsInSpritesheet, false, false);
+            batch.draw(SpriteSheet, x * TileSizeInPixelsInWorldSpace, y * TileSizeInPixelsInWorldSpace, TileSizeInPixelsInWorldSpace, TileSizeInPixelsInWorldSpace, 64, 64, Game.SizeOfTileInPixelsInSpritesheet, Game.SizeOfTileInPixelsInSpritesheet, false, false);
         }
 
         if (isSolid(x - 1, y + 1) && !isSolid(x, y + 1)) {
 
-            batch.draw(Game.SpriteSheet, x * TileSizeInPixelsInWorldSpace, y * TileSizeInPixelsInWorldSpace, TileSizeInPixelsInWorldSpace, TileSizeInPixelsInWorldSpace, 80, 64, Game.SizeOfTileInPixelsInSpritesheet, Game.SizeOfTileInPixelsInSpritesheet, false, false);
+            batch.draw(SpriteSheet, x * TileSizeInPixelsInWorldSpace, y * TileSizeInPixelsInWorldSpace, TileSizeInPixelsInWorldSpace, TileSizeInPixelsInWorldSpace, 80, 64, Game.SizeOfTileInPixelsInSpritesheet, Game.SizeOfTileInPixelsInSpritesheet, false, false);
         }
 
         if (isSolid(x, y + 1) && !isSolid(x - 1, y + 1) && !isSolid(x + 1, y + 1)) {
 
-            batch.draw(Game.SpriteSheet, x * TileSizeInPixelsInWorldSpace, y * TileSizeInPixelsInWorldSpace, TileSizeInPixelsInWorldSpace, TileSizeInPixelsInWorldSpace, 224, 48, Game.SizeOfTileInPixelsInSpritesheet, Game.SizeOfTileInPixelsInSpritesheet, false, false);
-        }
+            batch.draw(SpriteSheet, x * TileSizeInPixelsInWorldSpace, y * TileSizeInPixelsInWorldSpace, TileSizeInPixelsInWorldSpace, TileSizeInPixelsInWorldSpace, 224, 48, Game.SizeOfTileInPixelsInSpritesheet, Game.SizeOfTileInPixelsInSpritesheet, false, false);
+        }*/
     }
 
     private void drawSolidTile(int x, int y, SpriteBatch batch, boolean outsideBoundsHorisontallyUpper, boolean outsideBoundsHorisontallyLower, boolean outsideBoundsVerticallyUpper, boolean outsideBoundsVerticallyLower) {
 
-        batch.draw(Game.SpriteSheet, x * TileSizeInPixelsInWorldSpace, y * TileSizeInPixelsInWorldSpace, TileSizeInPixelsInWorldSpace, TileSizeInPixelsInWorldSpace, 0, 0, Game.SizeOfTileInPixelsInSpritesheet, Game.SizeOfTileInPixelsInSpritesheet, false, false);
+        batch.draw(SpriteSheet, x * TileSizeInPixelsInWorldSpace, y * TileSizeInPixelsInWorldSpace, TileSizeInPixelsInWorldSpace, TileSizeInPixelsInWorldSpace, 0, 0, Game.SizeOfTileInPixelsInSpritesheet, Game.SizeOfTileInPixelsInSpritesheet, false, false);
 
 
         tmpWall.set(Tiles[WallFilling]);
@@ -1369,7 +1404,7 @@ public class Map {
 
         drawWall(batch, x, y);
 
-        batch.draw(Game.SpriteSheet, x * TileSizeInPixelsInWorldSpace, y * TileSizeInPixelsInWorldSpace, TileSizeInPixelsInWorldSpace, TileSizeInPixelsInWorldSpace, 0, 0, Game.SizeOfTileInPixelsInSpritesheet, Game.SizeOfTileInPixelsInSpritesheet, false, false);
+        batch.draw(SpriteSheet, x * TileSizeInPixelsInWorldSpace, y * TileSizeInPixelsInWorldSpace, TileSizeInPixelsInWorldSpace, TileSizeInPixelsInWorldSpace, 0, 0, Game.SizeOfTileInPixelsInSpritesheet, Game.SizeOfTileInPixelsInSpritesheet, false, false);
 
         // Walls facing down and up
         if ((!outsideBoundsHorisontallyLower && tileMap[x - 1][y] != Open) && (!outsideBoundsHorisontallyUpper && tileMap[x + 1][y] != Open)) {
@@ -1678,7 +1713,7 @@ public class Map {
 
         batch.draw(
 
-                Game.SpriteSheet,
+                SpriteSheet,
                 x * TileSizeInPixelsInWorldSpace,
                 y * TileSizeInPixelsInWorldSpace, TileSizeInPixelsInWorldSpace, TileSizeInPixelsInWorldSpace,
                 (int) (tmpWall.x * Game.SizeOfTileInPixelsInSpritesheet),

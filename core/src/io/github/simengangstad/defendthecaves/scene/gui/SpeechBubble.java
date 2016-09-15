@@ -23,7 +23,7 @@ public class SpeechBubble extends Table {
 
         setStyle(Game.UISkin.get(SpeechBubbleStyle.class));
 
-        label.setFontScale(0.3f);
+        label.setColor(Color.BLACK);
         label.setAlignment(Align.center);
     }
 
@@ -44,8 +44,8 @@ public class SpeechBubble extends Table {
 
         label.setX(getX() + (getWidth() / style.background.getMinWidth()) * 1);
         label.setWidth(getWidth() - (getWidth() / style.background.getMinWidth()) * 1 * 2);
-        label.setY(getY() + label.getPrefHeight() / 2.0f);
         setHeight(label.getPrefHeight());
+        label.setY(getY() + getHeight() - label.getPrefHeight() / 2.0f);
 
         super.draw(batch, parentAlpha);
         label.draw(batch, parentAlpha);

@@ -2,25 +2,32 @@ package io.github.simengangstad.defendthecaves;
 
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.graphics.GL20;
+import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
-import com.badlogic.gdx.scenes.scene2d.InputEvent;
-import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
-import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
-import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.utils.Pool;
+import io.github.simengangstad.defendthecaves.scene.Item;
 import io.github.simengangstad.defendthecaves.scene.Scene;
+import io.github.simengangstad.defendthecaves.scene.crafting.CraftableItemsView;
+import io.github.simengangstad.defendthecaves.scene.crafting.Inventory;
+import io.github.simengangstad.defendthecaves.scene.entities.Caterpillar;
+import io.github.simengangstad.defendthecaves.scene.entities.Orc;
 import io.github.simengangstad.defendthecaves.scene.entities.Player;
+import io.github.simengangstad.defendthecaves.scene.entities.Snake;
+import io.github.simengangstad.defendthecaves.scene.items.Axe;
+import io.github.simengangstad.defendthecaves.scene.items.Crossbow;
+import io.github.simengangstad.defendthecaves.scene.items.Potion;
+import io.github.simengangstad.defendthecaves.scene.items.Rock;
+import io.github.simengangstad.defendthecaves.startscreen.StartScreen;
 
 public class Game extends ApplicationAdapter {
 
     public static Texture SpriteSheet;
+    public static Texture GUISheet;
 
     public static Texture PlayerStationary;
     public static Texture PlayerMoving;
@@ -66,16 +73,29 @@ public class Game extends ApplicationAdapter {
      */
     public static final int SizeOfTileInPixelsInSpritesheet = 16;
 
-    private Scene scene;
+    public static Container container;
 
-    public static boolean DebubDraw = false;
+    public static boolean Debug = false;
 
     public static TextureRegion debugDrawTexture;
 
     @Override
 	public void create () {
 
+        init();
+
+        container = new StartScreen();
+
+        Gdx.input.setCursorCatched(false);
+        Gdx.input.setCursorPosition(Gdx.graphics.getWidth() / 2, Gdx.graphics.getHeight() / 2);
+    }
+
+    private void init() {
+
+        System.out.println("OpenGL context: " + Gdx.gl.glGetString(Gdx.gl.GL_VERSION));
+
         SpriteSheet = new Texture("assets/spritesheet.png");
+        GUISheet = new Texture("assets/gui/uiskin.png");
 
         PlayerStationary = new Texture("assets/animations/PlayerStationary.png");
         PlayerMoving = new Texture("assets/animations/PlayerWalking.png");
@@ -97,18 +117,12 @@ public class Game extends ApplicationAdapter {
 
         UISkin = new Skin(Gdx.files.internal("assets/gui/uiskin.json"));
 
-        Player player = new Player(new OrthographicCamera(Gdx.graphics.getWidth(), Gdx.graphics.getHeight()));
-
-        scene = new Scene(player);
-
-        //Gdx.input.setCursorCatched(true);
-        //Gdx.input.setCursorPosition(Gdx.graphics.getWidth() / 2, Gdx.graphics.getHeight() / 2);
     }
 
     @Override
     public void resize(int width, int height) {
 
-        scene.resize(width, height);
+        container.resize(width, height);
     }
 
     @Override
@@ -116,12 +130,61 @@ public class Game extends ApplicationAdapter {
 
         Gdx.graphics.setTitle("FPS: " + Gdx.graphics.getFramesPerSecond());
 
-        scene.tick();
+        container.tick();
     }
 
     @Override
     public void dispose() {
 
-        scene.dispose();
+        SpriteSheet.dispose();
+        GUISheet.dispose();
+        PlayerStationary.dispose();
+        PlayerMoving.dispose();
+
+        SnakeStationary.dispose();
+        SnakeMoving.dispose();
+        SnakeBiting.dispose();
+
+        OrcStationary.dispose();
+        OrcMoving.dispose();
+
+        CaterpillarStationary.dispose();
+        CaterpillarMoving.dispose();
+        CaterpillarAttacking.dispose();
+
+        container.dispose();
+
+        CraftableItemsView.CraftSound.dispose();
+        CraftableItemsView.ErrorSound.dispose();
+        Inventory.Trashing.dispose();
+
+        for (Sound sound : Orc.roar) {
+
+            sound.dispose();
+        }
+
+        Caterpillar.Spitting.dispose();
+        Caterpillar.Hiss.dispose();
+
+        Snake.bite.dispose();
+        Snake.hiss.dispose();
+
+        Axe.Hit.dispose();
+        Axe.Swing.dispose();
+
+        Item.throwSound.dispose();
+
+        for (Sound sound : Player.Walking) {
+
+            sound.dispose();
+        }
+
+        Player.Rocks.dispose();
+
+        Potion.Breaking.dispose();
+        Potion.Drinking.dispose();
+        Potion.Burp.dispose();
+
+        Crossbow.Fire.dispose();
     }
 }

@@ -47,7 +47,7 @@ public abstract class GameObject implements Disposable {
             getTextureRegion().flip(true, false);
         }
 
-        if (Game.DebubDraw) {
+        if (Game.Debug) {
 
             batch.draw(Game.debugDrawTexture, position.x - size.x / 2.0f, position.y - size.y / 2.0f, size.x / 2.0f, size.y / 2.0f, size.x, size.y, 1.0f, 1.0f, rotation);
         }
@@ -73,21 +73,5 @@ public abstract class GameObject implements Disposable {
     public boolean inside(float x, float y) {
 
         return position.x - size.x / 2.0f <= x && x < position.x + size.x / 2.0f && position.y - size.y / 2.0f <= y && y < position.y + size.y / 2.0f;
-    }
-
-    /**
-     * Checks intersection between this game object and another one.
-     */
-    public boolean intersects(GameObject other) {
-
-        if(Math.abs(position.x - other.position.x) < size.x / 2.0f + other.size.x / 2.0f) {
-
-            if(Math.abs(position.y - other.position.y) < size.y / 2.0f + other.size.y / 2.0f) {
-
-                return true;
-            }
-        }
-
-        return false;
     }
 }

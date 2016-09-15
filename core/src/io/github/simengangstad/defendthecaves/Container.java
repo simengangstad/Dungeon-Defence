@@ -21,7 +21,7 @@ public class Container implements Disposable, InputProcessor {
     /**
      * The batch responsable for drawing.
      */
-    protected SpriteBatch batch = new SpriteBatch();
+    public SpriteBatch batch = new SpriteBatch();
 
     /**
      * The input multiplexer dealing with the various inputs and delegating them.
@@ -74,6 +74,11 @@ public class Container implements Disposable, InputProcessor {
     public void removeGameObject(GameObject gameObject) {
 
         removeBuffer.add(gameObject);
+    }
+
+    public List<GameObject> getGameObjects() {
+
+        return gameObjects;
     }
 
     public void setProjectionMatrix(Matrix4 projectionMatrix) {
@@ -131,10 +136,10 @@ public class Container implements Disposable, InputProcessor {
         return false;
     }
 
-    public void tick() {
-
-        Gdx.gl.glClearColor(0, 0, 0, 1);
-        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
+    /**
+     * Adds and removes the gameobjects in the buffers.
+     */
+    public void clearBuffers() {
 
         if (!buffer.isEmpty()) {
 
@@ -149,6 +154,14 @@ public class Container implements Disposable, InputProcessor {
 
             removeBuffer.clear();
         }
+    }
+
+    public void tick() {
+
+        Gdx.gl.glClearColor(0, 0, 0, 1);
+        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
+
+        clearBuffers();
 
         batch.begin();
 
@@ -161,7 +174,6 @@ public class Container implements Disposable, InputProcessor {
 
         batch.end();
 
-        stage.act();
         stage.draw();
     }
 

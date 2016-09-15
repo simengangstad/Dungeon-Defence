@@ -1,10 +1,13 @@
 package io.github.simengangstad.defendthecaves.scene;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.Cursor;
 import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Vector2;
 import io.github.simengangstad.defendthecaves.Callback;
+import io.github.simengangstad.defendthecaves.Game;
 import io.github.simengangstad.defendthecaves.GameObject;
 import io.github.simengangstad.defendthecaves.scene.entities.Player;
 import io.github.simengangstad.defendthecaves.scene.items.Shield;
@@ -15,17 +18,17 @@ import java.util.List;
  * @author simengangstad
  * @since 30/01/16
  */
-public class Projectile extends GameObject {
+public class Projectile extends Item {
 
-    private final Animation projectingAnimation, impactAnimation;
+    public Animation projectingAnimation, impactAnimation;
 
     private TextureRegion currentTextureRegion;
 
-    private final Vector2 velocity, tmp = new Vector2(), tmpCollisionPoint = new Vector2();
+    public final Vector2 velocity = new Vector2();
 
-    private final Map map;
+    private Vector2 tmp = new Vector2();
 
-    private final List<GameObject> gameObjectList;
+    public List<GameObject> gameObjectList;
 
     private boolean colliding = false;
 
@@ -33,23 +36,24 @@ public class Projectile extends GameObject {
 
     public ImpactCallback impactCallback;
 
+    private boolean calledImpactCallback = false;
+
     public Callback finishedPlayingImpactAnimationCallback;
 
-    private final Class avoidable;
+    public GameObject avoidable;
 
-    private final boolean flip;
+    public boolean flip;
 
-    public Projectile(Vector2 position, Vector2 size, Vector2 velocity, Animation projectingAnimation, Animation impactAnimation, Map map, List<GameObject> gameObjectList, Class avoidable) {
+    private final int pixelWidth, pixelHeight;
 
-        this.position.set(position);
-        this.size.set(size);
+    public Projectile(Vector2 position, Vector2 size, Vector2 velocity, Animation projectingAnimation, Animation impactAnimation, List<GameObject> gameObjectList, GameObject avoidable) {
 
-        this.velocity = velocity;
+        super(position, size, projectingAnimation.getKeyFrame(0.0f), true);
+
+        this.velocity.set(velocity);
 
         this.projectingAnimation = projectingAnimation;
         this.impactAnimation = impactAnimation;
-
-        this.map = map;
 
         this.gameObjectList = gameObjectList;
 
@@ -58,11 +62,26 @@ public class Projectile extends GameObject {
         this.avoidable = avoidable;
 
         flip = velocity.x > 0;
+
+        pixelWidth = projectingAnimation.getKeyFrame(0.0f).getRegionWidth();
+        pixelHeight = projectingAnimation.getKeyFrame(0.0f).getRegionHeight();
+    }
+
+    @Override
+    public void interact(Vector2 direction) {
+    }
+
+    @Override
+    public TextureRegion getSlotTextureRegion() {
+
+        return getTextureRegion();
     }
 
     @Override
     public void create() {
 
+        colliding = false;
+        stateTime = 0.0f;
     }
 
     @Override
@@ -71,14 +90,15 @@ public class Projectile extends GameObject {
         return currentTextureRegion;
     }
 
-    private void checkCollision(Vector2 direction) {
+    private boolean check(int x, int y, Vector2 tilePosition, Vector2 tileSize, boolean flip) {
 
-        tmp.set(direction).nor();
+        if (bakedTiledCollisionMaps[bakedTiledCollisionMapIndex][x][y]) {
 
-        if (velocity.x != 0.0f || velocity.y != 0.0f) {
+            tilePosition.set(position.x - size.x / 2.0f + (flip ? size.x - tileSize.x * (x + 1) : tileSize.x * x), position.y + size.y / 2.0f - tileSize.y * (y + 1) + (Game.Debug ? 20 : 0));
 
-            // Check the collision of the projectile against the map
-            if (map.retrieveCollisionPoint(position, tmp, 1000, tmpCollisionPoint)) {
+            if (Game.Debug) host.batch.draw(Game.debugDrawTexture, tilePosition.x, tilePosition.y, tileSize.x, tileSize.y);
+
+            if (map.collides(tilePosition, tileSize, tmp)) {
 
                 if (!colliding) {
 
@@ -89,15 +109,102 @@ public class Projectile extends GameObject {
                     velocity.set(0.0f, 0.0f);
                 }
 
-                if (impactCallback != null) impactCallback.callback(null);
+                if (impactCallback != null && !calledImpactCallback) {
+
+                    impactCallback.callback(null);
+
+                    calledImpactCallback = true;
+                }
+
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private void checkCollision(Vector2 direction) {
+
+        tmp.set(direction);
+
+        if (velocity.x != 0.0f || velocity.y != 0.0f) {
+
+            if (tiledCollisionTests) {
+
+                // Only collision test, not response
+
+                Vector2 tileSize = Game.vector2Pool.obtain();
+                Vector2 tilePostion = Game.vector2Pool.obtain();
+
+                tileSize.set(size.x / pixelWidth, size.y / pixelHeight);
+
+                if (!flip) {
+
+                    for (int x = 0; x < bakedTiledCollisionMaps[bakedTiledCollisionMapIndex].length; x++) {
+
+                        for (int y = 0; y < bakedTiledCollisionMaps[bakedTiledCollisionMapIndex][0].length; y++) {
+
+                            if (check(x, y, tilePostion, tileSize, false)) {
+
+                                break;
+                            }
+                        }
+                    }
+                }
+                else {
+
+                    for (int x = bakedTiledCollisionMaps[bakedTiledCollisionMapIndex].length - 1; x >= 0; x--) {
+
+                        for (int y = bakedTiledCollisionMaps[bakedTiledCollisionMapIndex][0].length - 1; y >= 0; y--) {
+
+                            if (check(x, y, tilePostion, tileSize, true)) {
+
+                                break;
+                            }
+                        }
+                    }
+                }
+
+
+                Game.vector2Pool.free(tileSize);
+                Game.vector2Pool.free(tilePostion);
+
+                if (!colliding) {
+
+                    position.add(direction);
+                }
             }
             else {
 
+                // Check the collision of the projectile against the map
+                if (map.retrieveCollisionPoint(position, tmp, direction.len(), null)) {
+
+                    if (!colliding) {
+
+                        colliding = true;
+
+                        stateTime = 0.0f;
+
+                        velocity.set(0.0f, 0.0f);
+                    }
+
+
+                    if (impactCallback != null && !calledImpactCallback) {
+
+                        impactCallback.callback(null);
+
+                        calledImpactCallback = true;
+                    }
+                }
+            }
+
+            if (!colliding) {
+
                 for (GameObject gameObject : gameObjectList) {
 
-                    if ((gameObject instanceof Entity) & !(gameObject.getClass().getSuperclass().equals(avoidable))) {
+                    if ((gameObject instanceof Entity) && gameObject != avoidable) {
 
-                        if (gameObject.intersects(this)) {
+                        if (((Collidable) gameObject).intersects(this, true)) {
 
                             if (!colliding) {
 
@@ -113,7 +220,13 @@ public class Projectile extends GameObject {
                                 return;
                             }
 
-                            if (impactCallback != null) impactCallback.callback(gameObject);
+
+                            if (impactCallback != null && !calledImpactCallback) {
+
+                                impactCallback.callback(gameObject);
+
+                                calledImpactCallback = true;
+                            }
                         }
                     }
                 }
@@ -130,7 +243,14 @@ public class Projectile extends GameObject {
     @Override
     public void tick() {
 
-        stateTime += Gdx.graphics.getDeltaTime();
+        if (timing) {
+
+            timer += Gdx.graphics.getDeltaTime();
+        }
+
+        stateTime += Gdx.graphics.getDeltaTime() / 5;
+
+        if (!colliding) super.bakedTiledCollisionMapIndex = projectingAnimation.getKeyFrameIndex(stateTime % projectingAnimation.getAnimationDuration());
 
         checkCollision(velocity);
 
@@ -140,11 +260,18 @@ public class Projectile extends GameObject {
         }
         else {
 
-            currentTextureRegion = impactAnimation.getKeyFrame(stateTime, false);
+            if (impactAnimation != null) {
 
-            if (stateTime > impactAnimation.getAnimationDuration()) {
+                currentTextureRegion = impactAnimation.getKeyFrame(stateTime, false);
 
-                if (finishedPlayingImpactAnimationCallback != null) finishedPlayingImpactAnimationCallback.callback();
+                if (stateTime > impactAnimation.getAnimationDuration()) {
+
+                    if (finishedPlayingImpactAnimationCallback != null) finishedPlayingImpactAnimationCallback.callback();
+                }
+            }
+            else {
+
+                currentTextureRegion = projectingAnimation.getKeyFrame(0.0f);
             }
         }
     }

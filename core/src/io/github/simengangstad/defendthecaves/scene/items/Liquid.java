@@ -8,13 +8,14 @@ import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Vector2;
 import io.github.simengangstad.defendthecaves.Game;
 import io.github.simengangstad.defendthecaves.GameObject;
+import io.github.simengangstad.defendthecaves.scene.Collidable;
 import io.github.simengangstad.defendthecaves.scene.TextureUtil;
 
 /**
  * @author simengangstad
  * @since 08/03/16
  */
-public class Liquid extends GameObject {
+public class Liquid extends Collidable {
 
     public static final float FrameDuration = 0.3f;
 
@@ -43,6 +44,11 @@ public class Liquid extends GameObject {
 
             stateTime += Gdx.graphics.getDeltaTime();
         }
+    }
+
+    @Override
+    protected void collides() {
+
     }
 
     @Override

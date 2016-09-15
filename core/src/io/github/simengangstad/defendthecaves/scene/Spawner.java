@@ -23,7 +23,7 @@ public class Spawner<T> {
      * @param intervalMills The interval between the spawns in milliseconds.
      * @param callback The callback function which get called as new item is spawned.
      */
-    public void spawn(int amount, int intervalMills, SpawnCallback callback) {
+    public void spawn(int amount, int intervalMills, SpawnCallback<T> callback) {
 
         new Thread(() -> {
 

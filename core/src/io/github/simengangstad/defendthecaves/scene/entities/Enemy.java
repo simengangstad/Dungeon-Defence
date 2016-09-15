@@ -101,9 +101,15 @@ public abstract class Enemy extends Entity {
 
             if (tmpVector.set(playerPositionReference.x - position.x, playerPositionReference.y - position.y).len() < coverageRadius * map.TileSizeInPixelsInWorldSpace / (playerReference.currentItem instanceof Torch ? 1 : 2)) {
 
-                if (tmpVector.len() < playerSizeReference.x) {
+                noticedPlayer(tmpVector);
+
+                if (tmpVector.len() < playerSizeReference.x * 1.5f) {
 
                     hurtPlayer(tmpVector);
+                }
+                else if (tmpVector.len() < Map.TileSizeInPixelsInWorldSpace * 4) {
+
+                    delta.set(tmpVector).nor().scl(scaleFactor);
                 }
                 else {
 
@@ -186,8 +192,6 @@ public abstract class Enemy extends Entity {
                             currentIndex++;
                         }
                     }
-
-                    noticedPlayer(tmpVector);
                 }
             }
             else {
@@ -196,39 +200,50 @@ public abstract class Enemy extends Entity {
                 // Pick a position from its surroundings and go there over a set amount of seconds
                 if (!((int) (position.x / Map.TileSizeInPixelsInWorldSpace) == destination.x && (int) (position.y / Map.TileSizeInPixelsInWorldSpace) == destination.y)) {
 
-                    // Get the next coordinate on the path, but this needs to change as the current position was the next coordinate
-                    // on the path, therefore we store a last position which is a reference to the last coordinate on the path
-                    Coordinate next = path.get(currentIndex);
+                    Coordinate next;
 
-                    // Set the direction of movement to the next coordinate of the path
-                    delta.set(next.x * Map.TileSizeInPixelsInWorldSpace - lastPosition.x, next.y * Map.TileSizeInPixelsInWorldSpace - lastPosition.y).nor().scl(scaleFactor);
+                    try {
 
-                    timeLeftStationary = 0.0f;
+                        // Get the next coordinate on the path, but this needs to change as the current position was the next coordinate
+                        // on the path, therefore we store a last position which is a reference to the last coordinate on the path
+                        next = path.get(currentIndex);
 
-                    // TOOD: Cheeky solution, but who cares?
-                    if (timePassedGoingInTheGivenDirection > 3.0f) {
+                        // Set the direction of movement to the next coordinate of the path
+                        delta.set(next.x * Map.TileSizeInPixelsInWorldSpace - lastPosition.x, next.y * Map.TileSizeInPixelsInWorldSpace - lastPosition.y).nor().scl(scaleFactor);
+
+                        timeLeftStationary = 0.0f;
+
+                        // TOOD: Cheeky solution, but who cares?
+                        if (timePassedGoingInTheGivenDirection > 3.0f) {
+
+                            destination.set((int) (position.x / Map.TileSizeInPixelsInWorldSpace), (int) (position.y / Map.TileSizeInPixelsInWorldSpace));
+                        }
+
+                        timePassedGoingInTheGivenDirection += Gdx.graphics.getDeltaTime();
+
+                        // If there's a next cooridnate
+                        if (currentIndex + 1 < path.size()) {
+
+                            float deltaX = next.x * Map.TileSizeInPixelsInWorldSpace - position.x;
+                            float deltaY = next.y * Map.TileSizeInPixelsInWorldSpace - position.y;
+
+                            float length = (float) Math.sqrt((deltaX * deltaX) + (deltaY * deltaY));
+
+                            if (length <= Map.TileSizeInPixelsInWorldSpace / 1.5f) {
+
+                                lastPosition.set(((int) (position.x / Map.TileSizeInPixelsInWorldSpace) + 0.5f) * Map.TileSizeInPixelsInWorldSpace, ((int) (position.y / Map.TileSizeInPixelsInWorldSpace) + 0.5f) * Map.TileSizeInPixelsInWorldSpace);
+
+                                currentIndex++;
+
+                                timePassedGoingInTheGivenDirection = 0.0f;
+                            }
+                        }
+                    }
+                    catch (IndexOutOfBoundsException exception) {
+
+                        exception.printStackTrace();
 
                         destination.set((int) (position.x / Map.TileSizeInPixelsInWorldSpace), (int) (position.y / Map.TileSizeInPixelsInWorldSpace));
-                    }
-
-                    timePassedGoingInTheGivenDirection += Gdx.graphics.getDeltaTime();
-
-                    // If there's a next cooridnate
-                    if (currentIndex + 1 < path.size()) {
-
-                        float deltaX = next.x * Map.TileSizeInPixelsInWorldSpace - position.x;
-                        float deltaY = next.y * Map.TileSizeInPixelsInWorldSpace - position.y;
-
-                        float length = (float) Math.sqrt((deltaX * deltaX) + (deltaY * deltaY));
-
-                        if (length <= Map.TileSizeInPixelsInWorldSpace / 1.5f) {
-
-                            lastPosition.set(((int) (position.x / Map.TileSizeInPixelsInWorldSpace) + 0.5f) * Map.TileSizeInPixelsInWorldSpace, ((int) (position.y / Map.TileSizeInPixelsInWorldSpace) + 0.5f) * Map.TileSizeInPixelsInWorldSpace);
-
-                            currentIndex++;
-
-                            timePassedGoingInTheGivenDirection = 0.0f;
-                        }
                     }
                 }
                 else {

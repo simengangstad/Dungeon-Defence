@@ -17,11 +17,11 @@ public class ProgressBar extends Table {
 
     public float value;
 
-    public ProgressBar(int max) {
+    public ProgressBar(int initial, int max) {
 
         setStyle(Game.UISkin.get(ProgressBarStyle.class));
 
-        value = max;
+        value = initial;
 
         this.max = max;
 

@@ -13,7 +13,7 @@ public abstract class RotatableWeapon extends Weapon {
     /**
      * The maximum and minimum rotation.
      */
-    private final int minRotation, maxRotation;
+    protected final int minRotation, maxRotation;
 
     /**
      * Rotation of the weapon in degrees.
@@ -23,7 +23,7 @@ public abstract class RotatableWeapon extends Weapon {
     /**
      * The different texture regions for the given rotations.
      */
-    private TextureRegion[] weaponTextureRegions, attackTextureRegions;
+    protected TextureRegion[] weaponTextureRegions, attackTextureRegions;
 
     /**
      * The current texture regions.
@@ -33,14 +33,14 @@ public abstract class RotatableWeapon extends Weapon {
     /**
      * The last mouse position.
      */
-    private int lastMouseXPosition, lastMouseYPosition;
+    protected int lastMouseXPosition, lastMouseYPosition;
 
     /**
      * The index of the texture region before the attack took place. Used for setting the
      * {@link RotatableWeapon#currentWeaponTextureRegion} back to the texture region
      * that initially was.
      */
-    private int weaponIndexBeforeAttacking = 0;
+    protected int weaponIndexBeforeAttacking = 0;
 
     /**
      * Initializes the rotatable weapon.

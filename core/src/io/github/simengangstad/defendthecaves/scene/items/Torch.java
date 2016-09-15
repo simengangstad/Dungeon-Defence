@@ -3,6 +3,7 @@ package io.github.simengangstad.defendthecaves.scene.items;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import io.github.simengangstad.defendthecaves.Game;
@@ -15,11 +16,14 @@ import io.github.simengangstad.defendthecaves.scene.entities.Player;
  */
 public class Torch extends Item {
 
+    public static final String Information = "Torch";
+    public static final String CraftInformation = "Torch. Made from:\n1 wood\n1 coal";
+
     public static final Vector3 DefaultColour = new Vector3(0.9f, 0.55f, 0.19f);
 
     public final Light light;
 
-    private final static Animation animation = TextureUtil.getAnimation(Game.Torch, 16, 0.4f, Animation.PlayMode.LOOP);
+    public final static Animation animation = TextureUtil.getAnimation(Game.Torch, 16, 0.4f, Animation.PlayMode.LOOP);
 
     private float animationTime = 0.0f;
 
@@ -31,13 +35,14 @@ public class Torch extends Item {
 
         super(position, new Vector2(Game.EntitySize, Game.EntitySize), animation.getKeyFrame(0.0f, true), true);
 
-        light = new Light(position, DefaultColour, 30);
+        light = new Light(position, DefaultColour, 60);
 
-        information = "Torch";
+        information = Information;
+        craftInformation = CraftInformation;
     }
 
     @Override
-    public void interact(Vector2 direciton) {
+    public void interact(Vector2 direction) {
 
         Vector3 vec = Game.vector3Pool.obtain();
 
@@ -46,16 +51,19 @@ public class Torch extends Item {
 
         if (vec.len() - position.len() < Map.TileSizeInPixelsInWorldSpace * 1.5f) {
 
-            overwriteFlip = true;
-            flip = !parent.flip();
+            if (!map.isSolid((int) (vec.x / Map.TileSizeInPixelsInWorldSpace), (int) (vec.y / Map.TileSizeInPixelsInWorldSpace))) {
 
-            position.set(vec.x, vec.y);
+                overwriteFlip = true;
+                flip = !parent.flip();
 
-            parent.removeItem(this);
+                position.set(vec.x, vec.y);
 
-            host.addGameObject(this);
+                parent.removeItem(this);
 
-            placed = true;
+                host.addGameObject(this);
+
+                placed = true;
+            }
         }
 
         Game.vector3Pool.free(vec);
@@ -87,9 +95,9 @@ public class Torch extends Item {
     @Override
     public void draw(SpriteBatch batch) {
 
-        if (!isPlaced()) {
+        if (!isPlaced() && !isThrown()) {
 
-            position.set(parent.position);
+            if (parent != null) position.set(parent.position);
         }
 
         tmpVector.set(position);
@@ -112,5 +120,11 @@ public class Torch extends Item {
         super.draw(batch);
 
         position.set(tmpVector);
+    }
+
+    @Override
+    public TextureRegion getSlotTextureRegion() {
+
+        return animation.getKeyFrame(0.0f);
     }
 }

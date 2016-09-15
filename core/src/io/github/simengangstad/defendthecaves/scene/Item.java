@@ -1,12 +1,14 @@
 package io.github.simengangstad.defendthecaves.scene;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Vector2;
 import io.github.simengangstad.defendthecaves.Game;
 import io.github.simengangstad.defendthecaves.GameObject;
 import io.github.simengangstad.defendthecaves.scene.crafting.Inventory;
+import io.github.simengangstad.defendthecaves.scene.gui.SlotItem;
 
 /**
  * Objects that can be placed in an {@link Inventory} and used by an {@link Entity}.
@@ -14,12 +16,12 @@ import io.github.simengangstad.defendthecaves.scene.crafting.Inventory;
  * @author simengangstad
  * @since 17/01/16
  */
-public abstract class Item extends Collidable {
+public abstract class Item extends Collidable implements SlotItem {
 
     /**
      * The speed at which the item is thrown.
      */
-    public static final int ThrowingScalar = 20;
+    public static final float ThrowingScalar = 17.0f;
 
     /**
      * If the item is in the action of a throw.
@@ -52,11 +54,6 @@ public abstract class Item extends Collidable {
     public Entity parent;
 
     /**
-     * The position of the item in an inventory.
-     */
-    public Vector2 inventoryPosition = new Vector2();
-
-    /**
      * The offset in y-direction of the item as the {@link Item#parent} is running whilst holding the item.
      */
     public float walkingOffset = 0.0f;
@@ -74,17 +71,22 @@ public abstract class Item extends Collidable {
     /**
      * If we're timing; if the item is in the scene.
      */
-    private boolean timing = false;
+    protected boolean timing = false;
 
     /**
      * The time the item has been in the scene.
      */
-    private float timer = 0;
+    protected float timer = 0;
 
     /**
      * The information about the item.
      */
     protected String information = "";
+
+    /**
+     * Gives the recipe for the craftable for example.
+     */
+    protected String craftInformation = "";
 
     /**
      * Set the item to a stationary position where it doesn't get attracted to
@@ -96,6 +98,10 @@ public abstract class Item extends Collidable {
 
     public boolean overwriteFlip = false;
     public boolean flip = false;
+
+    public boolean canBePickedUp = true;
+
+    public static Sound throwSound = Gdx.audio.newSound(Gdx.files.internal("assets/sfx/throw.ogg"));
 
     /**
      * Initializes the item.
@@ -173,10 +179,10 @@ public abstract class Item extends Collidable {
     /**
      * Makes the item interact. Fired by the player.
      *
-     * @param direciton The direction of the interaction; from the entity to the
+     * @param direction The direction of the interaction; from the entity to the
      *                  point of focus.
      */
-    public abstract void interact(Vector2 direciton);
+    public abstract void interact(Vector2 direction);
 
     /**
      * Removes the item from the parent entity and throws it in the given direction.
@@ -194,13 +200,15 @@ public abstract class Item extends Collidable {
         this.applyForce(direction.scl(ThrowingScalar), true, Float.MAX_VALUE);
 
         thrown = true;
+
+        throwSound.play();
     }
 
     public void toggleTimer() {
 
         timing = !timing;
 
-        System.out.println("Timer toggled: " + timing);
+        if (Game.Debug) System.out.println("Timer toggled: " + timing);
 
         if (!timing) {
 
@@ -218,6 +226,8 @@ public abstract class Item extends Collidable {
 
         super.tick();
 
+        checkTiledCollsionOnly();
+
         if (timing) {
 
             timer += Gdx.graphics.getDeltaTime();
@@ -234,35 +244,6 @@ public abstract class Item extends Collidable {
 
         delta.set(0.0f, 0.0f);
     }
-
-    /**
-     * Draws the item with the specified position and size and not taking the
-     * respecitve memebers of the item in consideration. Used in particular for
-     * drawing the item within an {@link Inventory}.
-     *
-     * Use {@link GameObject#draw(SpriteBatch)}
-     * for general purpose drawing.
-     */
-    public void draw(SpriteBatch batch, float x, float y, float width, float height, boolean flipAutomatically) {
-
-        if (flip() && flipAutomatically) {
-
-            getTextureRegion().flip(true, false);
-        }
-
-        if (Game.DebubDraw) {
-
-            batch.draw(Game.debugDrawTexture, x, y, width, height);
-        }
-
-        batch.draw(getTextureRegion(), x, y, width, height);
-
-        if (flip() && flipAutomatically) {
-
-            getTextureRegion().flip(true, false);
-        }
-    }
-
 
     @Override
     public void draw(SpriteBatch batch) {
@@ -285,7 +266,7 @@ public abstract class Item extends Collidable {
             getTextureRegion().flip(true, false);
         }
 
-        if (Game.DebubDraw) {
+        if (Game.Debug) {
 
             batch.draw(Game.debugDrawTexture, position.x - size.x / 2.0f, position.y - size.y / 2.0f + walkingOffset, size.x / 2.0f, size.y / 2.0f, size.x, size.y, 1.0f, 1.0f, rotation);
         }

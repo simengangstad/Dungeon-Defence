@@ -1,6 +1,9 @@
 package io.github.simengangstad.defendthecaves.scene.items;
 
+import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.math.Vector2;
 import io.github.simengangstad.defendthecaves.Callback;
 import io.github.simengangstad.defendthecaves.Game;
 
@@ -33,6 +36,9 @@ public class Axe extends RotatableWeapon {
         }
     }
 
+    public static Sound Swing = Gdx.audio.newSound(Gdx.files.internal("assets/sfx/axe-swing.ogg")),
+                        Hit = Gdx.audio.newSound(Gdx.files.internal("assets/sfx/axe-hit.wav"));
+
 
     public Axe(Callback interactionCallback) {
 
@@ -41,6 +47,20 @@ public class Axe extends RotatableWeapon {
         size.set(Game.EntitySize, Game.EntitySize);
 
         information = "A dwarf's deerest friend\nAttack damage: " + attackDamage;
+    }
+
+    @Override
+    public void interact(Vector2 direction) {
+
+        super.interact(direction);
+
+        Swing.play(0.5F);
+    }
+
+    @Override
+    public TextureRegion getSlotTextureRegion() {
+
+        return textureRegions[0];
     }
 
     @Override

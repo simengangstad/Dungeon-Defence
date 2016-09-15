@@ -25,7 +25,7 @@ public class Key extends Item {
     }
 
     @Override
-    public void interact(Vector2 direciton) {
+    public void interact(Vector2 direction) {
 
     }
 
@@ -70,5 +70,12 @@ public class Key extends Item {
         position.set(tmpPosition);
 
         Game.vector2Pool.free(tmpPosition);
+    }
+
+
+    @Override
+    public TextureRegion getSlotTextureRegion() {
+
+        return super.getTextureRegion();
     }
 }

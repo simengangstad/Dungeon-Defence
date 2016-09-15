@@ -1,3 +1,17 @@
 - Explosion sprites (Master484) - http://m484games.ucoz.com/
 - Littera - http://kvazars.com/littera/
 - Hobbiton font (Nancy Lorenz) - http://www.fontspace.com/nancy-lorenz/hobbiton
+- Sprites - blog-buch.rhcloud.com
+- Orc sfx - LittleRobotSoundFactory, http://www.freesound.org/people/LittleRobotSoundFactory/sounds/316358/, no changes made
+- SRSFX_LargeBeast_LongGrunts - Stephen Saldanha, http://www.freesound.org/people/StephenSaldanha/sounds/186673/, no changes made
+- Music, Alexander Ehlers
+- Snake hiss - csaszi, http://www.freesound.org/people/csaszi/sounds/252768/
+- Snake attack - Jamius, http://www.freesound.org/people/Jamius/sounds/41531/
+- RPG sound pack - artisticdude, http://opengameart.org/content/rpg-sound-pack
+- Error - Isaac200000, http://www.freesound.org/people/Isaac200000/sounds/188013/
+- Hiss - Reitanna, http://www.freesound.org/people/Reitanna/sounds/343927/
+- Spitting - davidou, http://www.freesound.org/people/davidou/sounds/88459/
+- Rocks - kwandalist, http://www.freesound.org/people/kwandalist/sounds/47496/
+- Burp - Adam_N, http://www.freesound.org/people/Adam_N/sounds/324514/
+- Breaking bottle - Chela Sivesta, http://www.freesound.org/people/Chela%20Sivesta/sounds/162169/
+- Crossbow, Erdie - http://www.freesound.org/people/Erdie/sounds/65734/?page=3#comment

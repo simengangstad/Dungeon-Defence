@@ -3,11 +3,11 @@ Think like the tunnel series, how Drake and Elliott fight against the limiters
 - [ ] Drake's sniper scopes to look in the dark?
 
 - Combat and health system
-  - [ ] Receive health from fallen enemies.
+  - [x] Receive health from fallen enemies.
   - [ ] Have an option for walking silently (though slower).
   - [ ] Player has two armery slots. While the current isn't used the other one is on the back of player.
   - [ ] Combat roll (like a James Bond roll)
-  - [ ] Screen shaking.
+  - [x] Screen shaking.
   - [ ] Dashing (which is dependent on stamina)
   - [ ] Hit boxes around the axe (this will enable the animation to stop once it has hit a target).
 
@@ -46,3 +46,4 @@ Think like the tunnel series, how Drake and Elliott fight against the limiters
     - Strings
     - Rare items (?)
         - Keys to open locked rooms with loot
+  - [ ] Carrot juice that gives you night vision

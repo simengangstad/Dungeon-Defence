@@ -117,11 +117,54 @@
 - [x] Scroll background for labels
 - [x] Screen shaking
 
-# To be implemented
+# 0021
+- [x] Overlay of current item in item bar
+- [x] Label showing current wave
+- [x] Clean up crafting inventory -> remove duplicated code.
+- [x] Redesign crafting to be more user friendly and quicker.
+- [x] Allow items to be crafted with remaining ingredients (10 wood and 16 coal = 10 torches and 6 coal)
+- [x] Crossbow
+- [x] Hit box collision between collidables.
+- [x] Hit box collision between collidables and the world (Just check if tile is inside the tile of the world).
+- [x] Potion breaks once entity has dropped it. Is because it 'collides', which is not the case.
+- [x] Make arrow direction correspond to vector from player to mouse pointer.
+- [x] Crafting of different types of arrows.
+- [x] Fix caterpillar attack
+- [x] Player take only one third damage from explosion
+- [x] Lower explosion intensity from explosive arrows
+- [x] Mobs drop different items
+- [x] Coal ores
+- [x] Fix bug where the caterpillars saliva is obtainable.
+- [x] Lots of loot in hidden rooms
+- [x] Bug: if you pick up a torch and aren't holding another torch the light is still left there.
+- [x] Torches should be rendered in front of other items
+- [x] Throw away items from inventory.
+- [x] New fonts
+- [x] Push with shield to avoid "stuck in a corner situatidons"
+- [x] Sound effects
+    - [x] Axe swing
+    - [x] Axe hit
+    - [x] Throw
+    - [x] Walking
+    - [x] Shield
+    - [x] Sound from orcs
+    - [x] Sound from snakes
+    - [x] Potion drinking
+    - [x] Potion breaking
+    - [x] Mining
+    - [x] Stone breaking
+    - [x] Shooting from crossbow
+    - [x] Snake
+    - [x] Caterpillar
+    - [x] Caterpillar spitting
+- [x] Refill of secret rooms, where new keys are generated
 
-- [ ] Overlay of current item in item bar
-- [ ] Improve AI further
-- [ ] Add functionality for reversing the process of crafting; retrieving components from a crafted item
-- [ ] Solve bug where the player sometimes ends up in rooms withuot entries.
-- [ ] Clean up crafting inventory -> remove duplicated code.
-- [ ] Make lights flicker with different intervals
+
+# 0022
+
+- [ ] Controls screen
+- [ ] Nicer start screen
+- [ ] Calm music when you have finished the wave
+- [ ] Explosion sound
+- [ ] Arrows doesn't hurt enemies after you pick them up?
+- [ ] Booby trap with strings.

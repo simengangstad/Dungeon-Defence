@@ -100,7 +100,7 @@ public class LightShader {
         handle.setUniformf(LightTileSizeInPixelsUniformName, lightTileSizeInPixels);
 
         handle.setUniformf(AmbientColourUniformName, ambientColour);
-        handle.setUniformf(TileSizeUniformName, Map.TileSizeInPixelsInWorldSpace);
+        handle.setUniformf(TileSizeUniformName, (float) Map.TileSizeInPixelsInWorldSpace);
         handle.setUniformi(MapWidthUniformName, width);
 
         time += Gdx.graphics.getDeltaTime() * 5;
@@ -115,12 +115,14 @@ public class LightShader {
             handle.setUniformf("u_lights[" + i + "].colour", light.colour);
             handle.setUniformf("u_lights[" + i + "].range", light.range);
             handle.setUniformi("u_lights[" + i + "].enabled", light.enabled ? 1 : 0);
+            handle.setUniformi("u_lights[" + i + "].flicker", light.flicker ? 1 : 0);
         }
     }
 
     private String getVertexShader() {
 
-        return  "attribute vec4 a_position;\n" +
+        return  "#version 120\n" +
+                "attribute vec4 a_position;\n" +
                 "attribute vec4 a_color;\n" +
                 "attribute vec2 a_texCoord0;\n" +
 
@@ -144,7 +146,8 @@ public class LightShader {
 
     private String getFragmentShader(int amountOfLights) {
 
-        return  "#ifdef GL_ES\n" +
+        return  "#version 120\n" +
+                "#ifdef GL_ES\n" +
                 "#define LOWP lowp\n" +
 
                 "precision mediump float;\n" +
@@ -166,6 +169,7 @@ public class LightShader {
                     "vec3 colour;\n" +
                     "float range;\n" +
                     "int enabled;\n" +
+                    "int flicker;\n" +
                 "};\n" +
 
                 "uniform float u_time;\n" +
@@ -204,6 +208,7 @@ public class LightShader {
                     "vec2 tilePos = vec2(int(v_position.x / u_tileSizeInWorldSpace), int(v_position.y / u_tileSizeInWorldSpace));\n" +
 
                     "bool illuminated = false;\n" +
+                    "bool torchLight = false;\n" +
                     "vec3 finalLightColour = vec3(-1.0, -1.0, -1.0);\n" +
 
                     "float intensity = 0.0;\n" +
@@ -214,7 +219,7 @@ public class LightShader {
                      //   "(u_map[int(tilePos.x) + int(tilePos.y) * u_widthOfMap] == 1.0 && u_map[int(tilePos.x + 1.0) + int(tilePos.y) * u_widthOfMap] == 0.0) ||\n" +
                       //  "(u_map[int(tilePos.x) + int(tilePos.y) * u_widthOfMap] == 1.0 && u_map[int(tilePos.x - 1.0) + int(tilePos.y) * u_widthOfMap] == 0.0)*/) {\n" +
 
-                        "vec3 preColour = vec3(colour);\n" +
+                        "vec3 preColour = vec3(colour.xyz);\n" +
 
                         "for (int i = 0; i < AmountOfLights; i++) {\n" +
 
@@ -231,41 +236,43 @@ public class LightShader {
 
                                 // Temp
 
-                                "if (finalLightColour.x == -1.0) {\n" +
-
-                                    "finalLightColour = u_lights[i].colour;\n" +
-                                "}\n" +
-                                "else {\n" +
-
-                                    //"finalLightColour = (finalLightColour + u_lights[i].colour);\n" +
-                                    "finalLightColour = u_lights[i].colour;\n" +
-                                "}\n" +
-
-                                "illuminated = true;\n" +
+                                "float lightInt = 0.0;\n" +
 
                                 "if ((range / lightRange) < 2.25/3.0) {\n" +
 
-                                    "intensity += 1.0;\n" +
+                                    "lightInt = 1.0;\n" +
                                 "}\n" +
 
                                 "else if ((range / lightRange) < 2.625/3.0) {\n" +
 
-                                    "intensity += 0.5;\n" +
+                                    "lightInt = 0.5;\n" +
                                 "}\n" +
 
                                 "else if ((range / lightRange) <= 3.0/3.0) {\n" +
 
-                                    "intensity += 0.25;\n" +
+                                    "lightInt = 0.25;\n" +
+                                "}\n" +
+
+                                "illuminated = true;\n" +
+
+                                "if (u_lights[i].flicker == 1) {\n" +
+
+                                    "intensity += lightInt;\n" +
+
+                                    "colour.xyz = preColour * (u_lights[i].colour * (min(intensity, 1.0) * (rand(float(int(u_time / timeScalar))) + 1.0)));\n" +
+
+                                    "torchLight = true;\n" +
+
+                                "}\n" +
+                                "else if (!torchLight) {\n" +
+
+                                    "colour.xyz = preColour * (u_lights[i].colour * min(lightInt, 1.0));\n" +
                                 "}\n" +
                             "}\n" +
                         "}\n" +
                     //"}\n" +
 
-                    "if (illuminated) {\n" +
-
-                        "colour.xyz *= finalLightColour * (min(intensity, 1.0) * (rand(float(int(u_time / timeScalar))) + 1.0));\n" +
-                    "}\n" +
-                    "else {\n" +
+                    "if (!illuminated) {\n" +
 
                         "colour.xyz *= u_ambientSceneColour;\n" +
                     "}\n" +
