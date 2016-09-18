@@ -53,11 +53,11 @@ public class Crossbow extends RotatableWeapon {
 
     private List<Object> tmpList = new ArrayList<>();
 
-    public static final Sound Fire = Gdx.audio.newSound(Gdx.files.internal("assets/sfx/crossbow.wav"));
+    public static final Sound Fire = Gdx.audio.newSound(Gdx.files.internal("assets/sfx/crossbow.wav")), NoArrow = Gdx.audio.newSound(Gdx.files.internal("assets/sfx/NoArrow.ogg"));
 
     public Crossbow() {
 
-        super(40, 0.15f, null, -45, 45, textureRegions, attackTextureRegions);
+        super(70, 0.15f, null, -45, 45, textureRegions, attackTextureRegions);
 
         super.stackable = true;
 
@@ -155,6 +155,12 @@ public class Crossbow extends RotatableWeapon {
                     parent.inventory.removeItem(arrow);
 
                     host.addGameObject(arrow);
+
+                    Fire.play();
+                }
+                else {
+
+                    NoArrow.play();
                 }
             }
 

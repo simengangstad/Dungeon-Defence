@@ -244,6 +244,11 @@ public abstract class Entity extends Collidable {
             ((Torch) item).light.enabled = false;
         }
 
+        if (item instanceof Arrow) {
+
+            ((Arrow) item).calledImpactCallback = false;
+        }
+
         inventory.placeItem(item);
 
         item.host = host;
@@ -265,6 +270,11 @@ public abstract class Entity extends Collidable {
         if (item instanceof Torch) {
 
             ((Torch) item).light.enabled = false;
+        }
+
+        if (item instanceof Arrow) {
+
+            ((Arrow) item).calledImpactCallback = false;
         }
 
         inventory.placeItem(x, y, item);

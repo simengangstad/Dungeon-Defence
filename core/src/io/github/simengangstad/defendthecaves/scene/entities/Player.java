@@ -421,7 +421,7 @@ public class Player extends Entity implements InputProcessor {
                 timeToNextStep = 0;
             }
 
-            if (Gdx.input.isButtonPressed(Input.Buttons.LEFT) && initMouse) {
+            if (Gdx.input.isButtonPressed(Input.Buttons.LEFT) && initMouse && !((Scene) host).justUnfrozen) {
 
                 tmpVec.set(camera.unproject(tmpVec.set(Gdx.input.getX(), Gdx.input.getY(), 0.0f)));
 

@@ -39,7 +39,7 @@ public class ItemBar extends Table {
 
         for (int i = 0; i < amountOfItems; i++) {
 
-            labels[i] = new Label("", Game.UISkin);
+            labels[i] = new Label("", Game.LabelStyle8);
         }
     }
 
@@ -80,7 +80,7 @@ public class ItemBar extends Table {
                         height
                 );
 
-                labels[i].setPosition(posXInventory + i * SlotSize + SlotSize - labels[i].getPrefWidth() - 4.0f, posYInventory + 10.0f);
+                labels[i].setPosition(posXInventory + i * SlotSize + SlotSize - labels[i].getPrefWidth() - 2.0f, posYInventory + 11.0f);
                 labels[i].setVisible(true);
 
                 stringBuilder.setLength(0);

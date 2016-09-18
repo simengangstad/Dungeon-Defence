@@ -162,9 +162,19 @@
 
 # 0022
 
-- [ ] Controls screen
-- [ ] Nicer start screen
-- [ ] Calm music when you have finished the wave
-- [ ] Explosion sound
-- [ ] Arrows doesn't hurt enemies after you pick them up?
+- [x] Controls screen
+- [x] Calm music when you have finished the wave
+        - Some sort of jukebox
+            - [x] Has a couple of songs for low, middle and high intensity
+            - [x] Fades between these on request
+- [x] Explosion sound
+- [x] Arrows doesn't hurt enemies after you pick them up. Was a mistake were the check for impact callback
+      (which prevents the impact callback from being called multiple times) wasn't set
+      back to false after the entity pick up the item again.
+- [x] Crossbow fire sound and sound when you've run out of arrows.
+
+- [ ] Nicer start screen (background of some sort)
 - [ ] Booby trap with strings.
+- [ ] Sound when you have don't have any arrows.
+- [ ] From 4 -> 6 items in thee item bar
+- [ ] Different spawn points

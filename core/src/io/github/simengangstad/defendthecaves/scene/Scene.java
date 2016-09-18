@@ -3,37 +3,28 @@ package io.github.simengangstad.defendthecaves.scene;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.audio.Music;
-import com.badlogic.gdx.graphics.Color;
-import com.badlogic.gdx.graphics.Cursor;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
-import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.MathUtils;
-import com.badlogic.gdx.math.Vector;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
-import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.Stage;
-import com.badlogic.gdx.scenes.scene2d.ui.Button;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
-import com.sun.istack.internal.NotNull;
-import com.sun.istack.internal.Nullable;
 import io.github.simengangstad.defendthecaves.Container;
 import io.github.simengangstad.defendthecaves.Game;
 import io.github.simengangstad.defendthecaves.GameObject;
-import io.github.simengangstad.defendthecaves.audio.MusicFader;
+import io.github.simengangstad.defendthecaves.audio.Jukebox;
 import io.github.simengangstad.defendthecaves.pathfinding.PathfindingGrid;
 import io.github.simengangstad.defendthecaves.procedural.MapGenerator;
 import io.github.simengangstad.defendthecaves.scene.entities.Enemy;
 import io.github.simengangstad.defendthecaves.scene.entities.Player;
 import io.github.simengangstad.defendthecaves.scene.gui.Pointer;
-import io.github.simengangstad.defendthecaves.scene.gui.ProgressBar;
 import io.github.simengangstad.defendthecaves.scene.gui.SlotItem;
 import io.github.simengangstad.defendthecaves.scene.gui.SpeechBubble;
 import io.github.simengangstad.defendthecaves.scene.items.*;
-import io.github.simengangstad.defendthecaves.startscreen.StartScreen;
+import io.github.simengangstad.defendthecaves.StartScreen;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -117,19 +108,26 @@ public class Scene extends Container {
 
     private boolean resetted = false;
 
+    public boolean justUnfrozen = false;
 
     private boolean freeze = false;
 
     private int score = 0;
 
-    private Label scoreLabel = new Label("", new Label.LabelStyle(new BitmapFont(Gdx.files.internal("assets/gui/font.txt"), Gdx.files.internal("assets/gui/font.png"), false), new Color(Color.WHITE)));
+    private Label scoreLabel = new Label("", Game.LabelStyle16);
 
     private SpeechBubble dieLabel = new SpeechBubble();
 
     private TextButton exitButton = new TextButton("Exit", Game.UISkin);
     private TextButton backButton = new TextButton("Back", Game.UISkin);
 
-    public static Music defaultMusic, newWaveMusic;
+    private Jukebox jukebox = new Jukebox();
+
+    /**
+     * Used to make sure that a new track from the scary group is only requested once when the
+     * new wave is deployed.
+     */
+    private int jukeboxWaveCount = 0;
 
     /**
      * Instantiates the scene with a player.
@@ -149,35 +147,42 @@ public class Scene extends Container {
         dieLabel.setVisible(false);
         dieLabel.setWidth(200.0f);
 
-        scoreLabel.setFontScale(0.45f);
         scoreLabel.setPosition(10, Gdx.graphics.getHeight() - 20);
 
         exitButton.setHeight(50.0f);
         exitButton.setWidth(100.0f);
         exitButton.setVisible(false);
-        exitButton.setPosition(Gdx.graphics.getWidth() / 2.0f - exitButton.getWidth() / 2.0f - 70, Gdx.graphics.getHeight() / 2.0f - exitButton.getHeight() / 2.0f + 50);
+        exitButton.setPosition(Gdx.graphics.getWidth() / 2.0f - exitButton.getWidth() / 2.0f, Gdx.graphics.getHeight() / 2.0f - exitButton.getHeight() / 2.0f - 100);
 
 
         backButton.setHeight(50.0f);
         backButton.setWidth(100.0f);
         backButton.setVisible(false);
-        backButton.setPosition(Gdx.graphics.getWidth() / 2.0f - backButton.getWidth() / 2.0f + 70, Gdx.graphics.getHeight() / 2.0f - backButton.getHeight() / 2.0f + 50);
+        backButton.setPosition(Gdx.graphics.getWidth() / 2.0f - backButton.getWidth() / 2.0f, Gdx.graphics.getHeight() / 2.0f - backButton.getHeight() / 2.0f - 50);
 
-        defaultMusic = Gdx.audio.newMusic(Gdx.files.internal("assets/music/aehlers/twists.mp3"));
-        defaultMusic.setLooping(true);
-        defaultMusic.setVolume(0.25f);
+        jukebox.addMusicToGroup("normal", Gdx.audio.newMusic(Gdx.files.internal("assets/music/Normal/Black Sapphire.mp3")));
+        jukebox.addMusicToGroup("normal", Gdx.audio.newMusic(Gdx.files.internal("assets/music/Normal/Chimera.mp3")));
+        jukebox.addMusicToGroup("normal", Gdx.audio.newMusic(Gdx.files.internal("assets/music/Normal/After The Fall.mp3")));
 
-        newWaveMusic = Gdx.audio.newMusic(Gdx.files.internal("assets/music/aehlers/devil.mp3"));
-        newWaveMusic.setLooping(false);
-        newWaveMusic.setVolume(0.25f);
+        jukebox.addMusicToGroup("calm", Gdx.audio.newMusic(Gdx.files.internal("assets/music/Calm/Wood Elves.mp3")));
+        jukebox.addMusicToGroup("calm", Gdx.audio.newMusic(Gdx.files.internal("assets/music/Calm/Homecoming.mp3")));
+
+        jukebox.addMusicToGroup("high", Gdx.audio.newMusic(Gdx.files.internal("assets/music/High/Battle Lines.mp3")));
+        jukebox.addMusicToGroup("high", Gdx.audio.newMusic(Gdx.files.internal("assets/music/High/In Pursuit.mp3")));
+
+        jukebox.addMusicToGroup("scary", Gdx.audio.newMusic(Gdx.files.internal("assets/music/Scary/Creepy Hollow.mp3")));
+        jukebox.addMusicToGroup("scary", Gdx.audio.newMusic(Gdx.files.internal("assets/music/Scary/Electro Zombies.mp3")));
+        jukebox.addMusicToGroup("scary", Gdx.audio.newMusic(Gdx.files.internal("assets/music/Scary/In Doubt.mp3")));
+        jukebox.addMusicToGroup("scary", Gdx.audio.newMusic(Gdx.files.internal("assets/music/Scary/Outcast.mp3")));
+        jukebox.addMusicToGroup("scary", Gdx.audio.newMusic(Gdx.files.internal("assets/music/Scary/Prairie Dogs.mp3")));
 
         init();
 
-        waveSystem = new WaveSystem(10, 5, 40, map, player, keys, barriers, enemiesAtHold1 -> this.enemiesAtHold = enemiesAtHold1);
+        waveSystem = new WaveSystem(1, 1, 10, map, player, keys, barriers, enemiesAtHold1 -> this.enemiesAtHold = enemiesAtHold1);
         waveSystem.requestWave();
 
         lightShader = new LightShader(Map.TileSizeInPixelsInWorldSpace / Game.SizeOfTileInPixelsInSpritesheet / 2, map.getWidth(), map.getHeight());
-        lightShader.setAmbientColour(0.0f, 0.0f, 0.0f);
+        lightShader.setAmbientColour(1.0f, 1.0f, 1.0f);
         lightShader.updateLights(lights.size());
         lightShader.handle.begin();
         lightShader.updateMap(map);
@@ -233,9 +238,9 @@ public class Scene extends Container {
             waveSystem.requestWave();
         }
 
-        newWaveMusic.stop();
-        defaultMusic.stop();
-        defaultMusic.play();
+        jukebox.setFadeTime(10);
+        jukebox.constructShuffleListFromGroup("normal");
+        jukebox.play();
     }
 
     /**
@@ -327,10 +332,10 @@ public class Scene extends Container {
 
     private void initialiseMap() {
 
-        int width = 30;
-        int height = 30;
+        int width = 20;
+        int height = 20;
 
-        map = new Map(width, height, (width * height) / (width + height), 3, 9, 757, player.size, 7, 7);
+        map = new Map(width, height, /*(width * height) / (width + height)*/ 3, 3, 7, 757, player.size, 1, 7);
 
         map.changeCallback = () -> {
 
@@ -906,6 +911,11 @@ public class Scene extends Container {
                         scoreLabel.setText("Score: " + score);
 
                         waveSystem.addDeadEnemy();
+
+                        if (waveSystem.getEnemiesLeft() == 0) {
+
+                            jukebox.requestSongFromGroup("calm");
+                        }
                     }
 
                     entity.die();
@@ -1043,7 +1053,7 @@ public class Scene extends Container {
 
                         inRangeOfPlacedItem = true;
 
-                        player.displayMessage("This might come handy");
+                        player.displayMessage("This might come handy (press f to pick up)");
 
                         if (Gdx.input.isKeyJustPressed(Input.Keys.F)) {
 
@@ -1057,7 +1067,7 @@ public class Scene extends Container {
                             }
                             else {
 
-                                player.displayMessage("Darn it, not enough place in my rucksac...", 2.0f);
+                                player.displayMessage("Darn it, not enough place in my ruck sack...", 2.0f);
                             }
                         }
                     }
@@ -1069,6 +1079,47 @@ public class Scene extends Container {
     }
 
     @Override
+    public boolean touchUp(int screenX, int screenY, int pointer, int button) {
+
+        justUnfrozen = false;
+
+        return super.touchUp(screenX, screenY, pointer, button);
+    }
+
+    @Override
+    public boolean touchDown(int screenX, int screenY, int pointer, int button) {
+
+        int mouseX = screenX;
+        int mouseY = Math.abs(screenY - (Gdx.graphics.getHeight() - 1));
+
+        if (    exitButton.isVisible() &&
+                exitButton.getX() < mouseX && mouseX < exitButton.getX() + exitButton.getWidth() &&
+                exitButton.getY() < mouseY && mouseY < exitButton.getY() + exitButton.getHeight()) {
+
+            Game.container = new StartScreen();
+
+            jukebox.stop();
+
+            return true;
+        }
+        else if (backButton.isVisible() &&
+                backButton.getX() < mouseX && mouseX < backButton.getX() + backButton.getWidth() &&
+                backButton.getY() < mouseY && mouseY < backButton.getY() + backButton.getHeight()) {
+
+            freeze = !freeze;
+
+            exitButton.setVisible(freeze);
+            backButton.setVisible(freeze);
+
+            justUnfrozen = true;
+
+            return true;
+        }
+
+        return false;
+    }
+
+    @Override
     /**
      * Updates the state of the scene.
      */
@@ -1076,22 +1127,6 @@ public class Scene extends Container {
 
         Gdx.gl.glClearColor(0, 0, 0, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
-
-        if (exitButton.isPressed()) {
-
-            Gdx.app.exit();
-
-            return;
-        }
-        else if (backButton.isPressed()) {
-
-            Game.container = new StartScreen();
-
-            defaultMusic.stop();
-            newWaveMusic.stop();
-
-            return;
-        }
 
         if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE) && !player.isDisplayingInventory()) {
 
@@ -1168,20 +1203,13 @@ public class Scene extends Container {
         updateStateOfGameObjects();
 
         if (Game.Debug) player.displayMessage("Time: " + waveSystem.getRemainingTime());
-/*
-        if (waveSystem.getRemainingTime() < 10) {
 
-            defaultMusic.stop();
+        if (waveSystem.getRemainingTime() < 10 && jukeboxWaveCount != waveSystem.getWave()) {
 
-            //if (!newWaveMusic.isPlaying()) newWaveMusic.play();
+            jukeboxWaveCount++;
+
+            jukebox.requestSongFromGroup("scary");
         }
-        else {
-
-            if (!newWaveMusic.isPlaying() && !defaultMusic.isPlaying()) {
-
-                //defaultMusic.play();
-            }
-        }*/
 
         player.draw(batch);
 
@@ -1216,6 +1244,8 @@ public class Scene extends Container {
         dieLabel.draw(stage.getBatch(), 1.0f);
         pointer.draw((SpriteBatch) stage.getBatch());
         stage.getBatch().end();
+
+        jukebox.tick();
     }
 
     public void inWorldSpace(Vector3 screenCoords) {
@@ -1238,6 +1268,7 @@ public class Scene extends Container {
 
         super.dispose();
 
+        jukebox.dispose();
         sceneStage.dispose();
         player.dispose();
     }

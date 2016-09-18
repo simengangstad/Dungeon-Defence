@@ -3,15 +3,17 @@ package io.github.simengangstad.defendthecaves;
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.audio.Sound;
-import com.badlogic.gdx.graphics.OrthographicCamera;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
+import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.utils.Pool;
+import io.github.simengangstad.defendthecaves.scene.Explosion;
 import io.github.simengangstad.defendthecaves.scene.Item;
-import io.github.simengangstad.defendthecaves.scene.Scene;
 import io.github.simengangstad.defendthecaves.scene.crafting.CraftableItemsView;
 import io.github.simengangstad.defendthecaves.scene.crafting.Inventory;
 import io.github.simengangstad.defendthecaves.scene.entities.Caterpillar;
@@ -20,9 +22,8 @@ import io.github.simengangstad.defendthecaves.scene.entities.Player;
 import io.github.simengangstad.defendthecaves.scene.entities.Snake;
 import io.github.simengangstad.defendthecaves.scene.items.Axe;
 import io.github.simengangstad.defendthecaves.scene.items.Crossbow;
+import io.github.simengangstad.defendthecaves.scene.items.ExplosivePotion;
 import io.github.simengangstad.defendthecaves.scene.items.Potion;
-import io.github.simengangstad.defendthecaves.scene.items.Rock;
-import io.github.simengangstad.defendthecaves.startscreen.StartScreen;
 
 public class Game extends ApplicationAdapter {
 
@@ -49,6 +50,10 @@ public class Game extends ApplicationAdapter {
     public static final int ItemSize = (EntitySize / 2);
 
     public static Skin UISkin;
+    public static Label.LabelStyle LabelStyle8;
+    public static Label.LabelStyle LabelStyle12;
+    public static Label.LabelStyle LabelStyle16;
+
 
     public static Pool<Vector2> vector2Pool = new Pool<Vector2>() {
 
@@ -72,6 +77,8 @@ public class Game extends ApplicationAdapter {
      * The tile size of the movable entity sprites in the sprite sheet.
      */
     public static final int SizeOfTileInPixelsInSpritesheet = 16;
+
+    public static Container tmpContainer;
 
     public static Container container;
 
@@ -116,6 +123,10 @@ public class Game extends ApplicationAdapter {
         debugDrawTexture = new TextureRegion(SpriteSheet, 48, 80, 16, 16);
 
         UISkin = new Skin(Gdx.files.internal("assets/gui/uiskin.json"));
+
+        LabelStyle8 = new Label.LabelStyle(new BitmapFont(Gdx.files.internal("assets/gui/gothic_8.fnt")), Color.WHITE);
+        LabelStyle12 = new Label.LabelStyle(new BitmapFont(Gdx.files.internal("assets/gui/gothic_12.fnt")), Color.WHITE);
+        LabelStyle16 = new Label.LabelStyle(new BitmapFont(Gdx.files.internal("assets/gui/gothic_16.fnt")), Color.WHITE);
 
     }
 
@@ -186,5 +197,7 @@ public class Game extends ApplicationAdapter {
         Potion.Burp.dispose();
 
         Crossbow.Fire.dispose();
+
+        Explosion.ExplosionSound.dispose();
     }
 }

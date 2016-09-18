@@ -103,7 +103,7 @@ public class Inventory extends SlotView implements InputProcessor {
 
             for (int y = 0; y < labels[0].length; y++) {
 
-                labels[x][y] = new Label("", Game.UISkin);
+                labels[x][y] = new Label("", Game.LabelStyle8);
             }
         }
     }
@@ -378,9 +378,8 @@ public class Inventory extends SlotView implements InputProcessor {
 
         if (label == null) {
 
-            label = new Label("Inventory", new Label.LabelStyle(new BitmapFont(Gdx.files.internal("assets/gui/font.txt"), Gdx.files.internal("assets/gui/font.png"), false), new Color(Color.WHITE)));
-            label.setFontScale(0.3f);
-            label.setPosition(getX() + getWidth() / 2.0f - label.getPrefWidth() / 2.0f, getY() + 300);
+            label = new Label("Inventory", Game.LabelStyle16);
+            label.setPosition(getX() + getWidth() / 2.0f - label.getPrefWidth() / 2.0f, getY() + getHeight());
             label.toFront();
 
             getStage().addActor(label);
@@ -416,7 +415,7 @@ public class Inventory extends SlotView implements InputProcessor {
 
                 if (!getItemList(x, y).isEmpty()) {
 
-                    labels[x][y].setPosition(getX() + x * slotWidth + slotWidth - labels[x][y].getPrefWidth() - 4.0f, getY() + y * slotHeight + 10.0f);
+                    labels[x][y].setPosition(getX() + x * slotWidth + slotWidth - labels[x][y].getPrefWidth() - 2.0f, getY() + y * slotHeight + 11.0f);
                     labels[x][y].setVisible(true);
                     labels[x][y].toFront();
 

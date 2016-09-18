@@ -111,6 +111,11 @@ public class WaveSystem {
         return timer;
     }
 
+    public int getWave() {
+
+        return wave;
+    }
+
     public void requestWave() {
 
         requestedNewWave = true;
@@ -126,7 +131,11 @@ public class WaveSystem {
 
             requestWave();
         }
+    }
 
+    public int getEnemiesLeft() {
+
+        return enemiesLeft;
     }
 
     public void tick() {

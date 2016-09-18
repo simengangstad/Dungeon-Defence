@@ -36,7 +36,7 @@ public class Projectile extends Item {
 
     public ImpactCallback impactCallback;
 
-    private boolean calledImpactCallback = false;
+    public boolean calledImpactCallback = false;
 
     public Callback finishedPlayingImpactAnimationCallback;
 

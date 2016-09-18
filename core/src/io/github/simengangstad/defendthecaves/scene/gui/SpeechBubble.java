@@ -23,7 +23,7 @@ public class SpeechBubble extends Table {
 
         setStyle(Game.UISkin.get(SpeechBubbleStyle.class));
 
-        label.setColor(Color.BLACK);
+        label.setColor(Color.WHITE);
         label.setAlignment(Align.center);
     }
 

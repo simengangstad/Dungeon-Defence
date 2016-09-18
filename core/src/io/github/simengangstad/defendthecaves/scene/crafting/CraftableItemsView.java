@@ -12,6 +12,7 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.utils.StringBuilder;
 import com.sun.tools.corba.se.idl.constExpr.Not;
+import io.github.simengangstad.defendthecaves.Game;
 import io.github.simengangstad.defendthecaves.scene.Craftable;
 import io.github.simengangstad.defendthecaves.scene.Entity;
 import io.github.simengangstad.defendthecaves.scene.Item;
@@ -114,9 +115,8 @@ public class CraftableItemsView extends SlotView implements InputProcessor {
 
         if (label == null) {
 
-            label = new Label("Craftable items", new Label.LabelStyle(new BitmapFont(Gdx.files.internal("assets/gui/font.txt"), Gdx.files.internal("assets/gui/font.png"), false), new Color(Color.WHITE)));
-            label.setFontScale(0.3f);
-            label.setPosition(getX() + getWidth() / 2.0f - label.getPrefWidth() / 2.0f, getY() + 120);
+            label = new Label("Craftable items", Game.LabelStyle16);
+            label.setPosition(getX() + getWidth() / 2.0f - label.getPrefWidth() / 2.0f, getY() + getHeight());
 
             getStage().addActor(label);
         }

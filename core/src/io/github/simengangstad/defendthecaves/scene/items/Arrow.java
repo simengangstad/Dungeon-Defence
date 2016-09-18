@@ -40,7 +40,7 @@ public class Arrow extends Projectile {
 
     static {
 
-        float frameDuration = 0.2f;
+        float frameDuration = 0.05f;
 
         TextureRegion[] textureRegions = new TextureRegion[6 * 3];
 

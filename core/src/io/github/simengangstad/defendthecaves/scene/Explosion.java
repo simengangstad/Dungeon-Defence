@@ -1,6 +1,7 @@
 package io.github.simengangstad.defendthecaves.scene;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import io.github.simengangstad.defendthecaves.Callback;
@@ -28,6 +29,8 @@ public class Explosion extends GameObject {
 
     private boolean firedCallback = false;
 
+    public static final Sound ExplosionSound = Gdx.audio.newSound(Gdx.files.internal("assets/sfx/explosion.ogg"));
+
     public Explosion(float radius, float intensity) {
 
         this.intensity = intensity;
@@ -42,6 +45,8 @@ public class Explosion extends GameObject {
     public void start() {
 
         reset();
+
+        ExplosionSound.play();
 
         processedStarted = true;
 
