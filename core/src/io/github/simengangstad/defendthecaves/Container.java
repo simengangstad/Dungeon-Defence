@@ -8,6 +8,8 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.utils.Disposable;
+import io.github.simengangstad.defendthecaves.scene.Map;
+import io.github.simengangstad.defendthecaves.scene.gui.Pointer;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -45,6 +47,11 @@ public class Container implements Disposable, InputProcessor {
     protected ArrayList<GameObject> buffer = new ArrayList<>(), removeBuffer = new ArrayList<>();
 
     /**
+     * The custom mouse cursor.
+     */
+    protected Pointer pointer = new Pointer();
+
+    /**
      * Initializes the container.
      */
     public Container() {
@@ -53,6 +60,8 @@ public class Container implements Disposable, InputProcessor {
 
         addInputProcessor(this);
         addInputProcessor(stage);
+
+        pointer.size.set(Map.TileSizeInPixelsInWorldSpace / 2.0f, Map.TileSizeInPixelsInWorldSpace / 2.0f);
     }
 
     public void addInputProcessor(InputProcessor inputProcessor) {

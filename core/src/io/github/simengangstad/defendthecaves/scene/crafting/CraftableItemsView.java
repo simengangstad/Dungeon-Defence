@@ -5,13 +5,10 @@ import com.badlogic.gdx.Input;
 import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.Color;
-import com.badlogic.gdx.graphics.Cursor;
 import com.badlogic.gdx.graphics.g2d.Batch;
-import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.utils.StringBuilder;
-import com.sun.tools.corba.se.idl.constExpr.Not;
 import io.github.simengangstad.defendthecaves.Game;
 import io.github.simengangstad.defendthecaves.scene.Craftable;
 import io.github.simengangstad.defendthecaves.scene.Entity;
@@ -61,7 +58,7 @@ public class CraftableItemsView extends SlotView implements InputProcessor {
 
         for (Craftable craftable : Craftable.craftables) {
 
-            if (index % columns == 0) {
+            if (index % columns == 0 && index != 0) {
 
                 y++;
             }

@@ -25,7 +25,7 @@ public class Orc extends Enemy {
 
         super(position,
                 player,
-                5,
+                10,
                 size,
                 TextureUtil.getAnimation(Game.OrcStationary, 16, 0.2f, Animation.PlayMode.NORMAL),
                 TextureUtil.getAnimation(Game.OrcMoving, 16, 0.075f, Animation.PlayMode.NORMAL));

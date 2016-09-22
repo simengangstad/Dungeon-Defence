@@ -173,8 +173,14 @@
       back to false after the entity pick up the item again.
 - [x] Crossbow fire sound and sound when you've run out of arrows.
 
+## 0023
+
+- [x] Controls screen from menu
+- [x] Different spawn points
+- [x] From 4 -> 5 items in thee item bar
+- [x] High score
+- [x] Play high intensity music when near/battling enemies
+
+
+## 0024
 - [ ] Nicer start screen (background of some sort)
-- [ ] Booby trap with strings.
-- [ ] Sound when you have don't have any arrows.
-- [ ] From 4 -> 6 items in thee item bar
-- [ ] Different spawn points

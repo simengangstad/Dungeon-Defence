@@ -4,6 +4,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
+import io.github.simengangstad.defendthecaves.audio.Jukebox;
 import io.github.simengangstad.defendthecaves.pathfinding.Coordinate;
 import io.github.simengangstad.defendthecaves.scene.Entity;
 import io.github.simengangstad.defendthecaves.scene.Map;
@@ -94,6 +95,7 @@ public abstract class Enemy extends Entity {
 
     }
 
+
     @Override
     public void tick() {
 
@@ -101,7 +103,19 @@ public abstract class Enemy extends Entity {
 
             if (tmpVector.set(playerPositionReference.x - position.x, playerPositionReference.y - position.y).len() < coverageRadius * map.TileSizeInPixelsInWorldSpace / (playerReference.currentItem instanceof Torch ? 1 : 2)) {
 
-                noticedPlayer(tmpVector);
+                if (tmpVector.set(playerPositionReference.x - position.x, playerPositionReference.y - position.y).len() < 5 * map.TileSizeInPixelsInWorldSpace / (playerReference.currentItem instanceof Torch ? 1 : 2)) {
+
+                    noticedPlayer(tmpVector);
+
+                    // Begin playing some scary shiet/high intensity
+
+                    Jukebox jukebox = ((Scene) host).jukebox;
+
+                    if (!jukebox.getCurrentGroup().equalsIgnoreCase(Scene.High) && !jukebox.getNextGroup().equalsIgnoreCase(Scene.High)) {
+
+                        jukebox.requestSongFromGroup(Scene.High);
+                    }
+                }
 
                 if (tmpVector.len() < playerSizeReference.x * 1.5f) {
 

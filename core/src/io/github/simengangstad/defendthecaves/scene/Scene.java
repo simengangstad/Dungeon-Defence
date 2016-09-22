@@ -2,34 +2,29 @@ package io.github.simengangstad.defendthecaves.scene;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
-import com.badlogic.gdx.audio.Music;
+import com.badlogic.gdx.Preferences;
+import com.badlogic.gdx.graphics.Cursor;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.g3d.particles.influencers.ColorInfluencer;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
-import io.github.simengangstad.defendthecaves.Container;
-import io.github.simengangstad.defendthecaves.Game;
-import io.github.simengangstad.defendthecaves.GameObject;
+import io.github.simengangstad.defendthecaves.*;
 import io.github.simengangstad.defendthecaves.audio.Jukebox;
 import io.github.simengangstad.defendthecaves.pathfinding.PathfindingGrid;
 import io.github.simengangstad.defendthecaves.procedural.MapGenerator;
 import io.github.simengangstad.defendthecaves.scene.entities.Enemy;
 import io.github.simengangstad.defendthecaves.scene.entities.Player;
-import io.github.simengangstad.defendthecaves.scene.gui.Pointer;
 import io.github.simengangstad.defendthecaves.scene.gui.SlotItem;
 import io.github.simengangstad.defendthecaves.scene.gui.SpeechBubble;
 import io.github.simengangstad.defendthecaves.scene.items.*;
-import io.github.simengangstad.defendthecaves.StartScreen;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 /**
  * @author simengangstad
@@ -104,8 +99,6 @@ public class Scene extends Container {
      */
     public Stage sceneStage = new Stage();
 
-    private Pointer pointer;
-
     private boolean resetted = false;
 
     public boolean justUnfrozen = false;
@@ -119,9 +112,12 @@ public class Scene extends Container {
     private SpeechBubble dieLabel = new SpeechBubble();
 
     private TextButton exitButton = new TextButton("Exit", Game.UISkin);
+    private TextButton controlsButton = new TextButton("Controls", Game.UISkin);
     private TextButton backButton = new TextButton("Back", Game.UISkin);
 
-    private Jukebox jukebox = new Jukebox();
+    public static final String Scary = "scary", Normal = "normal", High = "High", Calm = "calm";
+
+    public Jukebox jukebox = new Jukebox();
 
     /**
      * Used to make sure that a new track from the scary group is only requested once when the
@@ -129,15 +125,14 @@ public class Scene extends Container {
      */
     private int jukeboxWaveCount = 0;
 
+    private Preferences preferences = Gdx.app.getPreferences("prefs");
+
     /**
      * Instantiates the scene with a player.
      */
     public Scene() {
 
         super();
-
-        // TODO: Why must we do this here as well???
-        Gdx.input.setInputProcessor(inputMultiplexer);
 
         this.player = new Player(new OrthographicCamera(Gdx.graphics.getWidth(), Gdx.graphics.getHeight()));
 
@@ -149,51 +144,52 @@ public class Scene extends Container {
 
         scoreLabel.setPosition(10, Gdx.graphics.getHeight() - 20);
 
-        exitButton.setHeight(50.0f);
-        exitButton.setWidth(100.0f);
-        exitButton.setVisible(false);
-        exitButton.setPosition(Gdx.graphics.getWidth() / 2.0f - exitButton.getWidth() / 2.0f, Gdx.graphics.getHeight() / 2.0f - exitButton.getHeight() / 2.0f - 100);
-
-
+        backButton.setWidth(200.0f);
         backButton.setHeight(50.0f);
-        backButton.setWidth(100.0f);
         backButton.setVisible(false);
-        backButton.setPosition(Gdx.graphics.getWidth() / 2.0f - backButton.getWidth() / 2.0f, Gdx.graphics.getHeight() / 2.0f - backButton.getHeight() / 2.0f - 50);
+        backButton.setPosition(Gdx.graphics.getWidth() / 2.0f - backButton.getWidth() / 2.0f, Gdx.graphics.getHeight() / 2.0f - backButton.getHeight() / 2.0f + 75);
 
-        jukebox.addMusicToGroup("normal", Gdx.audio.newMusic(Gdx.files.internal("assets/music/Normal/Black Sapphire.mp3")));
-        jukebox.addMusicToGroup("normal", Gdx.audio.newMusic(Gdx.files.internal("assets/music/Normal/Chimera.mp3")));
-        jukebox.addMusicToGroup("normal", Gdx.audio.newMusic(Gdx.files.internal("assets/music/Normal/After The Fall.mp3")));
+        controlsButton.setWidth(200.0f);
+        controlsButton.setHeight(50.0f);
+        controlsButton.setVisible(false);
+        controlsButton.setPosition(Gdx.graphics.getWidth() / 2.0f - controlsButton.getWidth() / 2.0f, Gdx.graphics.getHeight() / 2.0f - controlsButton.getHeight() / 2.0f);
 
-        jukebox.addMusicToGroup("calm", Gdx.audio.newMusic(Gdx.files.internal("assets/music/Calm/Wood Elves.mp3")));
-        jukebox.addMusicToGroup("calm", Gdx.audio.newMusic(Gdx.files.internal("assets/music/Calm/Homecoming.mp3")));
+        exitButton.setWidth(200.0f);
+        exitButton.setHeight(50.0f);
+        exitButton.setVisible(false);
+        exitButton.setPosition(Gdx.graphics.getWidth() / 2.0f - exitButton.getWidth() / 2.0f, Gdx.graphics.getHeight() / 2.0f - exitButton.getHeight() / 2.0f - 75);
 
-        jukebox.addMusicToGroup("high", Gdx.audio.newMusic(Gdx.files.internal("assets/music/High/Battle Lines.mp3")));
-        jukebox.addMusicToGroup("high", Gdx.audio.newMusic(Gdx.files.internal("assets/music/High/In Pursuit.mp3")));
+        jukebox.addMusicToGroup(Normal, Gdx.audio.newMusic(Gdx.files.internal("assets/music/Normal/Black Sapphire.mp3")));
+        jukebox.addMusicToGroup(Normal, Gdx.audio.newMusic(Gdx.files.internal("assets/music/Normal/Chimera.mp3")));
+        jukebox.addMusicToGroup(Normal, Gdx.audio.newMusic(Gdx.files.internal("assets/music/Normal/After The Fall.mp3")));
 
-        jukebox.addMusicToGroup("scary", Gdx.audio.newMusic(Gdx.files.internal("assets/music/Scary/Creepy Hollow.mp3")));
-        jukebox.addMusicToGroup("scary", Gdx.audio.newMusic(Gdx.files.internal("assets/music/Scary/Electro Zombies.mp3")));
-        jukebox.addMusicToGroup("scary", Gdx.audio.newMusic(Gdx.files.internal("assets/music/Scary/In Doubt.mp3")));
-        jukebox.addMusicToGroup("scary", Gdx.audio.newMusic(Gdx.files.internal("assets/music/Scary/Outcast.mp3")));
-        jukebox.addMusicToGroup("scary", Gdx.audio.newMusic(Gdx.files.internal("assets/music/Scary/Prairie Dogs.mp3")));
+        jukebox.addMusicToGroup(Calm, Gdx.audio.newMusic(Gdx.files.internal("assets/music/Calm/Wood Elves.mp3")));
+        jukebox.addMusicToGroup(Calm, Gdx.audio.newMusic(Gdx.files.internal("assets/music/Calm/Homecoming.mp3")));
+
+        jukebox.addMusicToGroup(High, Gdx.audio.newMusic(Gdx.files.internal("assets/music/High/Battle Lines.mp3")));
+        jukebox.addMusicToGroup(High, Gdx.audio.newMusic(Gdx.files.internal("assets/music/High/In Pursuit.mp3")));
+
+        jukebox.addMusicToGroup(Scary, Gdx.audio.newMusic(Gdx.files.internal("assets/music/Scary/Creepy Hollow.mp3")));
+        jukebox.addMusicToGroup(Scary, Gdx.audio.newMusic(Gdx.files.internal("assets/music/Scary/Electro Zombies.mp3")));
+        jukebox.addMusicToGroup(Scary, Gdx.audio.newMusic(Gdx.files.internal("assets/music/Scary/In Doubt.mp3")));
+        jukebox.addMusicToGroup(Scary, Gdx.audio.newMusic(Gdx.files.internal("assets/music/Scary/Outcast.mp3")));
+        jukebox.addMusicToGroup(Scary, Gdx.audio.newMusic(Gdx.files.internal("assets/music/Scary/Prairie Dogs.mp3")));
+
+        addInputProcessor(sceneStage);
 
         init();
 
-        waveSystem = new WaveSystem(1, 1, 10, map, player, keys, barriers, enemiesAtHold1 -> this.enemiesAtHold = enemiesAtHold1);
+        waveSystem = new WaveSystem(15, 5, 60, map, player, keys, barriers, enemiesAtHold1 -> this.enemiesAtHold = enemiesAtHold1);
         waveSystem.requestWave();
 
         lightShader = new LightShader(Map.TileSizeInPixelsInWorldSpace / Game.SizeOfTileInPixelsInSpritesheet / 2, map.getWidth(), map.getHeight());
-        lightShader.setAmbientColour(1.0f, 1.0f, 1.0f);
+        lightShader.setAmbientColour(0.0f, 0.0f, 0.0f);
         lightShader.updateLights(lights.size());
         lightShader.handle.begin();
         lightShader.updateMap(map);
         lightShader.handle.end();
         batch.setShader(lightShader.handle);
         recompileShader = false;
-
-        addInputProcessor(sceneStage);
-
-        pointer = new Pointer();
-        pointer.size.set(Map.TileSizeInPixelsInWorldSpace / 2.0f, Map.TileSizeInPixelsInWorldSpace / 2.0f);
     }
 
     private void init() {
@@ -204,7 +200,11 @@ public class Scene extends Container {
         sceneStage.addActor(dieLabel);
         sceneStage.addActor(exitButton);
         sceneStage.addActor(backButton);
-        scoreLabel.setText("Score: 0");
+        sceneStage.addActor(controlsButton);
+
+        int highscore = preferences.getInteger("score", 0);
+
+        scoreLabel.setText("Score: 0/" + highscore);
         sceneStage.addActor(scoreLabel);
 
         if (resetted) {
@@ -240,7 +240,7 @@ public class Scene extends Container {
 
         jukebox.setFadeTime(10);
         jukebox.constructShuffleListFromGroup("normal");
-        jukebox.play();
+        //jukebox.play();
     }
 
     /**
@@ -332,10 +332,12 @@ public class Scene extends Container {
 
     private void initialiseMap() {
 
-        int width = 20;
-        int height = 20;
+        int width = 60;
+        int height = 60;
 
-        map = new Map(width, height, /*(width * height) / (width + height)*/ 3, 3, 7, 757, player.size, 1, 7);
+        Random random = new Random(System.nanoTime());
+
+        map = new Map(width, height, (width * height) / (width), 3, 9, 595332546, player.size, (width * height) / (width + height) / 5, ((width * height) / (width + height) / 2));
 
         map.changeCallback = () -> {
 
@@ -362,30 +364,31 @@ public class Scene extends Container {
 
         while (!spawnPositionFound) {
 
-            for (MapGenerator.Room room : map.getRooms()) {
+            MapGenerator.Room room = map.getRooms()[random.nextInt(map.getRooms().length)];
 
-                if (!room.isLocked()) {
+            if (room.isLocked()) {
 
-                    for (int x = room.centreX - ((room.width - 2) / 2); x < room.centreX + ((room.width - 2) / 2); x++) {
+                continue;
+            }
 
-                        for (int y = room.centreY - ((room.height - 2) / 2); y < room.centreY + ((room.height - 2) / 2); y++) {
+            for (int x = room.centreX - ((room.width - 2) / 2); x < room.centreX + ((room.width - 2) / 2); x++) {
 
-                            if (!map.isSolid(x, y) && MathUtils.random(100) < 50) {
+                for (int y = room.centreY - ((room.height - 2) / 2); y < room.centreY + ((room.height - 2) / 2); y++) {
 
-                                player.position.set(x * Map.TileSizeInPixelsInWorldSpace + player.size.x / 2.0f, y * map.TileSizeInPixelsInWorldSpace + player.size.y / 2.0f);
-                                player.updateCameraPosition();
+                    if (!map.isSolid(x, y) && random.nextInt(100) < 20) {
 
-                                spawnPositionFound = true;
+                        player.position.set(x * Map.TileSizeInPixelsInWorldSpace + player.size.x / 2.0f, y * Map.TileSizeInPixelsInWorldSpace + player.size.y / 2.0f);
+                        player.updateCameraPosition();
 
-                                break;
-                            }
-                        }
+                        spawnPositionFound = true;
 
-                        if (spawnPositionFound) {
-
-                            break;
-                        }
+                        break;
                     }
+                }
+
+                if (spawnPositionFound) {
+
+                    break;
                 }
             }
         }
@@ -679,6 +682,9 @@ public class Scene extends Container {
     @Override
     public boolean scrolled(int amount) {
 
+        return false;
+
+        /*
         scaleFactor += amount;
 
         scaleFactor = Math.round(MathUtils.clamp(scaleFactor, 1.0f, MaxZoom));
@@ -686,7 +692,7 @@ public class Scene extends Container {
         player.camera.zoom = Math.max(scaleFactor / 4.0f, 1.0f);
         ((OrthographicCamera) sceneStage.getCamera()).zoom = player.camera.zoom;
 
-        return true;
+        return true;*/
     }
 
     public void pushEntities(Entity sender, Vector2 origin, float radius, Vector2 direction, float scalar) {
@@ -908,7 +914,12 @@ public class Scene extends Container {
 
                         score++;
 
-                        scoreLabel.setText("Score: " + score);
+                        if (preferences.getInteger("score", 0) < score) {
+
+                            preferences.putInteger("score", score);
+                        }
+
+                        scoreLabel.setText("Score: " + score + "/" + preferences.getInteger("score", 0));
 
                         waveSystem.addDeadEnemy();
 
@@ -920,7 +931,6 @@ public class Scene extends Container {
 
                     entity.die();
 
-                    // TODO: Temp, will be removed after die animation has been played.
                     iterator.remove();
 
                     continue;
@@ -1096,9 +1106,11 @@ public class Scene extends Container {
                 exitButton.getX() < mouseX && mouseX < exitButton.getX() + exitButton.getWidth() &&
                 exitButton.getY() < mouseY && mouseY < exitButton.getY() + exitButton.getHeight()) {
 
-            Game.container = new StartScreen();
+            Game.swapContainer(this, new StartScreen());
 
             jukebox.stop();
+
+            dispose();
 
             return true;
         }
@@ -1110,11 +1122,23 @@ public class Scene extends Container {
 
             exitButton.setVisible(freeze);
             backButton.setVisible(freeze);
+            controlsButton.setVisible(freeze);
 
             justUnfrozen = true;
 
             return true;
         }
+        else if (controlsButton.isVisible() &&
+                controlsButton.getX() < mouseX && mouseX < controlsButton.getX() + controlsButton.getWidth() &&
+                controlsButton.getY() < mouseY && mouseY < controlsButton.getY() + controlsButton.getHeight()) {
+
+            Game.swapContainer(this, new ControlsScreen());
+
+            justUnfrozen = true;
+
+            return true;
+        }
+
 
         return false;
     }
@@ -1134,6 +1158,7 @@ public class Scene extends Container {
 
             exitButton.setVisible(freeze);
             backButton.setVisible(freeze);
+            controlsButton.setVisible(freeze);
         }
 
         if (freeze) {
@@ -1267,6 +1292,8 @@ public class Scene extends Container {
     public void dispose() {
 
         super.dispose();
+
+        preferences.flush();
 
         jukebox.dispose();
         sceneStage.dispose();

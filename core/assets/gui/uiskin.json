@@ -1,10 +1,8 @@
 {
 	com.badlogic.gdx.graphics.g2d.BitmapFont: { default-font: { file: default.fnt } },
-	com.badlogic.gdx.graphics.g2d.BitmapFont: { hobbit-font: { file: font.txt } },
 	com.badlogic.gdx.graphics.g2d.BitmapFont: { gothic-font: { file: gothic_14.fnt } },
 	com.badlogic.gdx.graphics.g2d.BitmapFont: { gothic-font_12: { file: gothic_12.fnt } },
 	com.badlogic.gdx.graphics.g2d.BitmapFont: { gothic-font_8: { file: gothic_8.fnt } },
-	com.badlogic.gdx.graphics.g2d.BitmapFont: { gothic-font_32: { file: gothic_32.fnt } },
 
 	com.badlogic.gdx.graphics.Color: {
 		green: { a: 1, b: 0, g: 1, r: 0 },

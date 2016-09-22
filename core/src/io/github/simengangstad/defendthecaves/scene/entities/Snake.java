@@ -31,7 +31,7 @@ public class Snake extends Enemy {
 
         super(position,
                 player,
-                5,
+                10,
                 size,
                 TextureUtil.getAnimation(Game.SnakeStationary, 32, 0.4f, Animation.PlayMode.NORMAL),
                 TextureUtil.getAnimation(Game.SnakeMoving, 32, 0.08f, Animation.PlayMode.NORMAL));

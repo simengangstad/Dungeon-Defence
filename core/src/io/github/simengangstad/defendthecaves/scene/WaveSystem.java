@@ -59,7 +59,7 @@ public class WaveSystem {
 
     private int state = 0;
 
-    private Label countdownLabel = new Label("", new Label.LabelStyle(new BitmapFont(Gdx.files.internal("assets/gui/font.txt"), Gdx.files.internal("assets/gui/font.png"), false), new Color(Color.WHITE)));
+    private Label countdownLabel = new Label("", Game.LabelStyle16);
 
     private Label currentLabel = new Label("Current wave: 1", Game.UISkin);
 

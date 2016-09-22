@@ -47,3 +47,5 @@ Think like the tunnel series, how Drake and Elliott fight against the limiters
     - Rare items (?)
         - Keys to open locked rooms with loot
   - [ ] Carrot juice that gives you night vision
+
+- [ ] Booby trap with strings.

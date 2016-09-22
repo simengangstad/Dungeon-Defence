@@ -23,6 +23,7 @@ public class Jukebox {
     private Music previousSong, currentSong;
 
     private Queue<Music> queue = new Queue<>();
+    private Queue<String> groupQueue = new Queue<>();
 
     private float timeToNextSong = 0.0f;
 
@@ -71,8 +72,11 @@ public class Jukebox {
 
         queue.clear();
         music.get(currentGroup).forEach((track) -> queue.addLast(track));
-
         currentSong = queue.removeFirst();
+
+        groupQueue.clear();
+        music.get(currentGroup).forEach((track) -> groupQueue.addLast(currentGroup));
+        currentGroup = groupQueue.removeFirst();
 
         System.out.println("Playing new track from group: " + currentGroup);
     }
@@ -90,8 +94,11 @@ public class Jukebox {
         }
 
         queue.addFirst((Music) tracks.get(MathUtils.random(tracks.size() - 1)));
+        groupQueue.addFirst(group);
 
         timeToNextSong = fadeTime;
+
+        System.out.println("Adding track from " + group + " group to queue.");
     }
 
     public void stop() {
@@ -124,8 +131,19 @@ public class Jukebox {
         previousSong.setPosition(0.0f);
         currentSong = queue.removeFirst();
         currentSong.play();
+        currentGroup = groupQueue.removeFirst();
 
         System.out.println("Playing new track from group: " + currentGroup);
+    }
+
+    public String getCurrentGroup() {
+
+        return currentGroup;
+    }
+
+    public String getNextGroup() {
+
+        return groupQueue.first();
     }
 
     public void tick() {

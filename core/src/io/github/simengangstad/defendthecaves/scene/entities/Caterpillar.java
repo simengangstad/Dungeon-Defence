@@ -36,7 +36,7 @@ public class Caterpillar extends Enemy {
 
         super(position,
                 player,
-                5,
+                10,
                 size,
                 TextureUtil.getAnimation(Game.CaterpillarStationary, 16, 0.2f, Animation.PlayMode.NORMAL),
                 TextureUtil.getAnimation(Game.CaterpillarMoving, 16, 0.2f, Animation.PlayMode.NORMAL));

@@ -3,7 +3,6 @@ package io.github.simengangstad.defendthecaves.scene.entities;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.InputProcessor;
-import com.badlogic.gdx.ai.GdxFileSystem;
 import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.Animation;
@@ -13,12 +12,10 @@ import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import io.github.simengangstad.defendthecaves.Game;
-import io.github.simengangstad.defendthecaves.pathfinding.Coordinate;
 import io.github.simengangstad.defendthecaves.procedural.MapGenerator;
 import io.github.simengangstad.defendthecaves.scene.*;
 import io.github.simengangstad.defendthecaves.scene.crafting.CraftableItemsView;
 import io.github.simengangstad.defendthecaves.scene.crafting.Inventory;
-import io.github.simengangstad.defendthecaves.scene.items.RotatableWeapon;
 import io.github.simengangstad.defendthecaves.scene.items.*;
 
 import java.util.ArrayList;
@@ -105,13 +102,13 @@ public class Player extends Entity implements InputProcessor {
 
         super.create();
 
-        Vector2 size = new Vector2(300, 400);
+        Vector2 size = new Vector2(75 * 5, 75 * 4);
 
-        inventory = new Inventory(new Vector2(Gdx.graphics.getWidth() / 2.0f + 20.0f, Gdx.graphics.getHeight() / 2.0f - size.y / 2.0f), size, 4, 5);
+        inventory = new Inventory(new Vector2(Gdx.graphics.getWidth() / 2.0f - 50.0f, Gdx.graphics.getHeight() / 2.0f - size.y / 2.0f), size, 5, 4);
 
-        size.set(75*3, 75*3);
+        size.set(75*3, 75*2);
 
-        craftableItemsView = new CraftableItemsView(new Vector2(Gdx.graphics.getWidth() / 2.0f - size.x - 20.0f, Gdx.graphics.getHeight() / 2.0f - size.y / 2.0f), size, 3, 3, this);
+        craftableItemsView = new CraftableItemsView(new Vector2(Gdx.graphics.getWidth() / 2.0f - size.x - 100.0f, Gdx.graphics.getHeight() / 2.0f - size.y / 2.0f), size, 3, 2, this);
         inventory.host = this;
         inventory.toBack();
         craftableItemsView.toBack();
@@ -216,23 +213,6 @@ public class Player extends Entity implements InputProcessor {
 
     @Override
     public boolean keyTyped(char character) {
-
-        if (character == '1') {
-
-            shuffleItem(0);
-        }
-        else if (character == '2') {
-
-            shuffleItem(1);
-        }
-        else if (character == '3') {
-
-            shuffleItem(2);
-        }
-        else if (character == '4') {
-
-            shuffleItem(3);
-        }
 
         return false;
     }
@@ -377,7 +357,27 @@ public class Player extends Entity implements InputProcessor {
 
             delta.set(0.0f, 0.0f);
 
-            if (Gdx.input.isKeyJustPressed(Input.Keys.TAB)) {
+            if (Gdx.input.isKeyJustPressed(Input.Keys.NUM_1)) {
+
+                shuffleItem(0);
+            }
+            else if (Gdx.input.isKeyJustPressed(Input.Keys.NUM_2)) {
+
+                shuffleItem(1);
+            }
+            else if (Gdx.input.isKeyJustPressed(Input.Keys.NUM_3)) {
+
+                shuffleItem(2);
+            }
+            else if (Gdx.input.isKeyJustPressed(Input.Keys.NUM_4)) {
+
+                shuffleItem(3);
+            }
+            else if (Gdx.input.isKeyJustPressed(Input.Keys.NUM_5)) {
+
+                shuffleItem(4);
+            }
+            else if (Gdx.input.isKeyJustPressed(Input.Keys.TAB)) {
 
                 shuffleItemToNextIndex();
             }
@@ -408,7 +408,7 @@ public class Player extends Entity implements InputProcessor {
 
                 if (timeToNextStep < 0) {
 
-                    Walking[(walkStep++) % 1].play(0.3F);
+                    Walking[(walkStep++) % 1].play(0.15F);
 
                     while (timeToNextStep < 0) {
 

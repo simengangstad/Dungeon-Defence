@@ -18,37 +18,6 @@ public class Craftable implements SlotItem {
 
     static {
 
-        craftables.add(new Craftable(new Recipe(0, new Class[] {
-
-                Coal.class,
-                Wood.class
-            }
-        ) {
-
-            @Override
-            public Item result() {
-
-                return new Torch(new Vector2());
-            }
-        }, Torch.animation.getKeyFrame(0.0f), Torch.CraftInformation));
-
-
-        craftables.add(new Craftable(new Recipe(1, new Class[] {
-
-                ExplosivePotion.class,
-                Wood.class,
-                Wood.class,
-                Wood.class
-        }
-        ) {
-
-            @Override
-            public Item result() {
-
-                return new StepTrap(new Vector2());
-            }
-        }, StepTrap.animation.getKeyFrame(0.0f), StepTrap.CraftInformation));
-
 
         // Arrows
 
@@ -99,6 +68,37 @@ public class Craftable implements SlotItem {
                 return new Arrow(new Vector2(), new Vector2(), 2, 0, null, null);
             }
         }, Arrow.toxicArrow, Arrow.ToxicCraftInformation));
+
+        craftables.add(new Craftable(new Recipe(0, new Class[] {
+
+                Coal.class,
+                Wood.class
+            }
+        ) {
+
+            @Override
+            public Item result() {
+
+                return new Torch(new Vector2());
+            }
+        }, Torch.animation.getKeyFrame(0.0f), Torch.CraftInformation));
+
+
+        craftables.add(new Craftable(new Recipe(1, new Class[] {
+
+                ExplosivePotion.class,
+                Wood.class,
+                Wood.class,
+                Wood.class
+        }
+        ) {
+
+            @Override
+            public Item result() {
+
+                return new StepTrap(new Vector2());
+            }
+        }, StepTrap.animation.getKeyFrame(0.0f), StepTrap.CraftInformation));
     }
 
     /**

@@ -91,10 +91,23 @@ public class Game extends ApplicationAdapter {
 
         init();
 
-        container = new StartScreen();
-
-        Gdx.input.setCursorCatched(false);
+        Gdx.input.setCursorCatched(true);
         Gdx.input.setCursorPosition(Gdx.graphics.getWidth() / 2, Gdx.graphics.getHeight() / 2);
+
+        container = new StartScreen();
+    }
+
+    public static void swapContainer(Container current, Container next) {
+
+        next.inputMultiplexer.clear();
+
+        Gdx.input.setInputProcessor(next.inputMultiplexer);
+
+        next.addInputProcessor(next);
+        next.addInputProcessor(next.stage);
+
+        Game.container = next;
+        Game.tmpContainer = current;
     }
 
     private void init() {
