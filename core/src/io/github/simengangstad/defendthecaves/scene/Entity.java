@@ -176,6 +176,10 @@ public abstract class Entity extends Collidable {
 
     public float durationBeforeApplyingDamageAgain = 0.0f;
 
+    private float burpTimer = 0.0f;
+
+    private boolean burp = false;
+
     /**
      * Initializes the movable entity with a position, size and the locaitons for the animations.
      */
@@ -618,6 +622,20 @@ public abstract class Entity extends Collidable {
 
             currentItem = null;
         }
+
+        if (burp) {
+
+            burpTimer += Gdx.graphics.getDeltaTime();
+
+            if (burpTimer > 500) {
+
+                Potion.Burp.play();
+
+                burp = false;
+
+                burpTimer = 0.0f;
+            }
+        }
     }
 
     public boolean flip() {
@@ -709,17 +727,7 @@ public abstract class Entity extends Collidable {
 
         Potion.Drinking.play();
 
-        new Timer().schedule(new TimerTask() {
-
-            @Override
-            public void run() {
-
-                if (MathUtils.random(100) < 15) {
-
-                    Potion.Burp.play();
-                }
-            }
-        }, 500);
+        burp = MathUtils.random(100) < 15;
 
         removeItem(potion);
     }

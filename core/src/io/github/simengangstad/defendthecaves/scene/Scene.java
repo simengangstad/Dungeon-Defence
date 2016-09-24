@@ -11,6 +11,8 @@ import com.badlogic.gdx.graphics.g3d.particles.influencers.ColorInfluencer;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
+import com.badlogic.gdx.scenes.scene2d.InputEvent;
+import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
@@ -23,6 +25,7 @@ import io.github.simengangstad.defendthecaves.scene.entities.Player;
 import io.github.simengangstad.defendthecaves.scene.gui.SlotItem;
 import io.github.simengangstad.defendthecaves.scene.gui.SpeechBubble;
 import io.github.simengangstad.defendthecaves.scene.items.*;
+import javafx.util.Duration;
 
 import java.util.*;
 
@@ -45,7 +48,7 @@ public class Scene extends Container {
     /**
      * The lights in the scene.
      */
-    private ArrayList<Light> lights = new ArrayList<>();
+    private ArrayList<Light> lights = new ArrayList<Light>();
 
     /**
      * The pathfinding grid used for enemy AI.
@@ -65,19 +68,19 @@ public class Scene extends Container {
     /**
      * A list of the amount of enemies behind each barrier breaking the barrier down.
      */
-    private HashMap<Barrier, ArrayList<Enemy>> enemiesAtHold = new HashMap<>();
+    private HashMap<Barrier, ArrayList<Enemy>> enemiesAtHold = new HashMap<Barrier, ArrayList<Enemy>>();
 
     /**
      * A reference to the keys which open the locked rooms in the map.
      */
-    private ArrayList<Key> keys = new ArrayList<>();
+    private ArrayList<Key> keys = new ArrayList<Key>();
 
     /**
      * The maximum amount one can zoom out of the map.
      */
     private final int MaxZoom = 400;
 
-    final WaveSystem waveSystem;
+    private final WaveSystem waveSystem;
 
     /**
      * Tmp
@@ -97,7 +100,7 @@ public class Scene extends Container {
     /**
      * Stage for items that are supposedly in the scene (health bars etc.)
      */
-    public Stage sceneStage = new Stage();
+    protected Stage sceneStage = new Stage();
 
     private boolean resetted = false;
 
@@ -108,6 +111,7 @@ public class Scene extends Container {
     private int score = 0;
 
     private Label scoreLabel = new Label("", Game.LabelStyle16);
+    private Label highScoreLabel = new Label("", Game.LabelStyle16);
 
     private SpeechBubble dieLabel = new SpeechBubble();
 
@@ -143,21 +147,84 @@ public class Scene extends Container {
         dieLabel.setWidth(200.0f);
 
         scoreLabel.setPosition(10, Gdx.graphics.getHeight() - 20);
+        highScoreLabel.setPosition(10, Gdx.graphics.getHeight() - 50);
 
         backButton.setWidth(200.0f);
         backButton.setHeight(50.0f);
         backButton.setVisible(false);
         backButton.setPosition(Gdx.graphics.getWidth() / 2.0f - backButton.getWidth() / 2.0f, Gdx.graphics.getHeight() / 2.0f - backButton.getHeight() / 2.0f + 75);
+        backButton.addListener(new InputListener() {
+
+            @Override
+            public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
+
+                return true;
+            }
+
+            @Override
+            public void touchUp(InputEvent event, float x, float y, int pointer, int button) {
+
+                super.touchUp(event, x, y, pointer, button);
+
+                freeze = !freeze;
+
+                exitButton.setVisible(freeze);
+                backButton.setVisible(freeze);
+                controlsButton.setVisible(freeze);
+
+                justUnfrozen = true;
+            }
+        });
+
 
         controlsButton.setWidth(200.0f);
         controlsButton.setHeight(50.0f);
         controlsButton.setVisible(false);
         controlsButton.setPosition(Gdx.graphics.getWidth() / 2.0f - controlsButton.getWidth() / 2.0f, Gdx.graphics.getHeight() / 2.0f - controlsButton.getHeight() / 2.0f);
+        controlsButton.addListener(new InputListener() {
+
+            @Override
+            public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
+
+                return true;
+            }
+
+            @Override
+            public void touchUp(InputEvent event, float x, float y, int pointer, int button) {
+
+                super.touchUp(event, x, y, pointer, button);
+
+                Game.swapContainer(Scene.this, new ControlsScreen());
+
+                justUnfrozen = true;
+            }
+        });
 
         exitButton.setWidth(200.0f);
         exitButton.setHeight(50.0f);
         exitButton.setVisible(false);
         exitButton.setPosition(Gdx.graphics.getWidth() / 2.0f - exitButton.getWidth() / 2.0f, Gdx.graphics.getHeight() / 2.0f - exitButton.getHeight() / 2.0f - 75);
+        exitButton.addListener(new InputListener() {
+
+            @Override
+            public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
+
+                return true;
+            }
+
+            @Override
+            public void touchUp(InputEvent event, float x, float y, int pointer, int button) {
+
+                super.touchUp(event, x, y, pointer, button);
+
+                Game.swapContainer(Scene.this, new StartScreen());
+
+                jukebox.stop();
+
+                dispose();
+            }
+        });
+
 
         jukebox.addMusicToGroup(Normal, Gdx.audio.newMusic(Gdx.files.internal("assets/music/Normal/Black Sapphire.mp3")));
         jukebox.addMusicToGroup(Normal, Gdx.audio.newMusic(Gdx.files.internal("assets/music/Normal/Chimera.mp3")));
@@ -179,7 +246,15 @@ public class Scene extends Container {
 
         init();
 
-        waveSystem = new WaveSystem(15, 5, 60, map, player, keys, barriers, enemiesAtHold1 -> this.enemiesAtHold = enemiesAtHold1);
+        waveSystem = new WaveSystem(15, 10, 60, map, player, keys, barriers, new WaveSystem.WaveCallback() {
+
+            @Override
+            public void callback(HashMap<Barrier, ArrayList<Enemy>> enemiesAtHold) {
+
+                Scene.this.enemiesAtHold = enemiesAtHold;
+            }
+        });
+
         waveSystem.requestWave();
 
         lightShader = new LightShader(Map.TileSizeInPixelsInWorldSpace / Game.SizeOfTileInPixelsInSpritesheet / 2, map.getWidth(), map.getHeight());
@@ -204,8 +279,10 @@ public class Scene extends Container {
 
         int highscore = preferences.getInteger("score", 0);
 
-        scoreLabel.setText("Score: 0/" + highscore);
+        scoreLabel.setText("Score: 0");
+        highScoreLabel.setText("High-score: " + highscore);
         sceneStage.addActor(scoreLabel);
+        sceneStage.addActor(highScoreLabel);
 
         if (resetted) {
 
@@ -240,7 +317,7 @@ public class Scene extends Container {
 
         jukebox.setFadeTime(10);
         jukebox.constructShuffleListFromGroup("normal");
-        //jukebox.play();
+        jukebox.play();
     }
 
     /**
@@ -252,7 +329,7 @@ public class Scene extends Container {
      */
     private void addRandomLootInRoom(MapGenerator.Room room, int amountOfRandomLoot, Item... requiredItems) {
 
-        System.out.println("\n ---- Adding random loot ----");
+        if (Game.Debug) System.out.println("\n ---- Adding random loot ----");
 
         for (int i = 0; i < amountOfRandomLoot + requiredItems.length; i++) {
 
@@ -306,7 +383,7 @@ public class Scene extends Container {
                 }
             }
 
-            System.out.println("Placing random loot (" + itemToAdd + ") at position: " + "(" + (position.x / Map.TileSizeInPixelsInWorldSpace) + ", " + (position.y / Map.TileSizeInPixelsInWorldSpace) + ")" + " inside room: " + room);
+            if (Game.Debug) System.out.println("Placing random loot (" + itemToAdd + ") at position: " + "(" + (position.x / Map.TileSizeInPixelsInWorldSpace) + ", " + (position.y / Map.TileSizeInPixelsInWorldSpace) + ")" + " inside room: " + room);
 
             itemToAdd.position.set(position);
             itemToAdd.map = map;
@@ -314,7 +391,7 @@ public class Scene extends Container {
             addGameObject(itemToAdd);
         }
 
-        System.out.println("---- Finished adding random loot ----\n");
+        if (Game.Debug) System.out.println("---- Finished adding random loot ----\n");
     }
 
     public void fillLockedRoomsWithLoot(boolean addKeys) {
@@ -335,22 +412,26 @@ public class Scene extends Container {
         int width = 60;
         int height = 60;
 
-        Random random = new Random(System.nanoTime());
+        Random random = new Random(System.currentTimeMillis());
 
         map = new Map(width, height, (width * height) / (width), 3, 9, 595332546, player.size, (width * height) / (width + height) / 5, ((width * height) / (width + height) / 2));
 
-        map.changeCallback = () -> {
+        map.changeCallback = new Callback() {
 
-            if (!batch.isDrawing()) {
+            @Override
+            public void callback() {
 
-                lightShader.handle.begin();
-            }
+                if (!batch.isDrawing()) {
 
-            lightShader.updateMap(map);
+                    lightShader.handle.begin();
+                }
 
-            if (!batch.isDrawing()) {
+                lightShader.updateMap(map);
 
-                batch.getShader().end();
+                if (!batch.isDrawing()) {
+
+                    batch.getShader().end();
+                }
             }
         };
 
@@ -364,7 +445,7 @@ public class Scene extends Container {
 
         while (!spawnPositionFound) {
 
-            MapGenerator.Room room = map.getRooms()[random.nextInt(map.getRooms().length)];
+            MapGenerator.Room room = map.getRooms().get(random.nextInt(map.getRooms().size()));
 
             if (room.isLocked()) {
 
@@ -447,33 +528,37 @@ public class Scene extends Container {
         super.addGameObject(gameObject);
     }
 
-    public void addExplosion(Explosion explosion, GameObject sender) {
+    public void addExplosion(final Explosion explosion, final GameObject sender) {
 
         addGameObject(explosion);
 
-        System.out.println("Adding explosion!");
+        if (Game.Debug) System.out.println("Adding explosion!");
 
-        explosion.setExplosionCallback(() -> {
+        explosion.setExplosionCallback(new Callback() {
 
-            damage((int) explosion.intensity, explosion.position, explosion.radius);
+            @Override
 
-            int originX = (int) (explosion.position.x);
-            int originY = (int) (explosion.position.y);
-            int radius = (int) (explosion.radius);
+            public void callback() {
 
-            Iterator iterator = gameObjects.iterator();
+                damage((int) explosion.intensity, explosion.position, explosion.radius);
 
-            while (iterator.hasNext()) {
+                int originX = (int) (explosion.position.x);
+                int originY = (int) (explosion.position.y);
+                int radius = (int) (explosion.radius);
 
-                GameObject gameObject = (GameObject) iterator.next();
+                Iterator iterator = gameObjects.iterator();
 
-                if (!(gameObject instanceof Entity) && !gameObject.equals(sender) && !(gameObject instanceof Explosion)) {
+                while (iterator.hasNext()) {
 
-                    float delta = radius + gameObject.size.x / 2.0f;
-                    float xs = (gameObject.position.x - originX) * (gameObject.position.x - originX);
-                    float ys = (gameObject.position.y - originY) * (gameObject.position.y - originY);
+                    GameObject gameObject = (GameObject) iterator.next();
 
-                    if (Math.sqrt(xs + ys) < delta) {
+                    if (!(gameObject instanceof Entity) && !gameObject.equals(sender) && !(gameObject instanceof Explosion)) {
+
+                        float delta = radius + gameObject.size.x / 2.0f;
+                        float xs = (gameObject.position.x - originX) * (gameObject.position.x - originX);
+                        float ys = (gameObject.position.y - originY) * (gameObject.position.y - originY);
+
+                        if (Math.sqrt(xs + ys) < delta) {
 
                         /*if (gameObject instanceof Potion) {
 
@@ -488,39 +573,39 @@ public class Scene extends Container {
                             removeGameObject(gameObject);
                         }*/
 
-                        if (gameObject instanceof Torch) {
+                            if (gameObject instanceof Torch) {
 
-                            removeLight(((Torch) gameObject).light);
+                                removeLight(((Torch) gameObject).light);
+                            }
+
+                            removeGameObject(gameObject);
                         }
-
-                        removeGameObject(gameObject);
                     }
                 }
-            }
 
-            for (int x = (originX - radius) / Map.TileSizeInPixelsInWorldSpace; x <= (originX + radius) / Map.TileSizeInPixelsInWorldSpace; x++) {
+                for (int x = (originX - radius) / Map.TileSizeInPixelsInWorldSpace; x <= (originX + radius) / Map.TileSizeInPixelsInWorldSpace; x++) {
 
-                for (int y = (originY - radius) / Map.TileSizeInPixelsInWorldSpace; y <= (originY + radius) / Map.TileSizeInPixelsInWorldSpace; y++) {
+                    for (int y = (originY - radius) / Map.TileSizeInPixelsInWorldSpace; y <= (originY + radius) / Map.TileSizeInPixelsInWorldSpace; y++) {
 
-                    if (map.isBreakable(x, y)) {
+                        if (map.isBreakable(x, y)) {
 
-                        System.out.println("1: " + x + ", " + y + " - " + map.get(x, y));
+                            if (Game.Debug) System.out.println("1: " + x + ", " + y + " - " + map.get(x, y));
 
-                        if (map.get(x, y) == Map.SolidIntact) {
+                            if (map.get(x, y) == Map.SolidIntact) {
 
-                            map.set(x, y, map.get(x, y) + 2);
-                        }
-                        else if (map.get(x, y) > Map.SolidIntact) {
+                                map.set(x, y, map.get(x, y) + 2);
+                            } else if (map.get(x, y) > Map.SolidIntact) {
 
-                            map.set(x, y, Map.Open);
+                                map.set(x, y, Map.Open);
 
-                            for (int i = 0; i < MathUtils.random(2, 4); i++) {
+                                for (int i = 0; i < MathUtils.random(2, 4); i++) {
 
-                                addGameObject(new Rock(new Vector2(x * Map.TileSizeInPixelsInWorldSpace + Map.TileSizeInPixelsInWorldSpace / 2.0f, y * Map.TileSizeInPixelsInWorldSpace + Map.TileSizeInPixelsInWorldSpace / 2.0f)));
+                                    addGameObject(new Rock(new Vector2(x * Map.TileSizeInPixelsInWorldSpace + Map.TileSizeInPixelsInWorldSpace / 2.0f, y * Map.TileSizeInPixelsInWorldSpace + Map.TileSizeInPixelsInWorldSpace / 2.0f)));
+                                }
                             }
-                        }
 
-                        System.out.println("2: " + x + ", " + y + " - " + map.get(x, y));
+                            if (Game.Debug) System.out.println("2: " + x + ", " + y + " - " + map.get(x, y));
+                        }
                     }
                 }
             }
@@ -602,7 +687,7 @@ public class Scene extends Container {
 
                     entity.paralyse();
 
-                    System.out.println("Damage" + "(" + attackDamage + ") applied to entity due to explosion: " + entity + " - current health: " + entity.health);
+                    if (Game.Debug) System.out.println("Damage" + "(" + attackDamage + ") applied to entity due to explosion: " + entity + " - current health: " + entity.health);
                 }
             }
         }
@@ -653,7 +738,7 @@ public class Scene extends Container {
 
                     entity.applyForce(attackDirection.nor().scl(3.0f), false, 0.0f);
 
-                    System.out.println("Damage" + "(" + attackDamage + ") applied to entity: " + entity + " - current health: " + entity.health);
+                    if (Game.Debug) System.out.println("Damage" + "(" + attackDamage + ") applied to entity: " + entity + " - current health: " + entity.health);
 
                     break;
                 }
@@ -722,7 +807,7 @@ public class Scene extends Container {
 
             if (!rebuilding) {
 
-                List<Object> rocks = new ArrayList<>();
+                List<Object> rocks = new ArrayList<Object>();
 
                 player.inventory.getAllItemsByType(Rock.class, rocks);
 
@@ -797,11 +882,19 @@ public class Scene extends Container {
 
     private void updateStateOfBarriers() {
 
-        enemiesAtHold.forEach((barrier, array) -> {
+        Iterator barrierIterator = enemiesAtHold.keySet().iterator();
+
+        for (int i = 0; i < enemiesAtHold.size(); i++) {
+
+            Barrier barrier = (Barrier) barrierIterator.next();
+            ArrayList<Enemy> array = enemiesAtHold.get(barrier);
 
             if (barrier.getState() <= 0) {
 
-                array.forEach(this::addGameObject);
+                for (Enemy enemy : array) {
+
+                    addGameObject(enemy);
+                }
 
                 array.clear();
             }
@@ -824,16 +917,15 @@ public class Scene extends Container {
 
                 map.set((int) barrier.position.x, (int) barrier.position.y, Map.SpawnSlightlyBroken);
 
-                System.out.println("Barrier (" + barrier + ") is slightly broken.");
+                if (Game.Debug) System.out.println("Barrier (" + barrier + ") is slightly broken.");
             }
             else if ((barrier.getState() / barrier.TimeToDemolishBarrier) <= 0.0f && map.get((int) barrier.position.x, (int) barrier.position.y) != Map.SpawnBroken) {
 
                 map.set((int) barrier.position.x, (int) barrier.position.y, Map.SpawnBroken);
 
-                System.out.println("Barrier (" + barrier + ") is broken.");
+                if (Game.Debug) System.out.println("Barrier (" + barrier + ") is broken.");
             }
-
-        });
+        }
     }
 
     private void updateStateOfGameObjects() {
@@ -919,7 +1011,8 @@ public class Scene extends Container {
                             preferences.putInteger("score", score);
                         }
 
-                        scoreLabel.setText("Score: " + score + "/" + preferences.getInteger("score", 0));
+                        scoreLabel.setText("Score: " + score);
+                        highScoreLabel.setText("High-score: " + preferences.getInteger("score", 0));
 
                         waveSystem.addDeadEnemy();
 
@@ -1028,7 +1121,7 @@ public class Scene extends Container {
 
                                                 entity.addItem(item);
 
-                                                System.out.println("Entity (" + entity + ") picked up item: " + item);
+                                                if (Game.Debug) System.out.println("Entity (" + entity + ") picked up item: " + item);
 
                                                 removeGameObject(item);
                                             }
@@ -1037,7 +1130,7 @@ public class Scene extends Container {
 
                                             if (entity.inventory.sufficientPlaceForItem(item) && item.forceApplied.x == 0.0f && item.forceApplied.y == 0.0f) {
 
-                                                System.out.println("Item (" + item + ") in range of entity (" + entity + "), applying force.");
+                                                if (Game.Debug) System.out.println("Item (" + item + ") in range of entity (" + entity + "), applying force.");
 
                                                 Vector2 vector = Game.vector2Pool.obtain();
 
@@ -1071,7 +1164,7 @@ public class Scene extends Container {
 
                                 player.addItem(item);
 
-                                System.out.println("Entity (" + player + ") picked up item: " + item);
+                                if (Game.Debug) System.out.println("Entity (" + player + ") picked up item: " + item);
 
                                 removeGameObject(item);
                             }
@@ -1094,53 +1187,6 @@ public class Scene extends Container {
         justUnfrozen = false;
 
         return super.touchUp(screenX, screenY, pointer, button);
-    }
-
-    @Override
-    public boolean touchDown(int screenX, int screenY, int pointer, int button) {
-
-        int mouseX = screenX;
-        int mouseY = Math.abs(screenY - (Gdx.graphics.getHeight() - 1));
-
-        if (    exitButton.isVisible() &&
-                exitButton.getX() < mouseX && mouseX < exitButton.getX() + exitButton.getWidth() &&
-                exitButton.getY() < mouseY && mouseY < exitButton.getY() + exitButton.getHeight()) {
-
-            Game.swapContainer(this, new StartScreen());
-
-            jukebox.stop();
-
-            dispose();
-
-            return true;
-        }
-        else if (backButton.isVisible() &&
-                backButton.getX() < mouseX && mouseX < backButton.getX() + backButton.getWidth() &&
-                backButton.getY() < mouseY && mouseY < backButton.getY() + backButton.getHeight()) {
-
-            freeze = !freeze;
-
-            exitButton.setVisible(freeze);
-            backButton.setVisible(freeze);
-            controlsButton.setVisible(freeze);
-
-            justUnfrozen = true;
-
-            return true;
-        }
-        else if (controlsButton.isVisible() &&
-                controlsButton.getX() < mouseX && mouseX < controlsButton.getX() + controlsButton.getWidth() &&
-                controlsButton.getY() < mouseY && mouseY < controlsButton.getY() + controlsButton.getHeight()) {
-
-            Game.swapContainer(this, new ControlsScreen());
-
-            justUnfrozen = true;
-
-            return true;
-        }
-
-
-        return false;
     }
 
     @Override
@@ -1180,7 +1226,7 @@ public class Scene extends Container {
 
             recompileShader = false;
 
-            System.out.println("<---- Recompiling shader! ---->");
+            if (Game.Debug) System.out.println("<---- Recompiling shader! ---->");
         }
 
         if (0.0f < shakeTime) {
@@ -1257,8 +1303,9 @@ public class Scene extends Container {
 
             if (Gdx.input.isKeyJustPressed(Input.Keys.ENTER)) {
 
-                init();
+                jukebox.stop();
 
+                init();
                 dieLabel.setVisible(false);
             }
         }
@@ -1283,10 +1330,10 @@ public class Scene extends Container {
         player.camera.project(worldCoords, 0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
     }
 
-    float totalTimer = 0.0f;
-    float rebuildingTimer = 0.0f;
-    final float interval = 0.5f;
-    boolean rebuilding = false;
+    private float totalTimer = 0.0f;
+    private float rebuildingTimer = 0.0f;
+    private final float interval = 0.5f;
+    private boolean rebuilding = false;
 
     @Override
     public void dispose() {

@@ -3,7 +3,7 @@ package io.github.simengangstad.client;
 import com.badlogic.gdx.ApplicationListener;
 import com.badlogic.gdx.backends.gwt.GwtApplication;
 import com.badlogic.gdx.backends.gwt.GwtApplicationConfiguration;
-import io.github.simengangstad.Game;
+import io.github.simengangstad.defendthecaves.Game;
 
 public class HtmlLauncher extends GwtApplication {
 

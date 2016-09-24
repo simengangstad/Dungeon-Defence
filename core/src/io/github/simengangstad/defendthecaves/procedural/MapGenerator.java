@@ -2,6 +2,7 @@ package io.github.simengangstad.defendthecaves.procedural;
 
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
+import io.github.simengangstad.defendthecaves.Game;
 import io.github.simengangstad.defendthecaves.pathfinding.Coordinate;
 import io.github.simengangstad.defendthecaves.pathfinding.PathfindingGrid;
 import io.github.simengangstad.defendthecaves.scene.items.Key;
@@ -39,7 +40,7 @@ public class MapGenerator {
     /**
      * The rooms in the map.
      */
-    private final ArrayList<Room> rooms = new ArrayList<>();
+    private final ArrayList<Room> rooms = new ArrayList<Room>();
 
     /**
      * The amount of rooms the generator will try to place.
@@ -125,14 +126,7 @@ public class MapGenerator {
         return map;
     }
 
-    public Room[] getRooms() {
-
-        Room[] rooms = new Room[this.rooms.size()];
-
-        for (int i = 0; i < rooms.length; i++) {
-
-            rooms[i] = this.rooms.get(i);
-        }
+    public ArrayList<Room> getRooms() {
 
         return rooms;
     }
@@ -200,18 +194,15 @@ public class MapGenerator {
             // coordinate and size.
             tries = 0;
 
-            Room room = new Room(x, y, width, height, false);
-
-            room.locked = false;
+            Room room = new Room(x, y, width, height, MathUtils.random(100) < chanceOfLockedRoom);
 
             rooms.add(room);
 
-            if (MathUtils.random(100) < chanceOfLockedRoom) {
+            if (room.isLocked()) {
 
                 constructRectangualarLockedRoom(x, y, width, height, MathUtils.random(100));
 
                 room.key = new Key(new Vector2(), new Coordinate(room.getEntrance(0).x, room.getEntrance(0).y));
-                room.locked = true;
             }
             else {
 
@@ -332,8 +323,6 @@ public class MapGenerator {
             }
         }
 
-        // TODO: add loot
-
         Coordinate coordinate = new Coordinate((x - (width - 1) / 2) + MathUtils.random.nextInt(width - 2) + 1, MathUtils.random.nextBoolean() ? y + (height - 1) / 2 : y - (height - 1) / 2);
 
         rooms.get(rooms.size() - 1).addEntrance(coordinate);
@@ -393,7 +382,7 @@ public class MapGenerator {
      */
     private void constructCorridors() {
 
-        System.out.println("\n---- Constructing corridors ----");
+        if (Game.Debug) System.out.println("\n---- Constructing corridors ----");
 
         PathfindingGrid grid = new PathfindingGrid(map.length, map[0].length);
         Coordinate current = new Coordinate();
@@ -422,7 +411,7 @@ public class MapGenerator {
             Room startRoom = rooms.get(index);
             Room endRoom = rooms.get((index + 1) % rooms.size());
 
-            System.out.println("Start room is locked locked: " + startRoom.locked);
+            if (Game.Debug) System.out.println("Start room is locked locked: " + startRoom.locked);
 
             int a = index + 1;
 
@@ -462,7 +451,7 @@ public class MapGenerator {
             Coordinate startCoordinate = startRoom.pollEntrance();
             Coordinate endCoordinate = new Coordinate(endRoom.centreX, endRoom.centreY);
 
-            System.out.println("Constructing corridor between " + endCoordinate + " and " + startCoordinate);
+            if (Game.Debug) System.out.println("Constructing corridor between " + endCoordinate + " and " + startCoordinate);
 
             map[endCoordinate.x][endCoordinate.y] = Free;
 
@@ -495,7 +484,7 @@ public class MapGenerator {
 
                 if (!startRoom.locked && map[current.x][current.y] == Free && !current.equals(endCoordinate) && !endRoom.isInside(current.x, current.y)) {
 
-                    System.out.println("Corridor found another free tile before the end destination. Stopped at " + current + ".");
+                    if (Game.Debug) System.out.println("Corridor found another free tile before the end destination. Stopped at " + current + ".");
 
                     break;
                 }
@@ -533,7 +522,7 @@ public class MapGenerator {
             index++;
         }
 
-        System.out.println("---- Finished constructing corridors ----\n");
+        if (Game.Debug) System.out.println("---- Finished constructing corridors ----\n");
     }
 
     private boolean validCoordinate(int x, int y) {
@@ -567,11 +556,11 @@ public class MapGenerator {
          */
         public final int width, height;
 
-        private Queue<Coordinate> entrancesQueue = new LinkedList<>();
+        private Queue<Coordinate> entrancesQueue = new LinkedList<Coordinate>();
 
-        private List<Coordinate> entrancesList = new ArrayList<>();
+        private List<Coordinate> entrancesList = new ArrayList<Coordinate>();
 
-        private boolean locked;
+        private final boolean locked;
 
         /**
          * A key that points to this rooms entrance if it's locked.

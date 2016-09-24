@@ -38,13 +38,13 @@ public class Container implements Disposable, InputProcessor {
     /**
      * The game objects in the container.
      */
-    protected ArrayList<GameObject> gameObjects = new ArrayList<>();
+    protected ArrayList<GameObject> gameObjects = new ArrayList<GameObject>();
 
     /**
      * Game objects requested to be added to the main array. This is to prevent modifying the array list whilst
      * in a tick.
      */
-    protected ArrayList<GameObject> buffer = new ArrayList<>(), removeBuffer = new ArrayList<>();
+    protected ArrayList<GameObject> buffer = new ArrayList<GameObject>(), removeBuffer = new ArrayList<GameObject>();
 
     /**
      * The custom mouse cursor.
@@ -174,12 +174,11 @@ public class Container implements Disposable, InputProcessor {
 
         batch.begin();
 
-        gameObjects.forEach(gameObject -> {
+        for (GameObject gameObject : gameObjects) {
 
             gameObject.tick();
-
             gameObject.draw(batch);
-        });
+        }
 
         batch.end();
 
@@ -192,6 +191,9 @@ public class Container implements Disposable, InputProcessor {
         batch.dispose();
         stage.dispose();
 
-        gameObjects.forEach((gameObject -> gameObject.dispose()));
+        for (GameObject gameObject : gameObjects) {
+
+            gameObject.dispose();
+        }
     }
 }

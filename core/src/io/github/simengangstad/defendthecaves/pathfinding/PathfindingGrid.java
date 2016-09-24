@@ -46,13 +46,13 @@ public class PathfindingGrid {
      * The queue used for the expanding ring (frontier) that determines the properties
      * of the tiles within the map.
      */
-    private final Queue<PathfindingCoordinate> frontier = new LinkedList<>();
+    private final Queue<PathfindingCoordinate> frontier = new LinkedList<PathfindingCoordinate>();
 
     /**
      * The priority queue used for the expanding ring (frontier) which also takes in account distance
      * to the goal.
      */
-    private final PriorityQueue<PathfindingCoordinate> priorityFrontier = new PriorityQueue<>();
+    private final PriorityQueue<PathfindingCoordinate> priorityFrontier = new PriorityQueue<PathfindingCoordinate>();
 
     /**
      * Temp value for the neigbours of a given tile.

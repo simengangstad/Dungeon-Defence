@@ -13,10 +13,12 @@ import io.github.simengangstad.defendthecaves.Game;
 import io.github.simengangstad.defendthecaves.scene.Craftable;
 import io.github.simengangstad.defendthecaves.scene.Entity;
 import io.github.simengangstad.defendthecaves.scene.Item;
+import io.github.simengangstad.defendthecaves.scene.gui.SlotItem;
 import io.github.simengangstad.defendthecaves.scene.gui.SlotView;
 import io.github.simengangstad.defendthecaves.scene.gui.SpeechBubble;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.stream.Collectors;
 
 /**
@@ -30,7 +32,7 @@ public class CraftableItemsView extends SlotView implements InputProcessor {
      */
     private Entity hostEntity;
 
-    private ArrayList<Item> itemsToObtain = new ArrayList<>();
+    private ArrayList<Item> itemsToObtain = new ArrayList<Item>();
 
     public SpeechBubble speechBubble = null;
     private Color color = new Color(1.0f, 1.0f, 1.0f, 1.0f);
@@ -77,7 +79,10 @@ public class CraftableItemsView extends SlotView implements InputProcessor {
 
                 if (!hostEntity.inventory.getItemList(x, y).isEmpty()) {
 
-                    hostEntity.inventory.getItemList(x, y).forEach((item) -> recipe.addIngredient((Item) item));
+                    for (SlotItem item : hostEntity.inventory.getItemList(x, y)) {
+
+                        recipe.addIngredient((Item) item);
+                    }
                 }
             }
         }
@@ -213,7 +218,23 @@ public class CraftableItemsView extends SlotView implements InputProcessor {
 
                             if (recipe.isIngredientInRecipe(hostEntity.inventory.getItemType(xs, ys))) {
 
-                                itemsToObtain.addAll(hostEntity.inventory.getItemList(xs, ys).stream().filter(item -> ((Craftable) items[column][row].get(0)).recipe.addIngredient((Item) item)).map(item -> (Item) item).collect(Collectors.toList()));
+                                Iterator iterator = hostEntity.inventory.getItemList(xs, ys).iterator();
+
+                                while (iterator.hasNext()) {
+
+                                    Item item = (Item) iterator.next();
+
+                                    if (recipe.addIngredient(item)) {
+
+                                        iterator.remove();
+                                    }
+                                    else {
+
+                                        break;
+                                    }
+                                }
+
+                                //itemsToObtain.addAll(hostEntity.inventory.getItemList(xs, ys).stream().filter(item -> ((Craftable) items[column][row].get(0)).recipe.addIngredient((Item) item)).map(item -> (Item) item).collect(Collectors.toList()));
                             }
                         }
                     }

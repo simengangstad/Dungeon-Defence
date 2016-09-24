@@ -2,6 +2,7 @@ package io.github.simengangstad.defendthecaves.scene;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.audio.Sound;
+import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Vector2;
@@ -243,6 +244,26 @@ public abstract class Item extends Collidable implements SlotItem {
         }
 
         delta.set(0.0f, 0.0f);
+    }
+
+    /**
+     * For drawing in slot views. Can't extend multiple classes, so this is the work around having this here as all slot items are items.
+     */
+    public void draw(Batch batch, float x, float y, float width, float height) {
+
+        boolean flipped = getSlotTextureRegion().isFlipX();
+
+        if (flipped) {
+
+            getSlotTextureRegion().flip(true, false);
+        }
+
+        batch.draw(getSlotTextureRegion(), x, y, width, height);
+
+        if (flipped) {
+
+            getSlotTextureRegion().flip(true, false);
+        }
     }
 
     @Override

@@ -36,9 +36,18 @@ public class ControlsScreen extends Container {
             @Override
             public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
 
-                Game.swapContainer(ControlsScreen.this, Game.tmpContainer);
-
                 return true;
+            }
+
+            @Override
+            public void touchUp(InputEvent event, float x, float y, int pointer, int button) {
+
+                super.touchUp(event, x, y, pointer, button);
+
+                Gdx.input.setInputProcessor(Game.tmpContainer.inputMultiplexer);
+
+                Game.container = Game.tmpContainer;
+                Game.tmpContainer = ControlsScreen.this;
             }
         });
 

@@ -375,7 +375,7 @@ public class Map {
     /**
      * The spawn points.
      */
-    private final ArrayList<Vector2> spawnPoints = new ArrayList<>();
+    private final ArrayList<Vector2> spawnPoints = new ArrayList<Vector2>();
 
     /**
      * Reference to the player position
@@ -387,7 +387,7 @@ public class Map {
      */
     public Callback changeCallback;
 
-    private final MapGenerator.Room[] rooms;
+    private final ArrayList<MapGenerator.Room> rooms;
 
     private final Texture SpriteSheet = Game.SpriteSheet;
 
@@ -529,7 +529,7 @@ public class Map {
         }
     }
 
-    public MapGenerator.Room[] getRooms() {
+    public ArrayList<MapGenerator.Room> getRooms() {
 
         return rooms;
     }

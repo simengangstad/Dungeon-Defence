@@ -21,7 +21,7 @@ public class  Potion extends Item {
 
     private final TextureRegion fill = new TextureRegion(Game.SpriteSheet, 48, 208, 16, 16);
 
-    private ArrayList<Chemical> chemicals = new ArrayList<>();
+    private ArrayList<Chemical> chemicals = new ArrayList<Chemical>();
 
     private int stability = 0, toxicity = 0, flammability = 0;
 
@@ -141,7 +141,19 @@ public class  Potion extends Item {
 
         batch.setColor(Color.WHITE);
 
-        super.draw(batch, x, y, width, height);
+        boolean flipped = getSlotTextureRegion().isFlipX();
+
+        if (flipped) {
+
+            getSlotTextureRegion().flip(true, false);
+        }
+
+        batch.draw(getSlotTextureRegion(), x, y, width, height);
+
+        if (flipped) {
+
+            getSlotTextureRegion().flip(true, false);
+        }
     }
 
     @Override

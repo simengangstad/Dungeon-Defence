@@ -5,6 +5,7 @@ import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
+import io.github.simengangstad.defendthecaves.Callback;
 import io.github.simengangstad.defendthecaves.Game;
 import io.github.simengangstad.defendthecaves.scene.Scene;
 
@@ -51,7 +52,7 @@ public class Crossbow extends RotatableWeapon {
 
     private Vector3 tmp = new Vector3();
 
-    private List<Object> tmpList = new ArrayList<>();
+    private List<Object> tmpList = new ArrayList<Object>();
 
     public static final Sound Fire = Gdx.audio.newSound(Gdx.files.internal("assets/sfx/crossbow.wav")), NoArrow = Gdx.audio.newSound(Gdx.files.internal("assets/sfx/NoArrow.ogg"));
 
@@ -65,7 +66,13 @@ public class Crossbow extends RotatableWeapon {
 
         information = "Crossbow\nAttack damage: " + attackDamage;
 
-        callback = () -> recoil = false;
+        callback = new Callback() {
+            @Override
+            public void callback() {
+
+                recoil = false;
+            }
+        };
     }
 
     @Override

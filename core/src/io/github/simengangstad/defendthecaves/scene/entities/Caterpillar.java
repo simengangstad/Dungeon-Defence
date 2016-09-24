@@ -5,8 +5,11 @@ import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
+import io.github.simengangstad.defendthecaves.Callback;
 import io.github.simengangstad.defendthecaves.Game;
+import io.github.simengangstad.defendthecaves.GameObject;
 import io.github.simengangstad.defendthecaves.scene.Entity;
+import io.github.simengangstad.defendthecaves.scene.ImpactCallback;
 import io.github.simengangstad.defendthecaves.scene.Projectile;
 import io.github.simengangstad.defendthecaves.scene.TextureUtil;
 import io.github.simengangstad.defendthecaves.scene.items.Axe;
@@ -36,7 +39,7 @@ public class Caterpillar extends Enemy {
 
         super(position,
                 player,
-                10,
+                20,
                 size,
                 TextureUtil.getAnimation(Game.CaterpillarStationary, 16, 0.2f, Animation.PlayMode.NORMAL),
                 TextureUtil.getAnimation(Game.CaterpillarMoving, 16, 0.2f, Animation.PlayMode.NORMAL));
@@ -63,8 +66,7 @@ public class Caterpillar extends Enemy {
     boolean fire = false;
 
     @Override
-    protected void noticedPlayer(Vector2 direction) {
-
+    protected void noticedPlayer(final Vector2 direction) {
 
         timeToNextStep -= Gdx.graphics.getDeltaTime();
 
@@ -89,47 +91,59 @@ public class Caterpillar extends Enemy {
 
             tmp.scl(projectileSpeed);
 
-            requestAnimation(AttackAnimation, () -> {
+            requestAnimation(AttackAnimation, new Callback() {
 
-                Projectile projectile = new Projectile(position.cpy(), new Vector2(80, 80), tmp.cpy(), projectingAnimation, impactAnimation, host.getGameObjects(), this);
+                @Override
+                public void callback() {
 
-                projectile.map = map;
-                projectile.tiledCollisionTests = true;
-                projectile.computeTiledCollisionMaps(projectingAnimation.getKeyFrames(), 16, 16);
+                    final Projectile projectile = new Projectile(position.cpy(), new Vector2(80, 80), tmp.cpy(), projectingAnimation, impactAnimation, host.getGameObjects(), Caterpillar.this);
 
-                projectile.canBePickedUp = false;
+                    projectile.map = map;
+                    projectile.tiledCollisionTests = true;
+                    projectile.computeTiledCollisionMaps(projectingAnimation.getKeyFrames(), 16, 16);
 
-                projectile.impactCallback = (object) -> {
+                    projectile.canBePickedUp = false;
 
-                    if (object != null) {
+                    projectile.impactCallback = new ImpactCallback() {
 
-                        Entity entity = (Entity) object;
+                        @Override
+                        public void callback(GameObject object) {
 
-                        if (entity instanceof Enemy) {
+                            if (object != null) {
 
-                            return;
+                                Entity entity = (Entity) object;
+
+                                if (entity instanceof Enemy) {
+
+                                    return;
+                                }
+
+                                Axe.Hit.play();
+
+                                entity.takeDamage(attackDamage);
+
+                                entity.paralyse();
+
+                                entity.applyForce(direction.nor(), false, 0.0f);
+
+                                System.out.println("Damage applied to entity: " + entity + " - current health: " + entity.health);
+                            }
                         }
+                    };
 
-                        Axe.Hit.play();
+                    projectile.finishedPlayingImpactAnimationCallback = new Callback() {
 
-                        entity.takeDamage(attackDamage);
+                        @Override
+                        public void callback() {
 
-                        entity.paralyse();
+                            host.removeGameObject(projectile);
+                        }
+                    };
 
-                        entity.applyForce(direction.nor(), false, 0.0f);
+                    Spitting.play();
 
-                        System.out.println("Damage applied to entity: " + entity + " - current health: " + entity.health);
-                    }
-                };
-
-                projectile.finishedPlayingImpactAnimationCallback = () -> {
-
-                    host.removeGameObject(projectile);
-                };
-
-                Spitting.play();
-
-                host.addGameObject(projectile);
+                    host.addGameObject(projectile);
+                }
             });
         }
     }

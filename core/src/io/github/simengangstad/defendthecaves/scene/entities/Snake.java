@@ -7,6 +7,7 @@ import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
+import io.github.simengangstad.defendthecaves.Callback;
 import io.github.simengangstad.defendthecaves.Game;
 import io.github.simengangstad.defendthecaves.scene.Scene;
 import io.github.simengangstad.defendthecaves.scene.TextureUtil;
@@ -31,7 +32,7 @@ public class Snake extends Enemy {
 
         super(position,
                 player,
-                10,
+                20,
                 size,
                 TextureUtil.getAnimation(Game.SnakeStationary, 32, 0.4f, Animation.PlayMode.NORMAL),
                 TextureUtil.getAnimation(Game.SnakeMoving, 32, 0.08f, Animation.PlayMode.NORMAL));
@@ -44,7 +45,7 @@ public class Snake extends Enemy {
     }
 
     @Override
-    protected void hurtPlayer(Vector2 tmpVector) {
+    protected void hurtPlayer(final Vector2 tmpVector) {
 
         timeToNextAttack -= Gdx.graphics.getDeltaTime();
 
@@ -52,7 +53,14 @@ public class Snake extends Enemy {
 
             bite.play(0.25f);
 
-            requestAnimation(BiteAnimation, () -> ((Scene) host).damage(attackDamage, tmpVector, position.x + (!flip() ? size.x / 2.0f : -size.x / 2.0f), position.y, size.x, size.y, Snake.this));
+            requestAnimation(BiteAnimation, new Callback() {
+
+                @Override
+                public void callback() {
+
+                    ((Scene) host).damage(attackDamage, tmpVector, position.x + (!flip() ? size.x / 2.0f : -size.x / 2.0f), position.y, size.x, size.y, Snake.this);
+                }
+            });
 
             while (timeToNextAttack < 0) {
 

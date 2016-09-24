@@ -5,9 +5,7 @@ import com.badlogic.gdx.audio.Music;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.utils.Queue;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
+import java.util.*;
 
 /**
  * Created by simengangstad on 16/09/16.
@@ -16,14 +14,14 @@ import java.util.HashMap;
  */
 public class Jukebox {
 
-    private HashMap<String, ArrayList<Music>> music = new HashMap<>();
+    private HashMap<String, ArrayList<Music>> music = new HashMap<String, ArrayList<Music>>();
 
     private String currentGroup = null;
 
     private Music previousSong, currentSong;
 
-    private Queue<Music> queue = new Queue<>();
-    private Queue<String> groupQueue = new Queue<>();
+    private Queue<Music> queue = new Queue<Music>();
+    private Queue<String> groupQueue = new Queue<String>();
 
     private float timeToNextSong = 0.0f;
 
@@ -40,7 +38,7 @@ public class Jukebox {
 
         if (tracks == null) {
 
-            tracks = new ArrayList<>();
+            tracks = new ArrayList<Music>();
 
             music.put(group, tracks);
         }
@@ -50,14 +48,18 @@ public class Jukebox {
         track.setOnCompletionListener(completionListener);
     }
 
-    private Music.OnCompletionListener completionListener = (music) -> {
+    private Music.OnCompletionListener completionListener = new Music.OnCompletionListener() {
 
-        if (queue.size == 0) {
+        @Override
+        public void onCompletion(Music music) {
 
-            constructShuffleListFromGroup(currentGroup);
+            fetchNextSong();
+
+            if (queue.size == 0) {
+
+                constructShuffleListFromGroup(currentGroup);
+            }
         }
-
-        fetchNextSong();
     };
 
     public void constructShuffleListFromGroup(String group) {
@@ -68,14 +70,22 @@ public class Jukebox {
         }
 
         currentGroup = group;
-        Collections.shuffle(music.get(currentGroup));
+
+        shuffle(music.get(currentGroup));
 
         queue.clear();
-        music.get(currentGroup).forEach((track) -> queue.addLast(track));
+        for (Music track : music.get(currentGroup)) {
+
+            queue.addLast(track);
+        }
         currentSong = queue.removeFirst();
 
         groupQueue.clear();
-        music.get(currentGroup).forEach((track) -> groupQueue.addLast(currentGroup));
+
+        for (int i = 0; i < music.get(currentGroup).size(); i++) {
+
+            groupQueue.addLast(currentGroup);
+        }
         currentGroup = groupQueue.removeFirst();
 
         System.out.println("Playing new track from group: " + currentGroup);
@@ -176,6 +186,28 @@ public class Jukebox {
 
     public void dispose() {
 
-        music.forEach((group, list) -> list.forEach(Music::dispose));
+        for (ArrayList<Music> list : music.values()) {
+
+            for (Music music : list) {
+
+                music.dispose();
+            }
+        }
+    }
+
+    private static void shuffle(ArrayList<Music> list) {
+
+        Random random = new Random();
+
+        for (int i = list.size() - 1; i > 0; i--) {
+
+            // Index from the current index and back
+            int index = random.nextInt(i + 1);
+
+            Music obj = list.get(index);
+
+            list.set(index, list.get(i));
+            list.set(i, obj);
+        }
     }
 }

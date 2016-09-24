@@ -11,12 +11,14 @@ import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
+import io.github.simengangstad.defendthecaves.Callback;
 import io.github.simengangstad.defendthecaves.Game;
 import io.github.simengangstad.defendthecaves.procedural.MapGenerator;
 import io.github.simengangstad.defendthecaves.scene.*;
 import io.github.simengangstad.defendthecaves.scene.crafting.CraftableItemsView;
 import io.github.simengangstad.defendthecaves.scene.crafting.Inventory;
 import io.github.simengangstad.defendthecaves.scene.items.*;
+import org.omg.PortableInterceptor.SYSTEM_EXCEPTION;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -48,7 +50,7 @@ public class Player extends Entity implements InputProcessor {
 
     private boolean canOpen = false;
 
-    private List<Object> tmpList = new ArrayList<>();
+    private List<Object> tmpList = new ArrayList<Object>();
 
     private Key tmpKey;
 
@@ -79,6 +81,8 @@ public class Player extends Entity implements InputProcessor {
     public static final Sound Rocks = Gdx.audio.newSound(Gdx.files.internal("assets/sfx/rocks.wav"));
 
     private boolean initMouse = false;
+
+    private float mouseTimer = 0.0f;
 
     /**
      * Initializes the player with a camera.
@@ -121,22 +125,19 @@ public class Player extends Entity implements InputProcessor {
 
         ((Scene) host).addLight(light);
 
-        new Timer().schedule(new TimerTask() {
-
-            @Override
-            public void run() {
-
-                initMouse = true;
-            }
-        }, 1500);
-
+        mouseTimer = 0.0f;
     }
 
     public void initialise() {
 
         inventory.clear();
 
-        Axe axe = new Axe(() -> {});
+        Axe axe = new Axe(new Callback() {
+            @Override
+            public void callback() {
+
+            }
+        });
 
         addItemAtLocation(0, 0, new Torch(position.cpy()));
         addItemAtLocation(1, 0, new Shield());
@@ -273,6 +274,15 @@ public class Player extends Entity implements InputProcessor {
             return;
         }
 
+        if (mouseTimer < 1.5f) {
+
+            mouseTimer += Gdx.graphics.getDeltaTime();
+        }
+        else {
+
+            initMouse = true;
+        }
+
         if (Gdx.input.isKeyJustPressed(Input.Keys.E)) {
 
             toggleInventory();
@@ -336,9 +346,9 @@ public class Player extends Entity implements InputProcessor {
                             }
                         }
                     }
-                }
 
-                break;
+                    break;
+                }
             }
         }
 

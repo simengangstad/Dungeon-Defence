@@ -44,7 +44,7 @@ public abstract class Enemy extends Entity {
 
     final Vector2 lastPosition = new Vector2();
 
-    final ArrayList<Coordinate> path = new ArrayList<>();
+    final ArrayList<Coordinate> path = new ArrayList<Coordinate>();
 
     int currentIndex = 0;
 

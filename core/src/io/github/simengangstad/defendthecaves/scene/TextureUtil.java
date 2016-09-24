@@ -11,7 +11,7 @@ import com.badlogic.gdx.utils.Array;
  */
 public class TextureUtil {
 
-    public static Array<TextureRegion> frames = new Array<>();
+    public static Array<TextureRegion> frames = new Array<TextureRegion>();
 
     public static Animation getAnimation(Texture texture, int x, int y, int width, int widthOfFrames, int heightOfFrame, float frameDuration, Animation.PlayMode playMode) {
 

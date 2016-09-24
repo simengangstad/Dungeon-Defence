@@ -6,6 +6,7 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.scenes.scene2d.ui.Widget;
 import com.badlogic.gdx.scenes.scene2d.utils.Drawable;
 import io.github.simengangstad.defendthecaves.Game;
+import io.github.simengangstad.defendthecaves.scene.Craftable;
 import io.github.simengangstad.defendthecaves.scene.Item;
 
 import java.util.ArrayList;
@@ -58,7 +59,7 @@ public class SlotView extends Widget {
 
             for (int y = 0; y < rows; y++) {
 
-                items[x][y] = new ArrayList<>();
+                items[x][y] = new ArrayList<SlotItem>();
                 faded[x][y] = false;
             }
         }
@@ -108,14 +109,19 @@ public class SlotView extends Widget {
                     float width = slotWidth - (slotWidth / style.slot.getMinWidth()) * 2;
                     float height = slotHeight - (slotHeight / style.slot.getMinHeight()) * 2;
 
-                    SlotItem item = items[x][y].get(0);
-
                     if (faded[x][y]) {
 
                         batch.setColor(1.0f, 1.0f, 1.0f, 0.5f);
                     }
 
-                    item.draw(batch, getX() + x * slotWidth + (slotWidth / style.slot.getMinWidth()), getY() + y * slotHeight + (slotHeight / style.slot.getMinHeight()), width, height);
+                    if (items[x][y].get(0) instanceof Item) {
+
+                        ((Item) items[x][y].get(0)).draw(batch, getX() + x * slotWidth + (slotWidth / style.slot.getMinWidth()), getY() + y * slotHeight + (slotHeight / style.slot.getMinHeight()), width, height);
+                    }
+                    else {
+
+                        draw(items[x][y].get(0), batch, getX() + x * slotWidth + (slotWidth / style.slot.getMinWidth()), getY() + y * slotHeight + (slotHeight / style.slot.getMinHeight()), width, height);
+                    }
 
                     if (faded[x][y]) {
 
@@ -123,6 +129,27 @@ public class SlotView extends Widget {
                     }
                 }
             }
+        }
+    }
+
+
+    /**
+     * For drawing in slot views. Can't extend multiple classes, so this is the work around having this here as all slot items are items.
+     */
+    public void draw(SlotItem slotItem, Batch batch, float x, float y, float width, float height) {
+
+        boolean flipped = slotItem.getSlotTextureRegion().isFlipX();
+
+        if (flipped) {
+
+            slotItem.getSlotTextureRegion().flip(true, false);
+        }
+
+        batch.draw(slotItem.getSlotTextureRegion(), x, y, width, height);
+
+        if (flipped) {
+
+            slotItem.getSlotTextureRegion().flip(true, false);
         }
     }
 

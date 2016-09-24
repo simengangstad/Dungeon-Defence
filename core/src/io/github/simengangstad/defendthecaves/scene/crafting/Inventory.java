@@ -4,10 +4,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.audio.Sound;
-import com.badlogic.gdx.graphics.Color;
-import com.badlogic.gdx.graphics.Cursor;
 import com.badlogic.gdx.graphics.g2d.Batch;
-import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
@@ -52,7 +49,7 @@ public class Inventory extends SlotView implements InputProcessor {
     /**
      * The item(s) which the user is currently intercting with.
      */
-    protected ArrayList<Item> currentItems = new ArrayList<>();
+    protected ArrayList<Item> currentItems = new ArrayList<Item>();
 
     /**
      * Reference to the position the {@link Inventory#currentItems} was placed at.
@@ -86,7 +83,7 @@ public class Inventory extends SlotView implements InputProcessor {
      */
     public SpeechBubble speechBubble = null;
 
-    private ArrayList<Item> tmpList = new ArrayList<>();
+    private ArrayList<Item> tmpList = new ArrayList<Item>();
 
     public Label label = null;
 
@@ -349,7 +346,7 @@ public class Inventory extends SlotView implements InputProcessor {
             return null;
         }
 
-        ArrayList<Item> newItems = new ArrayList<>();
+        ArrayList<Item> newItems = new ArrayList<Item>();
 
         if (items[x][y].size() <= amount) {
 
@@ -459,12 +456,7 @@ public class Inventory extends SlotView implements InputProcessor {
 
             float scale = 1.25f;
 
-            currentItems.get(0).draw(
-                    batch,
-                    x - slotWidth * scale / 2.0f,
-                    y - slotHeight * scale / 2.0f,
-                    slotWidth * scale,
-                    slotHeight * scale);
+            currentItems.get(0).draw(batch, x - slotWidth * scale / 2.0f, y - slotHeight * scale / 2.0f, slotWidth * scale, slotHeight * scale);
         }
 
         speechBubble.setPosition(x - speechBubble.getWidth() / 2.0f, y + 15.0f);

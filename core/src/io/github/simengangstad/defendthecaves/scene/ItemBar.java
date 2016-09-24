@@ -8,6 +8,7 @@ import com.badlogic.gdx.utils.StringBuilder;
 import io.github.simengangstad.defendthecaves.Game;
 import io.github.simengangstad.defendthecaves.scene.crafting.Inventory;
 import io.github.simengangstad.defendthecaves.scene.entities.Player;
+import io.github.simengangstad.defendthecaves.scene.gui.SlotView;
 
 /**
  * @author simengangstad

@@ -20,19 +20,19 @@ public abstract class Recipe {
     /**
      * A reference to the ingredients (and the quantity of these ingredients) required for the recipe.
      */
-    private final HashMap<Class, Integer> ingredients = new HashMap<>();
+    private final HashMap<Class, Integer> ingredients = new HashMap<Class, Integer>();
 
-    private final HashMap<Class, Integer> addedIngredients = new HashMap<>();
+    private final HashMap<Class, Integer> addedIngredients = new HashMap<Class, Integer>();
 
     /**
      * Reference to the actual items.
      */
-    private final ArrayList<Item> items = new ArrayList<>();
+    private final ArrayList<Item> items = new ArrayList<Item>();
 
     /**
      * See {@link Recipe#getIngredientsByType(Class)}
      */
-    private final ArrayList<Item> tmpIngredients = new ArrayList<>();
+    private final ArrayList<Item> tmpIngredients = new ArrayList<Item>();
 
     public Recipe(int id, Class[] items) {
 
@@ -73,13 +73,13 @@ public abstract class Recipe {
 
         tmpIngredients.clear();
 
-        items.forEach((item) -> {
+        for (Item item : items) {
 
             if (item.getClass().equals(type)) {
 
                 tmpIngredients.add(item);
             }
-        });
+        }
 
         return tmpIngredients;
     }
@@ -135,7 +135,10 @@ public abstract class Recipe {
      */
     public void clear() {
 
-        addedIngredients.forEach((item, value) -> addedIngredients.put(item, 0));
+        for (Class item : addedIngredients.keySet()) {
+
+            addedIngredients.put(item, 0);
+        }
 
         items.clear();
     }
@@ -167,10 +170,10 @@ public abstract class Recipe {
 
         information.append("Recipe:\n");
 
-        ingredients.forEach((id, value) -> {
+        for (Class id : ingredients.keySet()) {
 
-            information.append(id + " - added: " + value + "\n");
-        });
+            information.append(id + " - added: " + ingredients.get(id) + "\n");
+        }
 
         return information.toString();
     }

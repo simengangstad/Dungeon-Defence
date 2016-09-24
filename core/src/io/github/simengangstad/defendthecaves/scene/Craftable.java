@@ -14,7 +14,7 @@ import java.util.ArrayList;
  */
 public class Craftable implements SlotItem {
 
-    public static ArrayList<Craftable> craftables = new ArrayList<>();
+    public static ArrayList<Craftable> craftables = new ArrayList<Craftable>();
 
     static {
 

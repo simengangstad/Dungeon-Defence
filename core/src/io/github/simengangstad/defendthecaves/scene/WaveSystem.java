@@ -35,7 +35,7 @@ public class WaveSystem {
     private final float intervalBetweenWaves;
 
 
-    private final HashMap<Barrier, ArrayList<Enemy>> enemiesAtHold = new HashMap<>();
+    private final HashMap<Barrier, ArrayList<Enemy>> enemiesAtHold = new HashMap<Barrier, ArrayList<Enemy>>();
 
     private int wave = 1;
 
@@ -59,7 +59,7 @@ public class WaveSystem {
 
     private int state = 0;
 
-    private Label countdownLabel = new Label("", Game.LabelStyle16);
+    private Label countdownLabel = new Label("", Game.LabelStyle32);
 
     private Label currentLabel = new Label("Current wave: 1", Game.UISkin);
 
@@ -80,7 +80,7 @@ public class WaveSystem {
 
         for (Barrier barrier : barriers) {
 
-            enemiesAtHold.put(barrier, new ArrayList<>());
+            enemiesAtHold.put(barrier, new ArrayList<Enemy>());
         }
 
         currentLabel.setFontScale(0.45f);
@@ -99,7 +99,7 @@ public class WaveSystem {
 
         for (Barrier barrier : barriers) {
 
-            enemiesAtHold.put(barrier, new ArrayList<>());
+            enemiesAtHold.put(barrier, new ArrayList<Enemy>());
         }
 
         player.host.stage.addActor(countdownLabel);
@@ -216,7 +216,7 @@ public class WaveSystem {
 
         enemiesLeft = (startAmount + difference * (wave - 1));
 
-        ArrayList<Item> items = new ArrayList<>();
+        ArrayList<Item> items = new ArrayList<Item>();
 
         for (int enemyIndex = 0; enemyIndex < (startAmount + difference * (wave - 1)); enemyIndex++) {
 
@@ -309,7 +309,11 @@ public class WaveSystem {
             }
 
             enemyToAdd.map = map;
-            items.forEach(enemyToAdd::addItem);
+
+            for (Item item : items) {
+
+                enemyToAdd.addItem(item);
+            }
 
             if (!keys.isEmpty() && MathUtils.random(100) < 15) {
 

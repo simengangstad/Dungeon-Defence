@@ -11,6 +11,7 @@ import io.github.simengangstad.defendthecaves.Game;
 import io.github.simengangstad.defendthecaves.GameObject;
 import io.github.simengangstad.defendthecaves.scene.Entity;
 import io.github.simengangstad.defendthecaves.scene.Explosion;
+import io.github.simengangstad.defendthecaves.scene.ImpactCallback;
 import io.github.simengangstad.defendthecaves.scene.Projectile;
 
 import java.util.List;
@@ -56,7 +57,7 @@ public class Arrow extends Projectile {
             index++;
         }
 
-        Array<TextureRegion> regions = new Array<>();
+        Array<TextureRegion> regions = new Array<TextureRegion>();
 
         for (int i = 0; i < projectingAnimations.length; i++) {
 
@@ -126,18 +127,22 @@ public class Arrow extends Projectile {
                 break;
         }
 
-        impactCallback = (object) -> {
+        impactCallback = new ImpactCallback() {
 
-            if (object instanceof Entity) {
+            @Override
+            public void callback(GameObject object) {
 
-                Axe.Hit.play();
 
-                ((Entity) object).takeDamage(70, 0.0f);
+                if (object instanceof Entity) {
 
-                if (type == 2) {
+                    Axe.Hit.play();
 
-                    ((Entity) object).takeDamage(30, 0.0f);
-                }
+                    ((Entity) object).takeDamage(70, 0.0f);
+
+                    if (Arrow.this.type == 2) {
+
+                        ((Entity) object).takeDamage(30, 0.0f);
+                    }
 /*
                 timesFired++;
 
@@ -146,16 +151,17 @@ public class Arrow extends Projectile {
                     // Breaks
                     host.removeGameObject(this);
                 }*/
-            }
+                }
 
-            if (type == 1) {
+                if (Arrow.this.type == 1) {
 
-                ExplosivePotion explosivePotion = new ExplosivePotion(this.position.cpy());
+                    ExplosivePotion explosivePotion = new ExplosivePotion(Arrow.this.position.cpy());
 
-                explosivePotion.map = this.map;
-                explosivePotion.host = this.host;
+                    explosivePotion.map = Arrow.this.map;
+                    explosivePotion.host = Arrow.this.host;
 
-                explosivePotion.breakPotion();
+                    explosivePotion.breakPotion();
+                }
             }
         };
     }
@@ -237,7 +243,6 @@ public class Arrow extends Projectile {
         Game.vector2Pool.free(tmpPosition);
     }
 
-    @Override
     public void draw(Batch batch, float x, float y, float width, float height) {
 
         Color colour = null;
@@ -292,6 +297,5 @@ public class Arrow extends Projectile {
         }
 
         batch.setColor(Color.WHITE);
-
     }
 }

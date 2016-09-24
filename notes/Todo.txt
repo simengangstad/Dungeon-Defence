@@ -183,4 +183,5 @@
 
 
 ## 0024
+- [x] Locked rooms are not recognised by the player. Only one get set to locked after the room but the variable is final, wut?
 - [ ] Nicer start screen (background of some sort)

@@ -4,6 +4,7 @@ import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
@@ -53,6 +54,7 @@ public class Game extends ApplicationAdapter {
     public static Label.LabelStyle LabelStyle8;
     public static Label.LabelStyle LabelStyle12;
     public static Label.LabelStyle LabelStyle16;
+    public static Label.LabelStyle LabelStyle32;
 
 
     public static Pool<Vector2> vector2Pool = new Pool<Vector2>() {
@@ -112,26 +114,26 @@ public class Game extends ApplicationAdapter {
 
     private void init() {
 
-        System.out.println("OpenGL context: " + Gdx.gl.glGetString(Gdx.gl.GL_VERSION));
+        System.out.println("OpenGL context: " + Gdx.gl.glGetString(GL20.GL_VERSION));
 
-        SpriteSheet = new Texture("assets/spritesheet.png");
-        GUISheet = new Texture("assets/gui/uiskin.png");
+        SpriteSheet = new Texture(Gdx.files.internal("assets/images/spritesheet.png"));
+        GUISheet = new Texture(Gdx.files.internal("assets/gui/uiskin.png"));
 
-        PlayerStationary = new Texture("assets/animations/PlayerStationary.png");
-        PlayerMoving = new Texture("assets/animations/PlayerWalking.png");
+        PlayerStationary = new Texture(Gdx.files.internal("assets/animations/PlayerStationary.png"));
+        PlayerMoving = new Texture(Gdx.files.internal("assets/animations/PlayerWalking.png"));
 
-        SnakeStationary = new Texture("assets/animations/SnakeStationary.png");
-        SnakeMoving = new Texture("assets/animations/SnakeMoving.png");
-        SnakeBiting = new Texture("assets/animations/SnakeAttacking.png");
+        SnakeStationary = new Texture(Gdx.files.internal("assets/animations/SnakeStationary.png"));
+        SnakeMoving = new Texture(Gdx.files.internal("assets/animations/SnakeMoving.png"));
+        SnakeBiting = new Texture(Gdx.files.internal("assets/animations/SnakeAttacking.png"));
 
-        OrcStationary = new Texture("assets/animations/OrcStationary.png");
-        OrcMoving = new Texture("assets/animations/OrcMoving.png");
+        OrcStationary = new Texture(Gdx.files.internal("assets/animations/OrcStationary.png"));
+        OrcMoving = new Texture(Gdx.files.internal("assets/animations/OrcMoving.png"));
 
-        CaterpillarStationary = new Texture("assets/animations/CaterpillarStationary.png");
-        CaterpillarMoving = new Texture("assets/animations/CaterpillarMoving.png");
-        CaterpillarAttacking = new Texture("assets/animations/CaterpillarAttacking.png");
+        CaterpillarStationary = new Texture(Gdx.files.internal("assets/animations/CaterpillarStationary.png"));
+        CaterpillarMoving = new Texture(Gdx.files.internal("assets/animations/CaterpillarMoving.png"));
+        CaterpillarAttacking = new Texture(Gdx.files.internal("assets/animations/CaterpillarAttacking.png"));
 
-        Torch = new Texture("assets/animations/Torch.png");
+        Torch = new Texture(Gdx.files.internal("assets/animations/Torch.png"));
 
         debugDrawTexture = new TextureRegion(SpriteSheet, 48, 80, 16, 16);
 
@@ -140,6 +142,7 @@ public class Game extends ApplicationAdapter {
         LabelStyle8 = new Label.LabelStyle(new BitmapFont(Gdx.files.internal("assets/gui/gothic_8.fnt")), Color.WHITE);
         LabelStyle12 = new Label.LabelStyle(new BitmapFont(Gdx.files.internal("assets/gui/gothic_12.fnt")), Color.WHITE);
         LabelStyle16 = new Label.LabelStyle(new BitmapFont(Gdx.files.internal("assets/gui/gothic_16.fnt")), Color.WHITE);
+        LabelStyle32 = new Label.LabelStyle(new BitmapFont(Gdx.files.internal("assets/gui/gothic_32.fnt")), Color.WHITE);
 
     }
 
