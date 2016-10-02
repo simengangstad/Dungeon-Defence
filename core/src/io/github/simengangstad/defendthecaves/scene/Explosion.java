@@ -46,7 +46,7 @@ public class Explosion extends GameObject {
 
         reset();
 
-        ExplosionSound.play();
+        if (Game.PlaySound) ExplosionSound.play();
 
         processedStarted = true;
 

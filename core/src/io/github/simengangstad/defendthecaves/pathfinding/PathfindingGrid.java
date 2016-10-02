@@ -68,15 +68,6 @@ public class PathfindingGrid {
         }
     };
 
-    Pool<Coordinate> coordinatePool = new Pool<Coordinate>() {
-
-        @Override
-        protected Coordinate newObject() {
-
-            return new Coordinate();
-        }
-    };
-
     public PathfindingGrid(int width, int height) {
 
         this.width = width;

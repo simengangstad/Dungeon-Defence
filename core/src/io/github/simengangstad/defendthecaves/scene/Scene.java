@@ -3,11 +3,9 @@ package io.github.simengangstad.defendthecaves.scene;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Preferences;
-import com.badlogic.gdx.graphics.Cursor;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.badlogic.gdx.graphics.g3d.particles.influencers.ColorInfluencer;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
@@ -25,7 +23,6 @@ import io.github.simengangstad.defendthecaves.scene.entities.Player;
 import io.github.simengangstad.defendthecaves.scene.gui.SlotItem;
 import io.github.simengangstad.defendthecaves.scene.gui.SpeechBubble;
 import io.github.simengangstad.defendthecaves.scene.items.*;
-import javafx.util.Duration;
 
 import java.util.*;
 
@@ -117,6 +114,7 @@ public class Scene extends Container {
 
     private TextButton exitButton = new TextButton("Exit", Game.UISkin);
     private TextButton controlsButton = new TextButton("Controls", Game.UISkin);
+    private TextButton settingsButton = new TextButton("Settings", Game.UISkin);
     private TextButton backButton = new TextButton("Back", Game.UISkin);
 
     public static final String Scary = "scary", Normal = "normal", High = "High", Calm = "calm";
@@ -170,17 +168,40 @@ public class Scene extends Container {
 
                 exitButton.setVisible(freeze);
                 backButton.setVisible(freeze);
+                settingsButton.setVisible(freeze);
                 controlsButton.setVisible(freeze);
 
                 justUnfrozen = true;
             }
         });
 
+        settingsButton.setWidth(200.0f);
+        settingsButton.setHeight(50.0f);
+        settingsButton.setVisible(false);
+        settingsButton.setPosition(Gdx.graphics.getWidth() / 2.0f - settingsButton.getWidth() / 2.0f, Gdx.graphics.getHeight() / 2.0f - settingsButton.getHeight() / 2.0f + 15);
+        settingsButton.addListener(new InputListener() {
+
+            @Override
+            public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
+
+                return true;
+            }
+
+            @Override
+            public void touchUp(InputEvent event, float x, float y, int pointer, int button) {
+
+                super.touchUp(event, x, y, pointer, button);
+
+                Game.swapContainer(Scene.this, new SettingsScreen());
+
+                justUnfrozen = true;
+            }
+        });
 
         controlsButton.setWidth(200.0f);
         controlsButton.setHeight(50.0f);
         controlsButton.setVisible(false);
-        controlsButton.setPosition(Gdx.graphics.getWidth() / 2.0f - controlsButton.getWidth() / 2.0f, Gdx.graphics.getHeight() / 2.0f - controlsButton.getHeight() / 2.0f);
+        controlsButton.setPosition(Gdx.graphics.getWidth() / 2.0f - controlsButton.getWidth() / 2.0f, Gdx.graphics.getHeight() / 2.0f - controlsButton.getHeight() / 2.0f - 45);
         controlsButton.addListener(new InputListener() {
 
             @Override
@@ -203,7 +224,7 @@ public class Scene extends Container {
         exitButton.setWidth(200.0f);
         exitButton.setHeight(50.0f);
         exitButton.setVisible(false);
-        exitButton.setPosition(Gdx.graphics.getWidth() / 2.0f - exitButton.getWidth() / 2.0f, Gdx.graphics.getHeight() / 2.0f - exitButton.getHeight() / 2.0f - 75);
+        exitButton.setPosition(Gdx.graphics.getWidth() / 2.0f - exitButton.getWidth() / 2.0f, Gdx.graphics.getHeight() / 2.0f - exitButton.getHeight() / 2.0f - 105);
         exitButton.addListener(new InputListener() {
 
             @Override
@@ -275,6 +296,7 @@ public class Scene extends Container {
         sceneStage.addActor(dieLabel);
         sceneStage.addActor(exitButton);
         sceneStage.addActor(backButton);
+        sceneStage.addActor(settingsButton);
         sceneStage.addActor(controlsButton);
 
         int highscore = preferences.getInteger("score", 0);
@@ -407,14 +429,13 @@ public class Scene extends Container {
         }
     }
 
+    public static final int MapWidth = 60;
+    public static final int MapHeight = 60;
+
     private void initialiseMap() {
-
-        int width = 60;
-        int height = 60;
-
         Random random = new Random(System.currentTimeMillis());
 
-        map = new Map(width, height, (width * height) / (width), 3, 9, 595332546, player.size, (width * height) / (width + height) / 5, ((width * height) / (width + height) / 2));
+        map = new Map(MapWidth, MapHeight, (MapWidth * MapHeight) / (MapWidth), 3, 9, 595332546, player.size, (MapWidth * MapHeight) / (MapWidth + MapHeight) / 5, ((MapWidth * MapHeight) / (MapWidth + MapHeight) / 2));
 
         map.changeCallback = new Callback() {
 
@@ -730,7 +751,7 @@ public class Scene extends Container {
                         break;
                     }
 
-                    Axe.Hit.play();
+                    if (Game.PlaySound) Axe.Hit.play();
 
                     entity.takeDamage(attackDamage);
 
@@ -1018,7 +1039,7 @@ public class Scene extends Container {
 
                         if (waveSystem.getEnemiesLeft() == 0) {
 
-                            jukebox.requestSongFromGroup("calm");
+                            jukebox.requestSongFromGroup(Scene.Calm);
                         }
                     }
 
@@ -1203,6 +1224,7 @@ public class Scene extends Container {
             freeze = !freeze;
 
             exitButton.setVisible(freeze);
+            settingsButton.setVisible(freeze);
             backButton.setVisible(freeze);
             controlsButton.setVisible(freeze);
         }
@@ -1275,11 +1297,11 @@ public class Scene extends Container {
 
         if (Game.Debug) player.displayMessage("Time: " + waveSystem.getRemainingTime());
 
-        if (waveSystem.getRemainingTime() < 10 && jukeboxWaveCount != waveSystem.getWave()) {
+        if (waveSystem.getRemainingTime() < 10 && jukeboxWaveCount != waveSystem.getWave() && jukebox.getNextGroup().equalsIgnoreCase(Scene.Scary)) {
 
             jukeboxWaveCount++;
 
-            jukebox.requestSongFromGroup("scary");
+            jukebox.requestSongFromGroup(Scene.Scary);
         }
 
         player.draw(batch);

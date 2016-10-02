@@ -12,7 +12,7 @@ public class ExplosivePotion extends Potion {
 
         super(position);
 
-        addChemical(new Chemical(-50, -50, 50));
+        addChemical(new Chemical(-50, 50, 50));
 
         information = "Explosive potion";
     }

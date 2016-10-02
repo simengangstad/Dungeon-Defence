@@ -4,6 +4,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputMultiplexer;
 import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.graphics.GL20;
+import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.scenes.scene2d.Stage;
@@ -50,6 +51,11 @@ public class Container implements Disposable, InputProcessor {
      * The custom mouse cursor.
      */
     protected Pointer pointer = new Pointer();
+
+    /**
+     * Drawn behind every game object and actor.
+     */
+    protected Texture background = null;
 
     /**
      * Initializes the container.
@@ -140,6 +146,7 @@ public class Container implements Disposable, InputProcessor {
         return false;
     }
 
+
     @Override
     public boolean scrolled(int amount) {
         return false;
@@ -173,6 +180,8 @@ public class Container implements Disposable, InputProcessor {
         clearBuffers();
 
         batch.begin();
+
+        if (background != null) batch.draw(background, 0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
 
         for (GameObject gameObject : gameObjects) {
 

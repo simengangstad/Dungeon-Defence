@@ -287,6 +287,7 @@ public abstract class Entity extends Collidable {
         item.parent = this;
         item.map = map;
         item.rotation = 0.0f;
+        item.placed = false;
 
         item.create();
 
@@ -366,7 +367,7 @@ public abstract class Entity extends Collidable {
             ((Torch) nextItem).light.enabled = true;
         }
 
-        System.out.println("Set current pointer for current item to: " + currentItemPointer);
+        if (Game.Debug) System.out.println("Set current pointer for current item to: " + currentItemPointer);
     }
 
     public void interact(Vector2 interactionDirection) {
@@ -431,7 +432,7 @@ public abstract class Entity extends Collidable {
 
         System.out.println("Entity (" + this + ") died, dropping inventory...");
 
-        Vector2 force = new Vector2();
+        Vector2 force = Game.vector2Pool.obtain();
 
         for (int x = 0; x < inventory.columns; x++) {
 
@@ -449,6 +450,8 @@ public abstract class Entity extends Collidable {
                 }
             }
         }
+
+        Game.vector2Pool.free(force);
 
         ((Scene) host).sceneStage.getActors().removeValue(healthBar, true);
     }
@@ -576,7 +579,25 @@ public abstract class Entity extends Collidable {
             }
         }
 
-        currentTextureRegion = currentAnimation.getKeyFrame(stateTime, true);
+
+        try {
+
+            currentTextureRegion = currentAnimation.getKeyFrame(stateTime, true);
+        }
+        catch (ArrayIndexOutOfBoundsException exception) {
+
+            if (!goingBackwards) {
+
+                stateTime = 0.0f;
+            }
+            else {
+
+                stateTime = currentAnimation.getAnimationDuration();
+            }
+
+            currentTextureRegion = currentAnimation.getKeyFrame(stateTime, true);
+        }
+
 
         delta.set(0.0f, 0.0f);
 
@@ -629,7 +650,7 @@ public abstract class Entity extends Collidable {
 
             if (burpTimer > 500) {
 
-                Potion.Burp.play();
+                if (Game.PlaySound) Potion.Burp.play();
 
                 burp = false;
 
@@ -725,7 +746,7 @@ public abstract class Entity extends Collidable {
             adjustHealth(-potion.getToxicity());
         }
 
-        Potion.Drinking.play();
+        if (Game.PlaySound) Potion.Drinking.play();
 
         burp = MathUtils.random(100) < 15;
 

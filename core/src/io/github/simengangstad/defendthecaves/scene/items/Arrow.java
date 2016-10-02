@@ -135,7 +135,7 @@ public class Arrow extends Projectile {
 
                 if (object instanceof Entity) {
 
-                    Axe.Hit.play();
+                    if (Game.PlaySound) Axe.Hit.play();
 
                     ((Entity) object).takeDamage(70, 0.0f);
 

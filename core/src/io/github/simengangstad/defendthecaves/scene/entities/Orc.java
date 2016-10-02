@@ -56,7 +56,7 @@ public class Orc extends Enemy {
 
                 int track = MathUtils.random(1);
 
-                roar[track].play(0.3F);
+                if (Game.PlaySound) roar[track].play(0.3F);
             }
 
             while (timeToNextStep < 0) {

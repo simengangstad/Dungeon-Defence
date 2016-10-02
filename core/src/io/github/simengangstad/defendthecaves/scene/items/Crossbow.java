@@ -163,11 +163,11 @@ public class Crossbow extends RotatableWeapon {
 
                     host.addGameObject(arrow);
 
-                    Fire.play();
+                    if (Game.PlaySound) Fire.play();
                 }
                 else {
 
-                    NoArrow.play();
+                    if (Game.PlaySound)  NoArrow.play();
                 }
             }
 

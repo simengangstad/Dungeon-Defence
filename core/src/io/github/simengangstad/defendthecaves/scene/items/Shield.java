@@ -48,7 +48,7 @@ public class Shield extends Item {
 
         blockTimer = 0.0f;
 
-        Axe.Swing.play(0.5f);
+        if (Game.PlaySound) Axe.Swing.play(0.5f);
     }
 
     @Override

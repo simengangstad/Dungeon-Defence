@@ -4,6 +4,9 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.utils.Array;
+import com.badlogic.gdx.utils.Pool;
+import io.github.simengangstad.defendthecaves.Game;
 import io.github.simengangstad.defendthecaves.audio.Jukebox;
 import io.github.simengangstad.defendthecaves.pathfinding.Coordinate;
 import io.github.simengangstad.defendthecaves.scene.Entity;
@@ -23,32 +26,69 @@ public abstract class Enemy extends Entity {
 
     private Player playerReference;
 
-    private final Vector2 tmpVector = new Vector2();
+    private final Vector2 tmpVector = Game.vector2Pool.obtain();
 
     /**
      * Divided by two when player deoesn't have a torch lit.
      */
     private final int coverageRadius;
 
-    private final Coordinate destination = new Coordinate();
+    private final Coordinate destination = coordinatePool.obtain();
 
     private boolean followingPlayer = false;
 
-    private Coordinate[][] cameFrom;
+    private Coordinate[][] cameFrom = coordinateArrayPool.obtain();
 
-    private Coordinate lastPlayerPos = new Coordinate();
+    private Coordinate lastPlayerPos = coordinatePool.obtain();
 
     float scaleFactor = 0.9f;
 
     float timeLeftStationary = -1.0f;
 
-    final Vector2 lastPosition = new Vector2();
+    final Vector2 lastPosition = Game.vector2Pool.obtain();
 
-    final ArrayList<Coordinate> path = new ArrayList<Coordinate>();
+    private ArrayList<Coordinate> path;
 
     int currentIndex = 0;
 
     float timePassedGoingInTheGivenDirection = 0.0f;
+
+    private static final Pool<Coordinate [][]> coordinateArrayPool = new Pool<Coordinate[][]>() {
+
+        @Override
+        protected Coordinate[][] newObject() {
+
+            Coordinate[][] array = new Coordinate[Scene.MapWidth][Scene.MapHeight];
+
+            for (int x = 0; x < array.length; x++) {
+
+                for (int y = 0; y < array[0].length; y++) {
+
+                    array[x][y] = new Coordinate();
+                }
+            }
+
+            return array;
+        }
+    };
+
+    private static final Pool<ArrayList<Coordinate>> listPool = new Pool<ArrayList<Coordinate>>() {
+
+        @Override
+        protected ArrayList<Coordinate> newObject() {
+
+            return new ArrayList<Coordinate>();
+        }
+    };
+
+    private static final Pool<Coordinate> coordinatePool = new Pool<Coordinate>() {
+
+        @Override
+        protected Coordinate newObject() {
+
+            return new Coordinate();
+        }
+    };
 
     public Enemy(Vector2 position, Player player, int coverageRadius, Vector2 size, Animation stationaryAnimation, Animation movingAnimation) {
 
@@ -57,6 +97,8 @@ public abstract class Enemy extends Entity {
         this.playerPositionReference = player.position;
         this.playerSizeReference = player.size;
         playerReference = player;
+
+        path = listPool.obtain();
 
         this.coverageRadius = coverageRadius;
 
@@ -69,16 +111,19 @@ public abstract class Enemy extends Entity {
     public void create() {
 
         super.create();
+    }
 
-        cameFrom = new Coordinate[((Scene) host).pathfindingGrid.width][((Scene) host).pathfindingGrid.height];
+    @Override
+    public void die() {
 
-        for (int x = 0; x < cameFrom.length; x++) {
+        super.die();
 
-            for (int y = 0; y < cameFrom[0].length; y++) {
-
-                cameFrom[x][y] = new Coordinate();
-            }
-        }
+        Game.vector2Pool.free(tmpVector);
+        Game.vector2Pool.free(lastPosition);
+        coordinatePool.free(destination);
+        coordinatePool.free(lastPlayerPos);
+        listPool.free(path);
+        coordinateArrayPool.free(cameFrom);
     }
 
     protected abstract void hurtPlayer(Vector2 direction);

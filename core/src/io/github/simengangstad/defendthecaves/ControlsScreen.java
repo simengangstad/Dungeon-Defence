@@ -18,7 +18,7 @@ public class ControlsScreen extends Container {
                         "E - Inventory\n" +
                         "F - Interact/pick up items\n" +
                         "C - Throw items\n" +
-                        "Tab or 1, 2, 3, 4 - Shift between items\n" +
+                        "Tab, 1, 2, 3, 4, 5 or scroll - Shift between items\n" +
                         "Press items in left grid to craft when showing inventory\n";
 
     private TextButton backButton = new TextButton("Back", Game.UISkin);

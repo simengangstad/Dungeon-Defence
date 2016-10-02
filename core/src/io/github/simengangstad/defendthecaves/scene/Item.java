@@ -202,7 +202,7 @@ public abstract class Item extends Collidable implements SlotItem {
 
         thrown = true;
 
-        throwSound.play();
+        if (Game.PlaySound) throwSound.play();
     }
 
     public void toggleTimer() {

@@ -2,6 +2,7 @@ package io.github.simengangstad.defendthecaves;
 
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Preferences;
 import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
@@ -47,6 +48,8 @@ public class Game extends ApplicationAdapter {
 
     public static Texture Torch;
 
+    public static Texture Background;
+
     public static final int EntitySize = 80;
     public static final int ItemSize = (EntitySize / 2);
 
@@ -88,10 +91,28 @@ public class Game extends ApplicationAdapter {
 
     public static TextureRegion debugDrawTexture;
 
+    public static boolean PlaySound = false;
+
     @Override
 	public void create () {
 
         init();
+
+        Preferences prefs = Gdx.app.getPreferences("prefs");
+
+        if (!prefs.contains("music")) {
+
+            prefs.putBoolean("music", true);
+        }
+
+        if (!prefs.contains("sfx")) {
+
+            prefs.putBoolean("sfx", true);
+        }
+
+        prefs.flush();
+
+        PlaySound = prefs.getBoolean("sfx");
 
         Gdx.input.setCursorCatched(true);
         Gdx.input.setCursorPosition(Gdx.graphics.getWidth() / 2, Gdx.graphics.getHeight() / 2);
@@ -132,6 +153,8 @@ public class Game extends ApplicationAdapter {
         CaterpillarStationary = new Texture(Gdx.files.internal("assets/animations/CaterpillarStationary.png"));
         CaterpillarMoving = new Texture(Gdx.files.internal("assets/animations/CaterpillarMoving.png"));
         CaterpillarAttacking = new Texture(Gdx.files.internal("assets/animations/CaterpillarAttacking.png"));
+
+        Background = new Texture(Gdx.files.internal("assets/images/background.png"));
 
         Torch = new Texture(Gdx.files.internal("assets/animations/Torch.png"));
 

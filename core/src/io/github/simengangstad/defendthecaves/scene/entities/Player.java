@@ -126,6 +126,21 @@ public class Player extends Entity implements InputProcessor {
         ((Scene) host).addLight(light);
 
         mouseTimer = 0.0f;
+
+        inventory.setVisible(displayingInventory);
+        if (inventory.speechBubble != null && !inventory.isVisible()) {
+
+            inventory.speechBubble.setVisible(displayingInventory);
+            inventory.label.setVisible(displayingInventory);
+        }
+
+        craftableItemsView.setVisible(displayingInventory);
+        if (craftableItemsView.speechBubble != null && !craftableItemsView.isVisible()) {
+
+            craftableItemsView.speechBubble.setVisible(displayingInventory);
+            craftableItemsView.label.setVisible(displayingInventory);
+        }
+        itemBar.setVisible(!displayingInventory);
     }
 
     public void initialise() {
@@ -246,7 +261,15 @@ public class Player extends Entity implements InputProcessor {
 
     @Override
     public boolean scrolled(int amount) {
-        return false;
+
+        if (currentItemPointer == 0 && amount == -1) {
+
+            amount = inventory.columns - 1;
+        }
+
+        shuffleItem((currentItemPointer + amount) % inventory.columns);
+
+        return true;
     }
 
     @Override
@@ -418,7 +441,7 @@ public class Player extends Entity implements InputProcessor {
 
                 if (timeToNextStep < 0) {
 
-                    Walking[(walkStep++) % 1].play(0.15F);
+                    if (Game.PlaySound) Walking[(walkStep++) % 1].play(0.15F);
 
                     while (timeToNextStep < 0) {
 
@@ -485,7 +508,7 @@ public class Player extends Entity implements InputProcessor {
 
                             miningTimer = 0.0f;
 
-                            Rocks.play(0.25f);
+                            if (Game.PlaySound) Rocks.play(0.25f);
 
                             for (int i = 0; i < MathUtils.random(2, 4); i++) {
 

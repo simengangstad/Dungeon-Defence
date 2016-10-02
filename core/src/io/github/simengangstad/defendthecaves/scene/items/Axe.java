@@ -54,7 +54,7 @@ public class Axe extends RotatableWeapon {
 
         super.interact(direction);
 
-        Swing.play(0.5F);
+        if (Game.PlaySound) Swing.play(0.5F);
     }
 
     @Override

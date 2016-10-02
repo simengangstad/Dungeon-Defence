@@ -256,7 +256,7 @@ public class CraftableItemsView extends SlotView implements InputProcessor {
 
                     hostEntity.addItem(result);
 
-                    CraftSound.play(0.25f);
+                    if (Game.PlaySound) CraftSound.play(0.25f);
                 }
                 else {
 
@@ -267,7 +267,7 @@ public class CraftableItemsView extends SlotView implements InputProcessor {
 
                     itemsToObtain.clear();
 
-                    ErrorSound.play(0.75f);
+                    if (Game.PlaySound) ErrorSound.play(0.75f);
                 }
 
                 recipe.clear();

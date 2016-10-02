@@ -41,11 +41,6 @@ public class LightShader {
 
     private final String TimeUniformName = "u_time";
 
-
-    private final String TileSizeUniformName = "u_tileSizeInWorldSpace";
-
-    private final String MapWidthUniformName = "u_widthOfMap";
-
     private final float[] byteMap;
 
     private final int width;
@@ -86,8 +81,6 @@ public class LightShader {
                 byteMap[x + y * map.getWidth()] = (map.isSolid(x, y) ? 1 : 0);
             }
         }
-
-        //handle.setUniform1fv("u_map[0]", byteMap, 0, byteMap.length);
     }
 
     public void setAmbientColour(float r, float g, float b) {
@@ -100,8 +93,6 @@ public class LightShader {
         handle.setUniformf(LightTileSizeInPixelsUniformName, lightTileSizeInPixels);
 
         handle.setUniformf(AmbientColourUniformName, ambientColour);
-        handle.setUniformf(TileSizeUniformName, (float) Map.TileSizeInPixelsInWorldSpace);
-        handle.setUniformi(MapWidthUniformName, width);
 
         time += Gdx.graphics.getDeltaTime() * 5;
 
@@ -179,10 +170,6 @@ public class LightShader {
                 "uniform sampler2D u_texture;\n" +
                 "uniform bool u_flash;\n" +
 
-                "uniform float u_tileSizeInWorldSpace;\n" +
-                "uniform int u_widthOfMap;\n" +
-                //"uniform float u_map["+byteMap.length+"];\n" +
-
                 "const float timeScalar = 1.5;\n" +
 
                 "float rand(float a) {\n" +
@@ -205,21 +192,13 @@ public class LightShader {
                         "colour = vec4(1.0, 1.0, 1.0, texColor.a);\n" +
                     "}\n" +
 
-                    "vec2 tilePos = vec2(int(v_position.x / u_tileSizeInWorldSpace), int(v_position.y / u_tileSizeInWorldSpace));\n" +
-
                     "bool illuminated = false;\n" +
                     "bool torchLight = false;\n" +
                     "vec3 finalLightColour = vec3(-1.0, -1.0, -1.0);\n" +
 
                     "float intensity = 0.0;\n" +
-                    "int intensity1 = u_widthOfMap;\n" +
 
-                    //"if  (u_map[int(tilePos.x) + int(tilePos.y) * u_widthOfMap] == 0.0 || \n" +
-                    //    "(u_map[int(tilePos.x) + int(tilePos.y) * u_widthOfMap] == 1.0 && u_map[int(tilePos.x) + int(tilePos.y - 1.0) * u_widthOfMap] == 0.0)/* ||\n" +
-                     //   "(u_map[int(tilePos.x) + int(tilePos.y) * u_widthOfMap] == 1.0 && u_map[int(tilePos.x + 1.0) + int(tilePos.y) * u_widthOfMap] == 0.0) ||\n" +
-                      //  "(u_map[int(tilePos.x) + int(tilePos.y) * u_widthOfMap] == 1.0 && u_map[int(tilePos.x - 1.0) + int(tilePos.y) * u_widthOfMap] == 0.0)*/) {\n" +
-
-                        "vec3 preColour = vec3(colour.xyz);\n" +
+                    "vec3 preColour = vec3(colour.xyz);\n" +
 
                         "for (int i = 0; i < AmountOfLights; i++) {\n" +
 
@@ -270,7 +249,6 @@ public class LightShader {
                                 "}\n" +
                             "}\n" +
                         "}\n" +
-                    //"}\n" +
 
                     "if (!illuminated) {\n" +
 

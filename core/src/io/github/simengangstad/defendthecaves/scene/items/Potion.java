@@ -73,7 +73,7 @@ public class  Potion extends Item {
             return;
         }
 
-        Breaking.play();
+        if (Game.PlaySound) Breaking.play();
 
         broken = true;
 

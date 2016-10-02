@@ -1,6 +1,7 @@
 package io.github.simengangstad.defendthecaves.audio;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Preferences;
 import com.badlogic.gdx.audio.Music;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.utils.Queue;
@@ -26,6 +27,8 @@ public class Jukebox {
     private float timeToNextSong = 0.0f;
 
     private float fadeTime = 10.0f;
+
+    private final Preferences preferences = Gdx.app.getPreferences("prefs");
 
     public void setFadeTime(float fadeTime) {
 
@@ -88,6 +91,8 @@ public class Jukebox {
         }
         currentGroup = groupQueue.removeFirst();
 
+        currentSong.setVolume(preferences.getBoolean("music") ? 1.0f : 0.0f);
+
         System.out.println("Playing new track from group: " + currentGroup);
     }
 
@@ -131,12 +136,15 @@ public class Jukebox {
         currentSong.play();
     }
 
+    public void setMute(boolean value) {
+
+        currentSong.setVolume(value ? 0.0f : 1.0f);
+    }
+
     private void fetchNextSong() {
 
-        System.out.println(currentSong.getVolume());
-
         currentSong.stop();
-        currentSong.setVolume(1.0f);
+        currentSong.setVolume(preferences.getBoolean("music") ? 1.0f : 0.0f);
         previousSong = currentSong;
         previousSong.setPosition(0.0f);
         currentSong = queue.removeFirst();
@@ -152,6 +160,11 @@ public class Jukebox {
     }
 
     public String getNextGroup() {
+
+        if (queue.size == 0) {
+
+            requestSongFromGroup(currentGroup);
+        }
 
         return groupQueue.first();
     }

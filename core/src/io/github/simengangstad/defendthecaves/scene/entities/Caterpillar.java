@@ -74,7 +74,7 @@ public class Caterpillar extends Enemy {
 
             if (MathUtils.random(100) < 60) {
 
-                Hiss.play(1.0f);
+                if (Game.PlaySound) Hiss.play(1.0f);
             }
 
             while (timeToNextStep < 0) {
@@ -118,7 +118,7 @@ public class Caterpillar extends Enemy {
                                     return;
                                 }
 
-                                Axe.Hit.play();
+                                if (Game.PlaySound) Axe.Hit.play();
 
                                 entity.takeDamage(attackDamage);
 
@@ -140,7 +140,7 @@ public class Caterpillar extends Enemy {
                         }
                     };
 
-                    Spitting.play();
+                    if (Game.PlaySound) Spitting.play();
 
                     host.addGameObject(projectile);
                 }

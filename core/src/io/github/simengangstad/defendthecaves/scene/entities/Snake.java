@@ -51,7 +51,7 @@ public class Snake extends Enemy {
 
         if (timeToNextAttack <= 0) {
 
-            bite.play(0.25f);
+            if (Game.PlaySound) bite.play(0.25f);
 
             requestAnimation(BiteAnimation, new Callback() {
 
@@ -76,7 +76,10 @@ public class Snake extends Enemy {
 
         if (timeToNextStep < 0) {
 
-            if (MathUtils.random(100) < 60) hiss.play(0.25f);
+            if (MathUtils.random(100) < 60) {
+
+                if (Game.PlaySound) hiss.play(0.25f);
+            }
 
             while (timeToNextStep < 0) {
 

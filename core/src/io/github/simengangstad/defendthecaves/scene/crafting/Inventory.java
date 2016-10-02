@@ -9,6 +9,7 @@ import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.WidgetGroup;
+import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.StringBuilder;
 import io.github.simengangstad.defendthecaves.Game;
 import io.github.simengangstad.defendthecaves.scene.Entity;
@@ -76,6 +77,8 @@ public class Inventory extends SlotView implements InputProcessor {
      */
     private final TextureRegion trashTextureRegion = new TextureRegion(Game.SpriteSheet, 112, 208, 16, 16);
 
+    private final Label binLabel = new Label("Bin", Game.LabelStyle12);
+
     public static final Sound Trashing = Gdx.audio.newSound(Gdx.files.internal("assets/sfx/rpg/misc/random6.ogg"));
 
     /**
@@ -93,6 +96,11 @@ public class Inventory extends SlotView implements InputProcessor {
     public Inventory(Vector2 origin, Vector2 size, int columns, int rows) {
 
         super(origin, size, columns, rows);
+
+        binLabel.setSize(50, 20);
+        binLabel.setAlignment(Align.center);
+        binLabel.setPosition(Gdx.graphics.getWidth() - slotWidth + (slotWidth / style.slot.getMinWidth()) + 5.0f, (slotHeight / style.slot.getMinHeight()) + slotHeight - (slotHeight / style.slot.getMinHeight()) * 2 + 10.0f);
+        binLabel.setVisible(true);
 
         labels = new Label[columns][rows];
 
@@ -396,6 +404,8 @@ public class Inventory extends SlotView implements InputProcessor {
         float width = slotWidth - (slotWidth / style.slot.getMinWidth()) * 2;
         float height = slotHeight - (slotHeight / style.slot.getMinHeight()) * 2;
 
+        binLabel.draw(batch, 1.0f);
+
         batch.draw(trashTextureRegion, Gdx.graphics.getWidth() - slotWidth + (slotWidth / style.slot.getMinWidth()), (slotHeight / style.slot.getMinHeight()), width, height);
 
         label.setVisible(true);
@@ -548,7 +558,7 @@ public class Inventory extends SlotView implements InputProcessor {
             }
             else if (Gdx.graphics.getWidth() - slotWidth < x && x < Gdx.graphics.getWidth() && 0.0f < y && y < slotHeight) {
 
-                Trashing.play();
+                if (Game.PlaySound) Trashing.play();
                 currentItems.clear();
             }
         }

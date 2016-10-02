@@ -31,10 +31,12 @@ public class Coordinate {
         set(coordinate.x, coordinate.y);
     }
 
+    final String divider = ", ";
+
     @Override
     public String toString() {
 
-        return x + ", " + y;
+        return x + divider + y;
     }
 
     @Override
