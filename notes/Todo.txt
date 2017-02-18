@@ -195,6 +195,7 @@
 - [x] Credits screen
 - [x] Scroll to swap items in item bar
 - [x] Trash label over trash so that it's more obvious
-- [ ] Shield doesn't work against caterpillars (windows)
 - [x] Settings for music
 
+## 002
+- [ ] Shield doesn't work against caterpillars (windows)

@@ -131,7 +131,7 @@ public class StartScreen extends Container {
         Label label = new Label(controls, Game.LabelStyle16);
         label.setPosition(Gdx.graphics.getWidth() / 2.0f - (label.getWidth() / 2.0f), playButton.getY() + 40.0f);
 
-        Label title = new Label("Dungeon Defence", Game.LabelStyle32);
+        Label title = new Label("Dungeon Defence beta 0.0.2", Game.LabelStyle32);
         title.setPosition(Gdx.graphics.getWidth() / 2.0f - (title.getWidth() / 2.0f), playButton.getY() + label.getHeight() + 20.0f + 40);
 
         stage.addActor(controlsButton);
