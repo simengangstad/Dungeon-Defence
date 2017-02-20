@@ -63,13 +63,13 @@
 	com.badlogic.gdx.scenes.scene2d.ui.Tree$TreeStyle: {
 		default: { minus: tree-minus, plus: tree-plus, selection: default-select-selection }
 	},
-	io.github.simengangstad.defendthecaves.scene.gui.SlotView$SlotViewStyle: {
+	io.github.simengangstad.dungeondefence.scene.gui.SlotViewStyle: {
 		default: { background: default-pane, slot: default-rect }
 	}
-	io.github.simengangstad.defendthecaves.scene.gui.SpeechBubble$SpeechBubbleStyle: {
+	io.github.simengangstad.dungeondefence.scene.gui.SpeechBubbleStyle: {
 		default: { background: scroll, extra: speech-bubble-extra, font: gothic-font, fontColor: white}
 	}
-	io.github.simengangstad.defendthecaves.scene.gui.ProgressBar$ProgressBarStyle: {
+	io.github.simengangstad.dungeondefence.scene.gui.ProgressBarStyle: {
 
 		default: { background: speech-bubble, progress: progress}
 	}

@@ -3,8 +3,8 @@ apply plugin: "java"
 sourceCompatibility = 1.6
 sourceSets.main.java.srcDirs = [ "src/" ]
 
-project.ext.mainClassName = "io.github.simengangstad.desktop.DesktopLauncher"
-project.ext.assetsDir = new File("../core");
+project.ext.mainClassName = "io.github.simengangstad.dungeondefence.desktop.DesktopLauncher"
+project.ext.assetsDir = new File("../core/assets");
 
 task run(dependsOn: classes, type: JavaExec) {
     main = project.mainClassName
