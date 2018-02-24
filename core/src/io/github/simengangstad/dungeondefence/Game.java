@@ -137,7 +137,7 @@ public class Game extends ApplicationAdapter {
 
     private void init() {
 
-        Gdx.app.log("OpenGL", "OpenGL context: " + Gdx.gl.glGetString(GL20.GL_VERSION));
+        //Gdx.app.log("OpenGL", "OpenGL context: " + Gdx.gl.glGetString(GL20.GL_VERSION));
 
         SpriteSheet = new Texture(Gdx.files.internal("images/spritesheet.png"));
         GUISheet = new Texture(Gdx.files.internal("gui/uiskin.png"));

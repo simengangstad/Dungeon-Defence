@@ -1,0 +1,15 @@
+{
+    "platform": "mac",
+    "jdk": "jdkmac.zip",
+    "executable": "Dungeon Defense",
+    "classpath": [
+        "desktop-1.0.jar"
+    ],
+    "mainclass": "io.github.simengangstad.desktop.DesktopLauncher",
+    "vmargs": [
+       "Xmx1G"
+    ],
+    "resources": [],
+    "minimizejre": "soft",
+    "output": "out-mac"
+}
